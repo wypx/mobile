@@ -10,10 +10,10 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-
-
 #ifndef ATCHANNEL_H
-#define ATCHANNEL_H 1
+#define ATCHANNEL_H
+
+#include <msf_utils.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,7 +38,6 @@ extern void  AT_DUMP(const char* prefix, const char*  buff, int  len);
 #define AT_ERROR_INVALID_RESPONSE -6 /* eg an at_send_command_singleline that
                                         did not get back an intermediate
                                         response */
-
 
 typedef enum {
     NO_RESULT,   /* no intermediate response expected */
@@ -96,7 +95,7 @@ int at_send_command_multiline (const char *command,
                                  ATResponse **pp_outResponse);
 
 
-int at_handshake();
+int at_handshake(void);
 
 int at_send_command (const char *command, ATResponse **pp_outResponse);
 

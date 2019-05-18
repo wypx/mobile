@@ -6,16 +6,16 @@
 ROOTDIR = ../..
 include $(ROOTDIR)/Rules.make
 
-BIN		= bin
-TARGET	= $(BIN)/mobile
+TMP		= bin
+TARGET	= $(BINPATH)/msf_mobile
 
 SRCS 	= $(wildcard src/*.c)
-OBJS	= $(SRCS:%.c=$(BIN)/%.o)
+OBJS	= $(SRCS:%.c=$(TMP)/%.o)
 
-IFLAGS 		= -I./inc -I $(ROOTDIR)/inc 
-CFLAGS 		= -Wall -W -O2 -Wswitch-default -Wpointer-arith -Wno-unused -g
-DFLAGS 		= -D_GNU_SOURCE 
-LD_FLAGS 	= -lpthread 
+IFLAGS 		= -I./inc -I $(ROOTDIR)/inc -I../libmsf/msf/inc -I../comm
+CFLAGS 		= -Wall -Wextra -W -O2 -pipe -Wswitch-default -Wpointer-arith -g -Wno-unused -ansi -ftree-vectorize -std=gnu11
+DFLAGS 		=  
+LD_FLAGS 	= -lpthread -ldl -lnuma -L$(LIBPATH) -lmsf
 
 GFLAG 		= $(CFLAGS) $(DFLAGS) $(IFLAGS)
 
@@ -24,17 +24,27 @@ GFLAG 		= $(CFLAGS) $(DFLAGS) $(IFLAGS)
 all : $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(LINK) -o $@ $^ $(LD_FLAGS) 
-	$(STRIP) $@
-	$(STRIP) -x -R .note -R .comment $@
-	rm -rf $(BIN)/src/
+	@echo $(LINK) $@
+	@$(LINK) -o $@ $^ $(LD_FLAGS) 
+	@echo $(STRIP) $@
+	@$(STRIP) -x -R .note -R .comment $@
+	@rm -rf $(TMP)
 	@echo "====Makefile GFLAG==="
 	@echo $(GFLAG)
 	@echo "======================"
-$(BIN)/%.o:%.c
-	@mkdir -p $(BIN)
+$(TMP)/%.o:%.c
+	@mkdir -p $(BINPATH)
 	@mkdir -p $(dir $@)
-	$(CC) $(GFLAG) -c $^ -o $@
+	@echo $(CC) $@
+	@$(CC) $(GFLAG) -c $^ -o $@
 
 clean :
-	rm -rf $(BIN)/*
+	rm -rf $(TMP)
+	
+	
+#树莓派4G驱动编译：
+#usbserial.ko 
+#usb_wwan.ko
+#option.ko
+#export KERNEL_SOURCE_DIR=/home/tomato/raspberrypi/linux-rpi-4.14.y
+#make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C $KERNEL_SOURCE_DIR M=drivers/usb/serial modules

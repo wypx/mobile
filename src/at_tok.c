@@ -10,21 +10,14 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-
-
-
 #include "at_tok.h"
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
 
 /**
  * Starts tokenizing an AT response string
  * returns -1 if this is not a valid response string, 0 on success.
  * updates *p_cur with current position
  */
-int at_tok_start(char **p_cur)
-{
+s32 at_tok_start(s8 **p_cur) {
     if (*p_cur == NULL) {
         return -1;
     }
@@ -43,8 +36,7 @@ int at_tok_start(char **p_cur)
     return 0;
 }
 
-static void skipWhiteSpace(char **p_cur)
-{
+static void skipWhiteSpace(s8 **p_cur) {
     if (*p_cur == NULL) return;
 
     while (**p_cur != '\0' && isspace(**p_cur)) {
@@ -52,8 +44,7 @@ static void skipWhiteSpace(char **p_cur)
     }
 }
 
-static void skipNextComma(char **p_cur)
-{
+static void skipNextComma(s8 **p_cur) {
     if (*p_cur == NULL) return;
 
     while (**p_cur != '\0' && **p_cur != ',') {
@@ -65,9 +56,8 @@ static void skipNextComma(char **p_cur)
     }
 }
 
-static char * nextTok(char **p_cur)
-{
-    char *ret = NULL;
+static s8 * nextTok(s8 **p_cur) {
+    s8 *ret = NULL;
 
     skipWhiteSpace(p_cur);
 
@@ -91,10 +81,8 @@ static char * nextTok(char **p_cur)
  * updates *p_cur
  * "base" is the same as the base param in strtol
  */
-
-static int at_tok_nextint_base(char **p_cur, int *p_out, int base, int  uns)
-{
-    char *ret;
+static s32 at_tok_nextint_base(s8 **p_cur, s32 *p_out, s32 base, s32  uns) {
+    s8 *ret;
 
     if (*p_cur == NULL) {
         return -1;
@@ -106,14 +94,14 @@ static int at_tok_nextint_base(char **p_cur, int *p_out, int base, int  uns)
         return -1;
     } else {
         long l;
-        char *end;
+        s8 *end;
 
         if (uns)
             l = strtoul(ret, &end, base);
         else
             l = strtol(ret, &end, base);
 
-        *p_out = (int)l;
+        *p_out = (s32)l;
 
         if (end == ret) {
             return -1;
@@ -129,8 +117,7 @@ static int at_tok_nextint_base(char **p_cur, int *p_out, int base, int  uns)
  * returns 0 on success and -1 on fail
  * updates *p_cur
  */
-int at_tok_nextint(char **p_cur, int *p_out)
-{
+s32 at_tok_nextint(s8 **p_cur, s32 *p_out) {
     return at_tok_nextint_base(p_cur, p_out, 10, 0);
 }
 
@@ -140,15 +127,13 @@ int at_tok_nextint(char **p_cur, int *p_out)
  * returns 0 on success and -1 on fail
  * updates *p_cur
  */
-int at_tok_nexthexint(char **p_cur, int *p_out)
-{
+s32 at_tok_nexthexint(s8 **p_cur, s32 *p_out) {
     return at_tok_nextint_base(p_cur, p_out, 16, 1);
 }
 
-int at_tok_nextbool(char **p_cur, char *p_out)
-{
-    int ret;
-    int result;
+s32 at_tok_nextbool(s8 **p_cur, s8 *p_out) {
+    s32 ret;
+    s32 result;
 
     ret = at_tok_nextint(p_cur, &result);
 
@@ -162,14 +147,13 @@ int at_tok_nextbool(char **p_cur, char *p_out)
     }
 
     if (p_out != NULL) {
-        *p_out = (char)result;
+        *p_out = (s8)result;
     }
 
     return ret;
 }
 
-int at_tok_nextstr(char **p_cur, char **p_out)
-{
+s32 at_tok_nextstr(s8 **p_cur, s8 **p_out) {
     if (*p_cur == NULL) {
         return -1;
     }
@@ -180,9 +164,18 @@ int at_tok_nextstr(char **p_cur, char **p_out)
 }
 
 /** returns 1 on "has more tokens" and 0 if no */
-int at_tok_hasmore(char **p_cur)
-{
+s32 at_tok_hasmore(s8 **p_cur) {
     return ! (*p_cur == NULL || **p_cur == '\0');
+}
+
+s32 at_str_startwith(const s8 *line, const s8 *prefix) {
+    for ( ; *line != '\0' && *prefix != '\0' ; line++, prefix++) {
+        if (*line != *prefix) {
+            return 0;
+        }
+    }
+
+    return *prefix == '\0';
 }
 
 

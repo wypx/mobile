@@ -10,14 +10,11 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include "atmod.h"
+#include "mobile.h"
 
-
-struct usbev_module* usb_module[] = {
-	&usbdev_detect,
-	&usbdev_at,
-	&usbdev_dial,
-	&usbdev_net,
-	&usbdev_sms,
-	NULL,
+struct msf_svc* mobile_module[] = {
+    &mobile_usb,
+    &mobile_dial,
+    &mobile_sms,
+    NULL,
 };

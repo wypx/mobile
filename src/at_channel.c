@@ -10,30 +10,10 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-
-
-
-#include "atchannel.h"
-#include "at_tok.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <pthread.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/time.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/prctl.h>
-
+#include <mobile.h>
 
 #define LOG_NDEBUG 0
 #define LOG_TAG "AT"
-
-#include "misc.h"
-
 
 #define NUM_ELEMS(x) (sizeof(x)/sizeof(x[0]))
 
@@ -53,11 +33,11 @@ static char *s_ATBufferCur = s_ATBuffer;
 #if AT_DEBUG
 void  AT_DUMP(const char*  prefix, const char*  buff, int  len)
 {
-	if(!buff)
-		return;
+    if(!buff)
+        return;
     if (len < 0)
         len = strlen(buff);
-    AT_DBG("%.*s", len, buff);
+    MSF_MOBILE_LOG(DBG_DEBUG, "%.*s", len, buff);
 }
 #endif
 
@@ -149,7 +129,7 @@ static int isFinalResponseError(const char *line)
     size_t i;
 
     for (i = 0 ; i < NUM_ELEMS(s_finalResponsesError) ; i++) {
-        if (strStartsWith(line, s_finalResponsesError[i])) {
+        if (at_str_startwith(line, s_finalResponsesError[i])) {
             return 1;
         }
     }
@@ -171,7 +151,7 @@ static int isFinalResponseSuccess(const char *line)
     size_t i;
 
     for (i = 0 ; i < NUM_ELEMS(s_finalResponsesSuccess) ; i++) {
-        if (strStartsWith(line, s_finalResponsesSuccess[i])) {
+        if (at_str_startwith(line, s_finalResponsesSuccess[i])) {
             return 1;
         }
     }
@@ -204,7 +184,7 @@ static int isSMSUnsolicited(const char *line)
     size_t i;
 
     for (i = 0 ; i < NUM_ELEMS(s_smsUnsoliciteds) ; i++) {
-        if (strStartsWith(line, s_smsUnsoliciteds[i])) {
+        if (at_str_startwith(line, s_smsUnsoliciteds[i])) {
             return 1;
         }
     }
@@ -263,7 +243,7 @@ static void processLine(const char *line)
             break;
         case SINGLELINE:
             if (sp_response->p_intermediates == NULL
-                && strStartsWith (line, s_responsePrefix)
+                && at_str_startwith(line, s_responsePrefix)
             ) {
                 addIntermediate(line);
             } else {
@@ -272,7 +252,7 @@ static void processLine(const char *line)
             }
             break;
         case MULTILINE:
-            if (strStartsWith (line, s_responsePrefix)) {
+            if (at_str_startwith(line, s_responsePrefix)) {
                 addIntermediate(line);
             } else {
                 handleUnsolicited(line);
@@ -280,7 +260,7 @@ static void processLine(const char *line)
         break;
 
         default: /* this should never be reached */
-            AT_DBG("Unsupported AT command type %d\n", s_type);
+            MSF_MOBILE_LOG(DBG_DEBUG, "Unsupported AT command type %d\n", s_type);
             handleUnsolicited(line);
         break;
     }
@@ -361,7 +341,7 @@ static const char *readline()
 
     while (p_eol == NULL) {
         if (0 == MAX_AT_RESPONSE - (p_read - s_ATBuffer)) {
-            AT_DBG("ERROR: Input line exceeded buffer\n");
+            MSF_MOBILE_LOG(DBG_DEBUG, "ERROR: Input line exceeded buffer\n");
             /* ditch buffer and start over again */
             s_ATBufferCur = s_ATBuffer;
             *s_ATBufferCur = '\0';
@@ -387,9 +367,9 @@ static const char *readline()
         } else if (count <= 0) {
             /* read error encountered or EOF reached */
             if(count == 0) {
-                AT_DBG("atchannel: EOF reached");
+                MSF_MOBILE_LOG(DBG_DEBUG, "atchannel: EOF reached");
             } else {
-                AT_DBG("atchannel: read error %s", strerror(errno));
+                MSF_MOBILE_LOG(DBG_DEBUG, "atchannel: read error %s", strerror(errno));
             }
             return NULL;
         }
@@ -402,7 +382,7 @@ static const char *readline()
     s_ATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
                               /* and there will be a \0 at *p_read */
 
-   // AT_DBG("AT< %s\n", ret);
+   // MSF_MOBILE_LOG(DBG_DEBUG,"AT< %s\n", ret);
     return ret;
 }
 
@@ -426,7 +406,7 @@ static void onReaderClosed()
 
 static void *readerLoop(void *arg)
 {
-	prctl(PR_SET_NAME, "readerLoop");
+    msf_thread_name("readerLoop");
     for (;;) {
         const char * line;
 
@@ -482,7 +462,7 @@ static int writeline (const char *s)
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
-   // AT_DBG("AT> %s\n", s);
+   // MSF_MOBILE_LOG(DBG_DEBUG,("AT> %s\n", s);
 
     AT_DUMP( ">> ", s, strlen(s) );
 
@@ -521,7 +501,7 @@ static int writeCtrlZ (const char *s)
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
-   // AT_DBG("AT> %s^Z\n", s);
+   // MSF_MOBILE_LOG(DBG_DEBUG,("AT> %s^Z\n", s);
 
     AT_DUMP( ">* ", s, strlen(s) );
 
@@ -584,7 +564,8 @@ int at_open(int fd, ATUnsolHandler h)
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    ret = pthread_create(&s_tid_reader, &attr, readerLoop, &attr);
+    //ret =  pthread_spawn(&s_tid_reader, readerLoop, void * arg);
+    ret = pthread_create(&s_tid_reader, &attr, readerLoop, NULL);
 
     if (ret < 0) {
         perror ("pthread_create");
@@ -886,12 +867,10 @@ void at_set_on_reader_closed(void (*onClose)(void))
  * Periodically issue an AT command and wait for a response.
  * Used to ensure channel has start up and is active
  */
-
-int 
-at_handshake(void* data, unsigned int datalen)
+int at_handshake(void)
 {
     int i;
-    int err = 0;
+    int rc = 0;
 
     if (0 != pthread_equal(s_tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
@@ -902,15 +881,15 @@ at_handshake(void* data, unsigned int datalen)
 
     for (i = 0 ; i < HANDSHAKE_RETRY_COUNT ; i++) {
         /* some stacks start with verbose off */
-        err = at_send_command_full_nolock ("ATE0Q0V1", NO_RESULT,
+        rc = at_send_command_full_nolock ("ATE0Q0V1", NO_RESULT,
                     NULL, NULL, HANDSHAKE_TIMEOUT_MSEC, NULL);
 
-        if (err == 0) {
+        if (rc == 0) {
             break;
         }
     }
 
-    if (err == 0) {
+    if (rc == 0) {
         /* pause for a bit to let the input buffer drain any unmatched OK's
            (they will appear as extraneous unsolicited responses) */
 
@@ -919,7 +898,7 @@ at_handshake(void* data, unsigned int datalen)
 
     pthread_mutex_unlock(&s_commandmutex);
 
-    return err;
+    return rc;
 }
 
 
@@ -939,7 +918,7 @@ AT_CME_Error at_get_cme_error(const ATResponse *p_response)
     }
 
     if (p_response->finalResponse == NULL
-        || !strStartsWith(p_response->finalResponse, "+CME ERROR:")
+        || !at_str_startwith(p_response->finalResponse, "+CME ERROR:")
     ) {
         return CME_ERROR_NON_CME;
     }
