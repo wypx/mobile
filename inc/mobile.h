@@ -11,19 +11,17 @@
 *
 **************************************************************************/
 #include <msf_svc.h>
-#include <msf_thread.h>
 #include <msf_network.h>
 #include <msf_serial.h>
 #include <msf_file.h>
-#include <msf_log.h>
-#include <msf_list.h>
 #include <at_tok.h>
 #include <at_channel.h>
 #include <at_tok.h>
+#include <client.h>
 
 #define MSF_MOD_MOBILE "MOBILE"
 #define MSF_MOBILE_LOG(level, ...) \
-    log_write(level, MSF_MOD_MOBILE, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_MOBILE, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 enum MOBILE_ERR {
     E_MOBILE_STATE_INIT     = 0,
@@ -230,6 +228,7 @@ enum AUTH_TYPE {
 };
 
 enum DIAL_STATE {
+    DIAL_INIT,
     DIAL_EXECUTING,
     DIAL_FAILED,
     DIAL_SUCCESSFUL,

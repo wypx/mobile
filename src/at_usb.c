@@ -165,8 +165,6 @@ static s32 usb_query_radio_status(void);
 static s32 usb_set_radio_state(enum MOBILE_FUNC cfun);
 static s32 usb_search_network(enum NETWORK_SERACH_TYPE s_mode);
 
-
-
 static s32 usb_init(void *data, u32 datalen) {
 
     s32 rc = -1;
@@ -177,24 +175,23 @@ static s32 usb_init(void *data, u32 datalen) {
     usb->usb_status = -1;
     usb->item.modem_type = MODEM_UNKOWN;
 
-    if (-1 == usb_check_lsusb())
+    if (usb_check_lsmod() < 0) {
+        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem driver not installed.");
         return -1;
+    }
 
-    MSF_MOBILE_LOG(DBG_DEBUG, "222");
-
-    if (-1 == usb_check_lsmod())
+    if (usb_check_lsusb() < 0) {
+        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem id app not matched.");
         return -1;
-    MSF_MOBILE_LOG(DBG_DEBUG, "333");
+    }
 
-    if (-1 != usb_check_ttyusb())
+    if (usb_check_ttyusb() < 0) {
+        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem ttyusb not found.");
         return -1;
-    MSF_MOBILE_LOG(DBG_DEBUG, "444");
-
+    }
+    
     at_set_on_reader_closed(onATReaderClosed);
     at_set_on_timeout(onATTimeout);
-
-    
-    MSF_MOBILE_LOG(DBG_DEBUG, "555");
 
     memset(dev_path, 0, sizeof(dev_path));
     sprintf(dev_path, TTY_USB_FORMAT, usb->item.at_port);
@@ -238,9 +235,9 @@ static s32 usb_init(void *data, u32 datalen) {
     }
 
 static s32 usb_get_info(void *data, u32 datalen) {
-    if(datalen != sizeof(struct usb_info))
+    if (datalen != sizeof(struct usb_info))
         return -1;
-    memcpy((struct usb_info*)data, usb, sizeof(struct usb_info));
+    memcpy(data, usb, sizeof(struct usb_info));
     return 0;
 }
 
@@ -288,7 +285,7 @@ static s32 usb_check_id_support(u32 vendorid, u32 productid) {
     }
 
     return 0;
-    }
+}
 
 static s32 usb_check_lsusb(void) {
 
@@ -298,35 +295,33 @@ static s32 usb_check_lsusb(void) {
 
     fp = popen("lsusb", "r");
     if (!fp) {
-      usb->usb_status = E_DRIVER_ID_NOT_SUPPORT;
-      return -1;
+        usb->usb_status = E_DRIVER_ID_NOT_SUPPORT;
+        return -1;
     }
 
     u32 productid = 0;
     u32 vendorid = 0;
 
-    while (!feof(fp)) { 
-        
-        MSF_MOBILE_LOG(DBG_DEBUG, "666");
+    while (!feof(fp)) {
         memset(line, 0, sizeof(line));
         if (!fgets(line, sizeof(line), fp)) {
-            pclose(fp);
-            return -1;
+            break;
         }
 
         if ((p = strstr(line, "ID"))) {
-             MSF_MOBILE_LOG(DBG_DEBUG, "888[%s]", line);
             sscanf(p, "ID %x:%x", &vendorid, &productid); 
-            if(-1 == usb_check_id_support(vendorid, productid)) {
+            if (usb_check_id_support(vendorid, productid) < 0) {
                 continue;
             } else {
-                break;
+                pclose(fp);
+                return 0;
             }
         }
     }
 
+    usb->usb_status = E_DRIVER_ID_NOT_SUPPORT;
     pclose(fp);
-    return 0;
+    return -1;
 }
 
 static s32 usb_check_ttyusb(void) {
@@ -341,7 +336,8 @@ static s32 usb_check_ttyusb(void) {
     if (rc != 0) {
         /* Drivers have been not installed, ttyUSB not exist,
            that is the drivers not support current productid */
-           usb->usb_status = E_TTYUSB_NOT_FOUND;
+        usb->usb_status = E_TTYUSB_NOT_FOUND;
+        return -1;
     }
     return 0;
 }
@@ -364,39 +360,37 @@ static s32 usb_check_lsmod(void) {
         return -1;
     }
 
-    do {
-        fp = fopen(USB_DRIVER_PATH, "r");
-        if (NULL == fp) {
-            usb->usb_status = E_DRIVER_NOT_INSTALLED;
+    fp = fopen(USB_DRIVER_PATH, "r");
+    if (NULL == fp) {
+        usb->usb_status = E_DRIVER_NOT_INSTALLED;
+        return -1;
+    }
+
+    while (!feof(fp)) {
+        memset(line, 0, sizeof(line));
+        if (!fgets(line,  sizeof(line), fp)) {
             break;
         }
 
-        while (!feof(fp)) {
-            memset(line, 0, sizeof(line));
-            if (!fgets(line,  sizeof(line), fp)) {
+        if (strstr(line, "option") || 
+           strstr(line, "usb_wwan") || 
+           strstr(line, "usbserial")) {
+            drivers++;
+            /* Otherwise Drivers have not been installed completely or 
+                No drivers have been installed */
+            if(3 == drivers) {
                 sfclose(fp);
-                return -1;
+                return 0;
             }
-
-            if(strstr(line, "option") || 
-               strstr(line, "usb_wwan") || 
-               strstr(line, "usbserial")) {
-                drivers++;
-                if(3 == drivers)
-                    break;
-            } else {
-                continue;
-            }
+        } else {
+            continue;
         }
-    }while(0);
+    }
 
-    if(3 != drivers) {  
-        /* Drivers have not been installed completely or No drivers have been installed */
-        usb->usb_status = E_DRIVER_NOT_INSTALLED;
-    }
+    usb->usb_status = E_DRIVER_NOT_INSTALLED;
     sfclose(fp);
-    return 0;
-    }
+    return -1;
+}
 
 
 /***************************AT Related Function******************************/

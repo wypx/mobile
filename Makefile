@@ -12,10 +12,10 @@ TARGET	= $(BINPATH)/msf_mobile
 SRCS 	= $(wildcard src/*.c)
 OBJS	= $(SRCS:%.c=$(TMP)/%.o)
 
-IFLAGS 		= -I./inc -I $(ROOTDIR)/inc -I../libmsf/msf/inc -I../comm
+IFLAGS 		= -I./inc -I $(ROOTDIR)/inc -I../libmsf/msf/inc -I../librpc/comm -I../librpc/client/inc
 CFLAGS 		= -Wall -Wextra -W -O2 -pipe -Wswitch-default -Wpointer-arith -g -Wno-unused -ansi -ftree-vectorize -std=gnu11
 DFLAGS 		=  
-LD_FLAGS 	= -lpthread -ldl -lnuma -L$(LIBPATH) -lmsf
+LD_FLAGS 	= -lpthread -ldl -lnuma -L$(LIBPATH) -lmsf -lipc
 
 GFLAG 		= $(CFLAGS) $(DFLAGS) $(IFLAGS)
 

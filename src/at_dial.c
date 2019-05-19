@@ -39,10 +39,7 @@ struct msf_svc mobile_dial = {
 
 static struct dial_info    dialinfo;
 static struct dial_info*   dial = &dialinfo;
-
-
 static struct usb_info     usb;
-
 
 typedef struct __attribute__((__packed__)) {
     u32 local_oper;
@@ -77,6 +74,16 @@ static local_dial_param dialparam[] = {
 
 };
 
+void dial_param_init(void) {
+    memset(dial, 0, sizeof(struct dial_info));
+    dial->dial_enable = true;
+    dial->dial_type = DIAL_AUTO;
+    dial->epname = DIAL_TTY_USB;
+    dial->mtu = 1460;
+    dial->protocal = AUTH_PAP_CHAP;
+    memcpy(dial->test_domain, "luotang.me", strlen("luotang.me"));
+    dial->stat = DIAL_INIT;
+}
 
 static s32 dial_init(void *data, u32 datalen) {
     if (!data || datalen != sizeof(struct usb_info))
@@ -84,6 +91,8 @@ static s32 dial_init(void *data, u32 datalen) {
 
     memset(&usb, 0, sizeof(struct usb_info));
     memcpy(&usb,  data, sizeof(struct usb_info));
+
+    dial_param_init();
 
     return 0;
 }
@@ -214,8 +223,6 @@ static s32 dial_start(void *data, u32 datalen) {
     argv[i++] = chat_disconnect;
     argv[i++] = (s8  *)0;
 
-
-    /*起一个新的进程来用于拨号进程*/
     if ((dial->ppp_pid = vfork()) < 0) {
 
         MSF_MOBILE_LOG(DBG_ERROR, "Can not fork, exit now.");

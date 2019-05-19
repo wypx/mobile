@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (c) 2017, luotang.me <wypx520@gmail.com>, China.
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
 * All rights reserved.
 *
 * Distributed under the terms of the GNU General Public License v2.
@@ -10,9 +10,28 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
+/*
+ *  ┏┓   ┏┓
+ * ┏┛┻━━━┛┻┓
+ * ┃       ┃
+ * ┃ ━　　　┃
+ * ┃┳┛  ┗┳ ┃
+ * ┃       ┃
+ * ┃   ┻   ┃
+ * ┃       ┃
+ * ┗━┓   ┏━┛
+ *   ┃   ┃   NO 996!
+ *   ┃   ┃   NO BUG!
+ *   ┃   ┗━━━┓
+ *   ┃       ┣┓
+ *   ┃       ┏┛
+ *   ┗┓┓┏━┳┓┏┛
+ *    ┃┫┫ ┃┫┫
+ *    ┗┻┛ ┗┻┛
+ */
 #include <mobile.h>
 
-static s8 *g_request_errmsg_map[] = {
+static s8 *g_errmsg_map[] = {
     "MOBILE_STATE_INIT",        /* Mobile init state*/
     "DRIVER_NOT_INSTALLED",     /* lsmod driver in /proc/moudules not installed */
     "DRIVER_ID_NOT_FOUND",      /* lsusb show id file not found*/
@@ -32,32 +51,30 @@ static s8 *g_request_errmsg_map[] = {
 
 };
  s8 *mobile_error_request(enum MOBILE_ERR err) {
-    return g_request_errmsg_map[err];
+    return g_errmsg_map[err];
 }
 
-/**
- * Call from RIL to us to make a RIL_REQUEST
- *
- * Must be completed with a call to RIL_onRequestComplete()
- *
- * RIL_onRequestComplete() may be called from any thread, before or after
- * this function returns.
- *
- * Will always be called from the same thread, so returning here implies
- * that the radio is ready to process another command (whether or not
- * the previous command has completed).
- */
-static void onRequest (s32 request, void *data, u32  datalen) {
-
-}
-static void mobile_show_info(void) {
+static void mobile_show_version(void) {
     MSF_MOBILE_LOG(DBG_DEBUG, "#####################################################");
     MSF_MOBILE_LOG(DBG_DEBUG, "# Name    : Mobile Process                          #");
     MSF_MOBILE_LOG(DBG_DEBUG, "# Author  : luotang.me                              #");
     MSF_MOBILE_LOG(DBG_DEBUG, "# Version : 1.1                                     #");
     MSF_MOBILE_LOG(DBG_DEBUG, "# Time    : 2018-01-27 - 2019-05-03                 #");
-    MSF_MOBILE_LOG(DBG_DEBUG, "# Content : Hardware - SIM - Dial - NetPing         #");
+    MSF_MOBILE_LOG(DBG_DEBUG, "# Content : Hardware - SIM - Dial - SMS             #");
     MSF_MOBILE_LOG(DBG_DEBUG, "#####################################################");
+}
+
+s32 mobile_req_scb(s8 *data, u32 len, u32 cmd) {
+    MSF_MOBILE_LOG(DBG_INFO, "Mobile seq service callback data(%p) len(%d) cmd(%d).",
+                       data, len, cmd);
+    return 0;
+}
+
+s32 mobile_ack_scb(s8 *data, u32 len, u32 cmd) {
+    MSF_MOBILE_LOG(DBG_INFO, "Mobile ack service callback data(%p) len(%d) cmd(%d).",
+                       data, len, cmd);
+
+    return 0;
 }
 
 s32 sig_pppd_exit(void *lparam) {
@@ -94,51 +111,70 @@ void sig_handler(s32 sig) {
     }
 }
 
+#define server_host "192.168.58.132"
+#define SERVER_PORT "9999"
+
 s32 main(s32 argc, s8 **argv) {
 
-    log_init("logger/MOBILE.log");
-    
-    mobile_show_info();
+    s32 rc = -1;
+    struct client_param param;
+    memset(&param, 0, sizeof(param));
+    param.name = MSF_MOD_MOBILE;
+    param.cid = RPC_MOBILE_ID;
+    param.host = LOCAL_HOST_V4;
+    param.port = SERVER_PORT;
+    param.req_scb = mobile_req_scb;
+    param.ack_scb = mobile_ack_scb;
+
+    rc = client_agent_init(&param);
+    if (rc < 0) {
+        MSF_MOBILE_LOG(DBG_DEBUG, "IPC agent init faild, try later.");
+        //return -1;
+    }
+   
+    mobile_show_version();
 
     //signal(SIGINT,  sig_handler);
     ///signal(SIGKILL, sig_handler);
     //signal(SIGSEGV, sig_handler);
 
-    struct usb_info         usb;
-    struct dial_info        dial;
+    struct usb_info usb;
+    struct dial_info dial;
 
     memset(&dial, 0, sizeof(struct dial_info));
     memset(&usb,  0, sizeof(struct usb_info));
-    
-    mobile_module[MOBILE_MOD_USB]->init(NULL, 0);
-    mobile_module[MOBILE_MOD_USB]->start(NULL, 0);
+
+    rc = mobile_module[MOBILE_MOD_USB]->init(NULL, 0);
     mobile_module[MOBILE_MOD_USB]->get_param(&usb, sizeof(usb));
-    //if(usb.usb_status != E_USB_TTY_EXIST)
-    //  return -1;
+    if (rc < 0) {
+        MSF_MOBILE_LOG(DBG_DEBUG, "Usb status: %s.", 
+                    mobile_error_request(usb.usb_status));
+        return -1;
+    }
+    rc = mobile_module[MOBILE_MOD_USB]->start(NULL, 0);
+    mobile_module[MOBILE_MOD_USB]->get_param(&usb, sizeof(usb));
 
     MSF_MOBILE_LOG(DBG_DEBUG, "##################  HardWare Info  ######################");
-    MSF_MOBILE_LOG(DBG_DEBUG, "AT PORT       : %d\n",   usb.item.at_port);
-    MSF_MOBILE_LOG(DBG_DEBUG, "MEDEM PORT    : %d\n",   usb.item.modem_port);
-    MSF_MOBILE_LOG(DBG_DEBUG, "DEBUG PORT    : %d\n",   usb.item.debug_port);
-    MSF_MOBILE_LOG(DBG_DEBUG, "VENDDOR ID    : 0x%x\n", usb.item.vendorid);
-    MSF_MOBILE_LOG(DBG_DEBUG, "PRODUCT ID    : 0x%x\n", usb.item.productid);
-    MSF_MOBILE_LOG(DBG_DEBUG, "USB MODEM     : %s\n",   usb.item.modem_name);
-    MSF_MOBILE_LOG(DBG_DEBUG, "USB IMODEL    : %s\n",   mobile_modem_str(usb.item.modem_type));
-    MSF_MOBILE_LOG(DBG_DEBUG, "RESULT        : %s\n",   mobile_error_request(usb.usb_status));
+    MSF_MOBILE_LOG(DBG_DEBUG, "AT PORT       : %d",   usb.item.at_port);
+    MSF_MOBILE_LOG(DBG_DEBUG, "MEDEM PORT    : %d",   usb.item.modem_port);
+    MSF_MOBILE_LOG(DBG_DEBUG, "DEBUG PORT    : %d",   usb.item.debug_port);
+    MSF_MOBILE_LOG(DBG_DEBUG, "VENDDOR ID    : 0x%x", usb.item.vendorid);
+    MSF_MOBILE_LOG(DBG_DEBUG, "PRODUCT ID    : 0x%x", usb.item.productid);
+    MSF_MOBILE_LOG(DBG_DEBUG, "USB MODEM     : %s",   usb.item.modem_name);
+    MSF_MOBILE_LOG(DBG_DEBUG, "USB IMODEL    : %s",   mobile_modem_str(usb.item.modem_type));
+    MSF_MOBILE_LOG(DBG_DEBUG, "RESULT        : %s",   mobile_error_request(usb.usb_status));
 
-    //if(usb.usb_status != E_USB_TTY_AVAILABLE)
-    //  return -1;
+    MSF_MOBILE_LOG(DBG_DEBUG, "##################  SIM INFO ########################");
+    MSF_MOBILE_LOG(DBG_DEBUG, "AT TEST: %s",      mobile_error_request(usb.usb_status));
+    MSF_MOBILE_LOG(DBG_DEBUG, "SIM    : %s",      mobile_operator_str(usb.sim_operator));
+    MSF_MOBILE_LOG(DBG_DEBUG, "CSQ    : %d",      usb.network_signal);
+    MSF_MOBILE_LOG(DBG_DEBUG, "MODE   : %s",    usb.network_mode_str);
 
-    MSF_MOBILE_LOG(DBG_DEBUG, "\n##################  SIM INFO ########################\n");
-    MSF_MOBILE_LOG(DBG_DEBUG, "AT TEST: %s\n",  mobile_error_request(usb.usb_status));
-    MSF_MOBILE_LOG(DBG_DEBUG, "SIM    : %s\n",  mobile_operator_str(usb.sim_operator));
-    MSF_MOBILE_LOG(DBG_DEBUG, "CSQ    : %d\n",  usb.network_signal);
-    MSF_MOBILE_LOG(DBG_DEBUG, "MODE   : %s\n\n",    usb.network_mode_str);
-
-    if(usb.usb_status != E_TTYUSB_AVAILABLE)
+    if (usb.usb_status != E_TTYUSB_AVAILABLE ||
+        usb.usb_status != E_SIM_RECOGNOSED)
         return -1;
 
-    mobile_module[MOBILE_MOD_DIAL]->init(&usb, sizeof(usb)); //check net
+    mobile_module[MOBILE_MOD_DIAL]->init(&usb, sizeof(usb));
     mobile_module[MOBILE_MOD_DIAL]->start(NULL, 0);
     mobile_module[MOBILE_MOD_DIAL]->get_param(&dial, sizeof(dial));
 
@@ -165,7 +201,9 @@ s32 main(s32 argc, s8 **argv) {
     MSF_MOBILE_LOG(DBG_DEBUG, "##################  TEST OVER  ########################");
 
     while (1) 
-     sleep(2);
+      sleep(2);
+
+    client_agent_deinit();
 
     return 0;
 }
