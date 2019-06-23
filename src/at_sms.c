@@ -21,7 +21,7 @@ struct sms {
     s8 sms_center[16];
     s8 phone_list[8];
     s8 operator_resp;
-} MSF_PACKED_MEMORY;
+};
 
 static s32 sms_init(void *data, u32 datalen);
 static s32 sms_deinit(void *data, u32 datalen);
@@ -29,8 +29,6 @@ static s32 sms_start(void *data, u32 datalen);
 static s32 sms_stop(void *data, u32 datalen);
 static s32 sms_set_info(void *data, u32 datalen);
 static s32 sms_get_info(void *data, u32 datalen);
-static s32 sms_test(void *data, u32 datalen);
-
 
 struct msf_svc mobile_sms = {
     .init           = sms_init,
@@ -60,9 +58,3 @@ static s32 sms_set_info(void *data, u32 datalen) {
 static s32 sms_get_info(void *data, u32 datalen) {
     return 0;
 }
-static s32 sms_test(void *data, u32 datalen) {
-    return 0;
-}
-
-
-

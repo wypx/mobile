@@ -194,7 +194,7 @@ struct usb_item {
     u8  at_port;    /* port id not more than 255*/
     u8  modem_port;
     u8  debug_port;
-} MSF_PACKED_MEMORY ;
+} ;
 
 struct usb_info {
     u8   usb_status;
@@ -208,7 +208,7 @@ struct usb_info {
     u8   network_mode;
     u8   network_search_mode;
     u8   network_mode_str[32];
-} MSF_PACKED_MEMORY;
+};
 
 s8 *mobile_error_request(enum MOBILE_ERR err);
 s8 *mobile_modem_str(enum USB_MODEM modem);
@@ -260,13 +260,13 @@ struct dial_info {
 struct sms_item {
     struct list_head sms_head;
     s8 peer_phone_num[16];
-    s8 msg[256];
-} MSF_PACKED_MEMORY;
+    s8 sms_msg[256];
+};
 
 struct sms_queue {
     u32 sms_num;
     struct list_head sms_list;
-} MSF_PACKED_MEMORY;
+};
 
 struct mobile {
     pid_t pid;
@@ -295,10 +295,9 @@ struct mobile {
 
     s8 apn[32]; /* eg. "public.vpdn.hz" */
     u8 reserved_3[62];
-} MSF_PACKED_MEMORY;
+};
 
-
-enum mobile_mod_idx {
+enum MOBILE_IDX {
     MOBILE_MOD_USB,
     MOBILE_MOD_DIAL,
     MOBILE_MOD_SMS,

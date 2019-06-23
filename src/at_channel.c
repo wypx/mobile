@@ -12,17 +12,12 @@
 **************************************************************************/
 #include <mobile.h>
 
-#define LOG_NDEBUG 0
-#define LOG_TAG "AT"
-
-#define NUM_ELEMS(x) (sizeof(x)/sizeof(x[0]))
-
 #define MAX_AT_RESPONSE (8 * 1024)
 #define HANDSHAKE_RETRY_COUNT 8
 #define HANDSHAKE_TIMEOUT_MSEC 250
 
 static pthread_t s_tid_reader;
-static int s_fd = -1;    /* fd of the AT channel */
+static s32 s_fd = -1;    /* fd of the AT channel */
 static ATUnsolHandler s_unsolHandler;
 
 /* for input buffering */
@@ -128,7 +123,7 @@ static int isFinalResponseError(const char *line)
 {
     size_t i;
 
-    for (i = 0 ; i < NUM_ELEMS(s_finalResponsesError) ; i++) {
+    for (i = 0 ; i < _ARRAY_SIZE(s_finalResponsesError) ; i++) {
         if (at_str_startwith(line, s_finalResponsesError[i])) {
             return 1;
         }
@@ -150,7 +145,7 @@ static int isFinalResponseSuccess(const char *line)
 {
     size_t i;
 
-    for (i = 0 ; i < NUM_ELEMS(s_finalResponsesSuccess) ; i++) {
+    for (i = 0 ; i < _ARRAY_SIZE(s_finalResponsesSuccess) ; i++) {
         if (at_str_startwith(line, s_finalResponsesSuccess[i])) {
             return 1;
         }
@@ -183,7 +178,7 @@ static int isSMSUnsolicited(const char *line)
 {
     size_t i;
 
-    for (i = 0 ; i < NUM_ELEMS(s_smsUnsoliciteds) ; i++) {
+    for (i = 0 ; i < _ARRAY_SIZE(s_smsUnsoliciteds) ; i++) {
         if (at_str_startwith(line, s_smsUnsoliciteds[i])) {
             return 1;
         }

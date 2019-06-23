@@ -1,8 +1,10 @@
-#
-# Makefile for Mobile Process 
-# by luotang 2017.6.1
-#
-
+#!/bin/sh
+########################################################
+#  Makefile for Mobile Process 
+#  by luotang
+#  2018.1.7
+#  project github: https://github.com/wypx/mobile
+########################################################
 ROOTDIR = ../..
 include $(ROOTDIR)/Rules.make
 
