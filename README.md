@@ -16,7 +16,7 @@ Mobile for raspberry, support LongSung U8300C,9300C, Huawei ME909s, NL660, SIMCO
  * 提供`3G，4G接入云物联网平台`功能，可远程配置，远程拍照，远程视频等 （待开发）
  * 提供`3G，4G的移动热点SOFTAP`功能，在热点范围内共享流量，可类似局域网接入（待开发）
 
-![libmsf](http://luotang.me/wp-content/uploads/2018/02/cpluff_architecture.png "libmsf")
+![libmsf](doc/5G.jpeg "libmsf")
 
 ## __快速开始__
 ### 安装环境
