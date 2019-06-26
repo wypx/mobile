@@ -19,13 +19,6 @@
 static s32 usb_init(void *data, u32 datalen);
 static s32 usb_start(void *data, u32 datalen);
 static s32 usb_get_info(void *data, u32 datalen);
-static s32 usb_check_id_support(u32 vendorid, u32 productid);
-static s32 usb_check_lsusb(void);
-static s32 usb_check_ttyusb(void);
-static s32 usb_check_lsmod(void);
-
-static s32 s_mcc = 0;
-static s32 s_mnc = 0;
 
 /* trigger change to this with s_state_cond */
 static s32 s_closed = 0;
@@ -38,22 +31,24 @@ static struct usb_info* usb = &usbinfo;
 
 static struct usb_item usbdevs[] = {
     /* LongSung Model */
-    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_C5300V, "", "C5300V",           MODEM_LONGSUNG,  3, 0, 2,},
-    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_C7500,  "", "EVDO USB MODEM",   MODEM_LONGSUNG, 3, 0, 2,},
-    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U7500,  "", "HSPA USB MODEM",   MODEM_LONGSUNG, 1, 2, 0,},
-    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300,  "", "U8300",            MODEM_LONGSUNG,  1, 3, 2,},
-    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300W, "", "U8300W",           MODEM_LONGSUNG,  1, 3, 2,},
-    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300C, "", "U8300C",           MODEM_LONGSUNG,  2, 1, 3,},
-    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U9300C, "", "U9300C",           MODEM_LONGSUNG,  2, 1, 3,}, 
-    { USB_MODEM_IDVENDOR_SANQ,      USB_MODEM_IDPRODUCT_LM9165, "", "LM9165",           MODEM_LONGSUNG,  1, 3, 2,},
-    { USB_MODEM_IDVENDOR_SANQ,      USB_MODEM_IDPRODUCT_LM9115, "", "LM9115",           MODEM_LONGSUNG,  2, 3, 2,}, 
+    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_C5300V, "", "C5300V",           MODEM_LONGSUNG,  3, 0, 2, 2},
+    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_C7500,  "", "EVDO USB MODEM",   MODEM_LONGSUNG,  3, 0, 2, 2},//C7500
+    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U7500,  "", "HSPA USB MODEM",   MODEM_LONGSUNG,  1, 2, 0, 2},//U7500
+    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300,  "", "U8300",            MODEM_LONGSUNG,  1, 3, 2, 2},
+    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300W, "", "U8300W",           MODEM_LONGSUNG,  1, 3, 2, 2},
+    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300C, "", "U8300C",           MODEM_LONGSUNG,  2, 1, 3, 2},
+    { USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U9300C, "", "U9300C",           MODEM_LONGSUNG,  2, 1, 3, 2}, 
+    { USB_MODEM_IDVENDOR_SANQ,      USB_MODEM_IDPRODUCT_LM9165, "", "LM9165",           MODEM_LONGSUNG,  1, 3, 2, 2},
+    { USB_MODEM_IDVENDOR_SANQ,      USB_MODEM_IDPRODUCT_LM9115, "", "LM9115",           MODEM_LONGSUNG,  2, 3, 2, 2}, 
 
     /* Huawei Model */
-    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_MU709s_2,	 "", "MU709s-2",    MODEM_HUAWEI,  4, 2, 1,},
-    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909u_521, "", "ME909u_521",  MODEM_HUAWEI,  4, 2, 1,},
+    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_MU709s_2,	 "", "MU709s-2",    MODEM_HUAWEI,  4, 2, 1, 0},
+    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909u_521, "", "ME909u_521",  MODEM_HUAWEI,  4, 2, 1, 0},
     //  { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909u_523, "", "ME909u_523",  MODEM_HUAWEI,  4, 2, 1,},
-    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909s_821, "", "ME909s-821",  MODEM_HUAWEI,  4, 2, 1,},
-    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909s_121, "", "ME909s_121",  MODEM_HUAWEI,  4, 2, 1,},
+    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909s_821, "", "ME909s-821",  MODEM_HUAWEI,  4, 2, 1, 0},//ME909s ME906s
+    { USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909s_121, "", "ME909s_121",  MODEM_HUAWEI,  4, 2, 1, 0},
+    //ME909u ME906E cid=16
+    //ME936 ME206V cid=11
 };
 
 static s8* _request_modem_map[] = {
@@ -136,143 +131,15 @@ struct mode_item {
     { "WCDMA",      CHINA_UNICOM,  MODE_WCDMA   },
 };
 
-
-struct msf_svc mobile_usb = {
-    .init       = usb_init,
-    .deinit     = NULL,
-    .start      = usb_start,
-    .stop       = NULL,
-    .set_param  = NULL,
-    .get_param  = usb_get_info,
-};
-
-
 static void onATReaderClosed(void);
 static void onATTimeout(void);
 static void waitForClose(void);
 static void onUnsolicited (const s8 *s, const s8 *sms_pdu);
 
-static s32 usb_modem_init(void);
-static s32 usb_query_modem_name(void);
-static s32 usb_query_sim_status(void);
-static s32 usb_query_sim_operator(void);
-static s32 usb_query_network_signal(void);
-static s32 usb_query_network_mode(void);
-static s32 usb_query_network_mode_3gpp(void);
-static s32 usb_query_apn_list(void);
-static s32 usb_set_ehrpd_close(void);
-static s32 usb_query_radio_status(void);
-static s32 usb_set_radio_state(enum MOBILE_FUNC cfun);
-static s32 usb_search_network(enum NETWORK_SERACH_TYPE s_mode);
-
-static s32 usb_init(void *data, u32 datalen) {
-
-    s32 rc = -1;
-    s8  dev_path[32];
-
-    memset(usb, 0, sizeof(struct usb_info));
-    usb->usb_fd = -1;
-    usb->usb_status = -1;
-    usb->item.modem_type = MODEM_UNKOWN;
-
-    if (usb_check_lsmod() < 0) {
-        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem driver not installed.");
-        return -1;
-    }
-
-    if (usb_check_lsusb() < 0) {
-        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem id app not matched.");
-        return -1;
-    }
-
-    if (usb_check_ttyusb() < 0) {
-        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem ttyusb not found.");
-        return -1;
-    }
-    
-    at_set_on_reader_closed(onATReaderClosed);
-    at_set_on_timeout(onATTimeout);
-
-    memset(dev_path, 0, sizeof(dev_path));
-    sprintf(dev_path, TTY_USB_FORMAT, usb->item.at_port);
-    usb->usb_fd = open(dev_path, O_RDWR);
-    if (-1 == usb->usb_fd) {
-        goto err;
-    }
-
-    rc = msf_serial_baud(usb->usb_fd, B115200);
-    if (rc != 0)
-        goto err;
-
-    rc = msf_serial_rawmode(usb->usb_fd);
-    if (rc != 0) goto err;
-
-    s_closed = 0;
-    rc = at_open(usb->usb_fd, onUnsolicited);
-    if (rc < 0) {
-        MSF_MOBILE_LOG(DBG_ERROR, "AT error %d on at_open.", rc);
-        return -1;
-    }
-
-    /*
-    //RIL_requestTimedCallback(initializeCallback, NULL, &TIMEVAL_0);
-    mobile_init(NULL, 0);
-
-    // Give initializeCallback a chance to dispatched, since
-    // we don't presently have a cancellation mechanism
-    sleep(1);
-    s_closed = 1;
-
-    waitForClose();
-    //AT_DBG("Re-opening after close\n");
-    */
-    usb->usb_status = E_TTYUSB_AVAILABLE;
-
-    return 0;
-
-    err:
-    return -1;
-    }
-
-static s32 usb_get_info(void *data, u32 datalen) {
-    if (datalen != sizeof(struct usb_info))
-        return -1;
-    memcpy(data, usb, sizeof(struct usb_info));
-    return 0;
-}
-
-static s32 usb_start(void *data, u32 datalen) {
-
-    at_handshake();
-    usb_modem_init();
-    usb_query_modem_name();
-    usb_set_radio_state(CFUN_ONLINE_MODE);
-    usb_set_ehrpd_close();
-    usb_query_sim_status();
-    usb_query_sim_operator();
-    usb_query_network_signal();
-    usb_search_network(LS_AUTO);
-
-    sleep(2);
-
-    usb_query_network_mode();
-    usb_query_network_mode_3gpp();
-    usb_query_apn_list();
-
-    // Give initializeCallback a chance to dispatched, since
-    // we don't presently have a cancellation mechanism
-    sleep(1);
-    s_closed = 1;
-
-    waitForClose();
-
-    return 0;
-}
-
-
 static s32 usb_check_id_support(u32 vendorid, u32 productid) {
 
-    for(u32 i = 0; i < _ARRAY_SIZE(usbdevs); i++) {
+    u32 i;
+    for(i = 0; i < _ARRAY_SIZE(usbdevs); i++) {
 
         if(productid == usbdevs[i].productid 
             && vendorid == usbdevs[i].vendorid) {
@@ -392,101 +259,12 @@ static s32 usb_check_lsmod(void) {
     return -1;
 }
 
+void usb_modem_match(s8 *modem) {
 
-/***************************AT Related Function******************************/
-static s32 usb_modem_init(void) {
-
-    s32 rc;
-    ATResponse *p_response = NULL;
-
-    /* note: we don't check errors here. Everything important will
-       be handled in onATTimeout and onATReaderClosed */
-
-    /*  atchannel is tolerant of echo but it must */
-    /*  have verbose result codes */
-    at_send_command("ATE1", NULL);
-
-    /*  No auto-answer */
-    at_send_command("ATS0=0", NULL);
-
-    /*  Extended errors */
-    at_send_command("AT+CMEE=1", NULL);
-
-    /*  set apn autometicly according to curent network operator */
-    at_send_command("AT+NVRW=1,50058,\"01\"", NULL);
-
-    //PDP_DEACTIVE
-    //at_send_command("AT+CGACT=1,1", NULL);
-
-    /* Auto:All band search*/
-    at_send_command("AT+BNDPRF=896,1272,131072", NULL);
-
-    /*  Network registration events */
-    rc = at_send_command("AT+CREG=2", &p_response);
-
-    /* some handsets -- in tethered mode -- don't support CREG=2 */
-    if (rc < 0 || p_response->success == 0) {
-        at_send_command("AT+CREG=1", NULL);
-    }
-
-    at_response_free(p_response);
-
-    /*  GPRS registration events */
-    at_send_command("AT+CGREG=1", NULL);
-
-    /*	Call Waiting notifications */
-    at_send_command("AT+CCWA=1", NULL);
-
-    /*  Alternating voice/data off */
-    at_send_command("AT+CMOD=0", NULL);
-
-    /*  Not muted */
-    //at_send_command("AT+CMUT=0", NULL);
-
-    /*  +CSSU unsolicited supp service notifications */
-    at_send_command("AT+CSSN=0,1", NULL);
-
-    /*  no connected line identification */
-    at_send_command("AT+COLP=0", NULL);
-
-    /*  HEX character set */
-    //at_send_command("AT+CSCS=\"HEX\"", NULL);
-
-    /*  USSD unsolicited */
-    at_send_command("AT+CUSD=1", NULL);
-
-    /*  Enable +CGEV GPRS event notifications, but don't buffer */
-    at_send_command("AT+CGEREP=1,0", NULL);
-
-    /*  SMS PDU mode */
-    at_send_command("AT+CMGF=0", NULL);
-
-    return 0;
-    }
-
-static s32 usb_query_modem_name(void) {
-    ATResponse *p_response = NULL;
-    s32 rc;
-    s8 *line;
-    s8 *out;
-
-    /* use ATI or AT+CGMM */
-    rc = at_send_command_singleline("ATI", "Model:", &p_response);
-    if (rc < 0 || p_response->success == 0) {
-        goto error;
-    }
-
-    line = p_response->p_intermediates->line;
-
-    rc= at_tok_start(&line);
-    if (rc < 0) goto error;
-
-    rc = at_tok_nextstr(&line, &out);
-    if (rc < 0) goto error;
-
-    for(u32 i = 0; i < _ARRAY_SIZE(usbdevs); i++) {
+    u32 i;
+    for(i = 0; i < _ARRAY_SIZE(usbdevs); i++) {
         /*(same) USB ID canot recognise model, AT+CGMM needed for LongSung */
-        if (strstr(out, usbdevs[i].modem_name) && 
+        if (msf_strstr(modem, usbdevs[i].modem_name) && 
             usb->item.productid == usbdevs[i].productid &&
             usb->item.vendorid == usbdevs[i].vendorid) {
 
@@ -496,278 +274,39 @@ static s32 usb_query_modem_name(void) {
         }
         usb->usb_status = E_TTYUSB_UNAVAILABLE;
     }
-
-    at_response_free(p_response);
-    return 0;
-
-error:
-    usb->usb_status = E_TTYUSB_UNAVAILABLE;
-    at_response_free(p_response);
-    return -1;
 }
 
-static s32 usb_query_sim_status(void) {
-    ATResponse *p_response = NULL;
-    s32 rc;
-    s8 *cpinLine = NULL;
-    s8 *cpinResult = NULL;
+void usb_operator_match(s8 *cimi) {
 
-    rc = at_send_command_singleline("AT+CPIN?", "+CPIN:", &p_response);
-    if (rc != 0) {
-        rc = at_send_command_singleline("AT+QCPIN?", "+QCPIN:", &p_response);
-        if (rc != 0) {
-            usb->sim_status = SIM_NOT_READY;
-            goto done;
-        }
-    }
-
-    switch (at_get_cme_error(p_response)) {
-        case CME_SUCCESS:
-            break;
-
-        case CME_SIM_NOT_INSERTED:
-            usb->sim_status = SIM_ABSENT;
-            goto done;
-
-        default:
-            usb->sim_status = SIM_NOT_READY;
-            goto done;
-    }
-
-    /* CPIN/QCPIN has succeeded, now look at the result */
-    cpinLine = p_response->p_intermediates->line;
-    rc = at_tok_start (&cpinLine);
-    if (rc < 0) {
-        usb->sim_status = SIM_NOT_READY;
-        goto done;
-    }
-
-    rc = at_tok_nextstr(&cpinLine, &cpinResult);
-
-    if (rc < 0) {
-        usb->sim_status = SIM_NOT_READY;
-        goto done;
-    }
-
-    //AT_DBG("sim:%s\n", cpinResult);
-    if (0 == msf_strcmp(cpinResult, "SIM PIN")) {
-        usb->sim_status = SIM_PIN;
-        goto done;
-    } else if (0 == msf_strcmp(cpinResult, "SIM PUK")) {
-        usb->sim_status = SIM_PUK;
-        goto done;
-    } else if (0 == msf_strcmp(cpinResult, "PH-NET PIN")) {
-        return SIM_NETWORK_PERSONALIZATION;
-    } else if (0 != msf_strcmp(cpinResult, "READY"))  {
-        /* we're treating unsupported lock types as "sim absent" */
-        usb->sim_status = SIM_ABSENT;
-        goto done;
-    }
-
-    at_response_free(p_response);
-    p_response = NULL;
-    cpinResult = NULL;
-
-    usb->sim_status = SIM_READY;
-    usb->usb_status = E_SIM_COMES_READY;
-    at_response_free(p_response);
-    return 0;
-done:
-    usb->usb_status = E_SIM_COMES_LOCKED;
-    at_response_free(p_response);
-    return -1;
-}
-
-static s32 usb_query_sim_operator(void) {
-    s32 rc;
-    s32 i;
-    s32 skip;
-    ATLine *p_cur;
-    s8* response[3];
-
-    memset(response, 0, sizeof(response));
-
-    ATResponse *p_response = NULL;
-
-    //AT+COPS=3,0;+COPS?;+COPS=3,1;+COPS?;+COPS=3,2;+COPS?;
-    //at+cimi 
-    //AT+QCIMI
-    //err = at_send_command_singleline("AT+CIMI", "+CIMI", &p_response);
-    rc = at_send_command_multiline("AT+COPS=3,0;+COPS?;+COPS=3,1;+COPS?;+COPS=3,2;+COPS?", "+COPS:", &p_response);
-
-    //printf("####%s\n", p_response->p_intermediates->line);
-    /* we expect 3 lines here:
-     * +COPS: 0,0,"T - Mobile"
-     * +COPS: 0,1,"TMO"
-     * +COPS: 0,2,"310170"
-     *  exp:
-     *  +COPS: 0,0,"CHN-UNICOM",7
-     *  +COPS: 0,1,"UNICOM",7
-     *  +COPS: 0,2,"46001",7
-
-        +COPS: 0,0,"CHINA MOBILE",7
-        +COPS: 0,1,"CMCC",7
-        +COPS: 0,2,"46000",7
-
-        +COPS: 0,0,"CMCC",7
-        +COPS: 0,1,"CMCC",7
-        +COPS: 0,2,"46000",7
-
-        //电信有问题
-        +COPS: 0
-        +COPS: 0
-        +COPS: 0
-     */
-#if 0
-    if (err < 0 || p_response->success == 0) {
-        // assume radio is off
-        goto error;
-    }
-    char resp[16] = { 0 };
-    char* line = p_response->p_intermediates->line;
-
-    err = at_tok_start(&line);
-    if (err < 0) goto error;
-
-    err = at_tok_nextstr(&line, &resp);
-    if (err < 0) goto error;
-
-    printf("resp:%s\n", resp);
-#endif
-#if 1
-
-    for (i = 0, p_cur = p_response->p_intermediates
-            ; p_cur != NULL
-            ; p_cur = p_cur->p_next, i++) {
-
-        s8 *line = p_cur->line;
-
-        rc = at_tok_start(&line);
-        if (rc < 0) goto error;
-
-        rc = at_tok_nextint(&line, &skip);
-        if (rc < 0) goto error;
-
-        // If we're unregistered, we may just get
-        // a "+COPS: 0" response
-        if (!at_tok_hasmore(&line)) {
-            response[i] = NULL;
-            continue;
-        }
-
-        rc = at_tok_nextint(&line, &skip);
-        if (rc < 0) goto error;
-
-
-        // a "+COPS: 0, n" response is also possible
-        if (!at_tok_hasmore(&line)) {
-            response[i] = NULL;
-            continue;
-        }
-
-        rc = at_tok_nextstr(&line, &(response[i]));
-        if (rc < 0) goto error;
-
-        //AT_DBG("oper:%s\n", response[i]);
-
-        unsigned int	j = 0;
-        for(j = 0; j < _ARRAY_SIZE(oper_match); j++) {
-            if(strstr(response[i], oper_match[j].cimi)) {
-                usb->sim_operator = oper_match[j].operator;
-                break;
-            }
-            usb->sim_operator = CHINA_UNKOWN;
-        }
-        // Simple assumption that mcc and mnc are 3 digits each
-        if (strlen(response[i]) == 6) {
-            if (sscanf(response[i], "%3d%3d", &s_mcc, &s_mnc) != 2) {
-              //  AT_DBG("requestOperator expected mccmnc to be 6 decimal digits\n");
-            }
-        }
-    }
-
-    if (i != 3) {
-        /* expect 3 lines exactly */
-        goto error;
-    }
-#endif
-#if 0
-    int j = 0;
-    for(j = 0; j < _ARRAY_SIZE(oper_match); j++) {
-        if(strstr(resp, oper_match[j].cimi)) {
-            at->oper = oper_match[j].oper;
+    u32 i;
+    for(i = 0; i < _ARRAY_SIZE(oper_match); i++) {
+        /*(same) USB ID canot recognise model, AT+CGMM needed for LongSung */
+        if (msf_strstr(cimi, oper_match[i].cimi)) {
+            usb->sim_operator = oper_match[i].operator;
             break;
         }
-        at->oper = OPER_UNKNOWN;
+        usb->sim_operator = CHINA_UNKOWN;
     }
-#endif
-
-    at_response_free(p_response);
-    return 0;
-    error:
-    MSF_MOBILE_LOG(DBG_ERROR, "requestOperator must not return error when radio is on\n");
-    at_response_free(p_response);
-    return -1;
- }
-
-static s32 usb_query_network_signal(void) {
-    ATResponse *p_response = NULL;
-    s32 rc;
-    s8 *line;
-    s32 count = 0;
-    s32 response = -1;
-
-    //AT+CCSQ
-    rc = at_send_command_singleline("AT+CSQ", "+CSQ:", &p_response);
-    if (rc < 0 || p_response->success == 0) {
-        goto error;
-    }
-
-    line = p_response->p_intermediates->line;
-
-    rc = at_tok_start(&line);
-    if (rc < 0) goto error;
-
-    rc = at_tok_nextint(&line, &response);
-    if (rc < 0) goto error;
-
-    usb->network_signal = response;
-
-    at_response_free(p_response);
-    return 0;
-
-    error:
-    at_response_free(p_response);
-    return -1;
 }
 
-static s32 usb_query_network_mode(void) {
+/*澶栭儴瑕侀噴鏀剧敵璇风殑娑堟伅-at_response_free*/
+void usb_process_network_mode(s8 *line) {
 
-    ATResponse *p_response = NULL;
     s32 rc;
-    s8 *line;
     s32 count = 0;
     s8 *response = NULL;
 
-    //AT^HCSQ?  AT+PSRAT AT^SYSINFOEX　AT^SYSINFO
-    rc = at_send_command_singleline("AT+PSRAT", "+PSRAT:", &p_response);
-
-    if (rc < 0 || p_response->success == 0) {
-        rc = at_send_command_singleline("AT^SYSINFOEX", "^SYSINFOEX:", &p_response);
-
-        if (rc < 0 || p_response->success == 0) {
-            goto error;
-        }
+    if (usb->item.modem_type == MODEM_HUAWEI) {
 
         s32 tmp[7];
         s8 curr_mode[32];
         memset(curr_mode, 0, sizeof(curr_mode));
-        line = p_response->p_intermediates->line;
-        s8 *p = strstr(line, ":");
-        if( !p ) 
-            goto error;
+        s8 *p = msf_strstr(line, ":");
 
-        sscanf(p, ":%d,%d,%d,%d,,%d,\"%s\"", &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], curr_mode);
+        if( !p ) return;
+        
+        sscanf(p, ":%d,%d,%d,%d,,%d,\"%s\"",
+            &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], curr_mode);
         switch(tmp[4]) {
             case 1:
                 usb->network_mode = MODE_GPRS;
@@ -781,7 +320,7 @@ static s32 usb_query_network_mode(void) {
                 usb->network_mode = MODE_TDSCDMA;
                 memcpy(usb->network_mode_str, "TDSCDMA", strlen("TDSCDMA"));
                 break;
-            case 6: 	
+            case 6:     
                 if (usb->sim_operator == CHINA_MOBILE) {
                     usb->network_mode = MODE_TDLTE;
                     memcpy(usb->network_mode_str, "LTE TDD", strlen("LTE TDD"));
@@ -794,239 +333,143 @@ static s32 usb_query_network_mode(void) {
             default:
                 break;
         }
-        goto error;
-    }
+    } else {
+    
+        rc = at_tok_start(&line);
+        if (rc < 0) return;
 
-    line = p_response->p_intermediates->line;
+        rc = at_tok_nextstr(&line, &response);
+        if (rc < 0) return;
 
-    rc = at_tok_start(&line);
-    if (rc < 0) goto error;
-
-    rc = at_tok_nextstr(&line, &response);
-    if (rc < 0) goto error;
-
-    unsigned int i = 0;
-    for(i = 0; i < _ARRAY_SIZE(mode_match); i++) {
-        if(strstr(response, mode_match[i].name) 
-            && usb->sim_operator == mode_match[i].operator) {
-            usb->network_mode = mode_match[i].mode;
-            memcpy(usb->item.modem_name, mode_match[i].name, 16);
-            break;
+        u32 i = 0;
+        for(i = 0; i < _ARRAY_SIZE(mode_match); i++) {
+            if(msf_strstr(response, mode_match[i].name) 
+                && usb->sim_operator == mode_match[i].operator) {
+                usb->network_mode = mode_match[i].mode;
+                memcpy(usb->item.modem_name, mode_match[i].name, 16);
+                break;
+            }
+            usb->network_mode = MODE_NONE;
         }
-        usb->network_mode = MODE_NONE;
     }
-    //printf("mode:%s\n", response);
-
-    at_response_free(p_response);
-    return 0;
-
-    error:
-    //    AT_DBG("requestSignalStrength must never return an error when radio is on\n");
-
-    at_response_free(p_response);
-    return -1;
 }
 
+static s32 usb_init(void *data, u32 datalen) {
 
-static s32 usb_query_network_mode_3gpp(void) {
-    s32 rc;
-    ATResponse *p_response = NULL;
-    s32 response = 0;
-    s8*line;
+    s32 rc = -1;
+    s8  dev_path[32];
 
-    //AT+COPS=?
-    //+COPS: (2,"CHN-UNICOM","UNICOM","46001",7),(3,"CHN-CT","CT","46011",7),(3,"CHINA MOBILE","CMCC","46000",7),,(0,1,2,3,4),(0,1,2)
-    //AT+COPS?
-    //+COPS: 0,2,"46001",7
-    rc = at_send_command_singleline("AT+COPS?", "+COPS:", &p_response);
-    if (rc < 0 || p_response->success == 0) {
-        goto error;
-    }
+    memset(usb, 0, sizeof(struct usb_info));
+    usb->usb_fd = -1;
+    usb->usb_status = -1;
+    usb->item.modem_type = MODEM_UNKOWN;
 
-    line = p_response->p_intermediates->line;
-
-    rc = at_tok_start(&line);
-    if (rc < 0) goto error;
-
-    rc = at_tok_nextint(&line, &response);
-    if (rc < 0) goto error;
-
-    at_response_free(p_response);
-    return 0;
-    error:
-    at_response_free(p_response);
-    return -1;
-}
-
-static s32 usb_query_apn_list(void) {
-
-    ATResponse *p_response;
-    ATLine *p_cur;
-    s32 rc;
-    s32 n = 0;
-    s8 *out;
-
-    rc = at_send_command_multiline ("AT+CGDCONT?", "+CGDCONT:", &p_response);
-    if (rc != 0 || p_response->success == 0) {
-
+    if (usb_check_lsmod() < 0) {
+        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem driver not installed.");
         return -1;
     }
 
-    for (p_cur = p_response->p_intermediates; p_cur != NULL;
-         p_cur = p_cur->p_next) {
-        char *line = p_cur->line;
-        int cid;
-
-        rc = at_tok_start(&line);
-        if (rc < 0) goto error;
-
-        rc = at_tok_nextint(&line, &cid);
-        if (rc < 0) goto error;
-
-
-    //printf("cid = %d \n", cid);
-
-    rc = at_tok_nextstr(&line, &out);
-    if (rc < 0) goto error;
-
-    //printf("type = %s \n", out);
-
-     // APN ignored for v5
-    rc = at_tok_nextstr(&line, &out);
-    if (rc < 0) goto error;
-
-    //printf("apn = %s \n", out);
-
-    rc = at_tok_nextstr(&line, &out);
-    if (rc < 0) goto error;
-
-    //printf("addresses = %s \n", out);
-       
-
+    if (usb_check_lsusb() < 0) {
+        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem id app not matched.");
+        return -1;
     }
 
-    at_response_free(p_response);
+    if (usb_check_ttyusb() < 0) {
+        MSF_MOBILE_LOG(DBG_ERROR, "Usb modem ttyusb not found.");
+        return -1;
+    }
+    
+    at_set_on_reader_closed(onATReaderClosed);
+    at_set_on_timeout(onATTimeout);
+
+    memset(dev_path, 0, sizeof(dev_path));
+    sprintf(dev_path, TTY_USB_FORMAT, usb->item.at_port);
+    usb->usb_fd = open(dev_path, O_RDWR);
+    if (-1 == usb->usb_fd) {
+        goto err;
+    }
+
+    rc = msf_serial_baud(usb->usb_fd, B115200);
+    if (rc != 0)
+        goto err;
+
+    rc = msf_serial_rawmode(usb->usb_fd);
+    if (rc != 0) goto err;
+
+    s_closed = 0;
+    rc = at_open(usb->usb_fd, onUnsolicited);
+    if (rc < 0) {
+        MSF_MOBILE_LOG(DBG_ERROR, "AT error %d on at_open.", rc);
+        return -1;
+    }
+
+    /*
+    //RIL_requestTimedCallback(initializeCallback, NULL, &TIMEVAL_0);
+    mobile_init(NULL, 0);
+
+    // Give initializeCallback a chance to dispatched, since
+    // we don't presently have a cancellation mechanism
+    sleep(1);
+    s_closed = 1;
+
+    waitForClose();
+    //AT_DBG("Re-opening after close\n");
+    */
+    usb->usb_status = E_TTYUSB_AVAILABLE;
+
     return 0;
 
-    error:
-    at_response_free(p_response);
+err:
     return -1;
 }
 
 
-/* EhrpdEnable off needed by pppd*/
-static s32 usb_set_ehrpd_close(void) {
+static s32 usb_start(void *data, u32 datalen) {
 
-    ATResponse *p_response = NULL;
-    s32 rc;
-    s8 *line = NULL;
-    s8 ret = -1;
+    mobile_at_modem_init();
+    mobile_at_get_modem(usb_modem_match);
+    mobile_at_set_radio(CFUN_ONLINE_MODE);
+    mobile_at_set_ehrpd(EHRPD_CLOSE);
 
-    rc = at_send_command_singleline("AT+EHRPDENABLE?", "+EHRPDENABLE:", &p_response);
+    usb->sim_status = mobile_at_get_sim();
+    if (unlikely(usb->sim_status != SIM_READY))
+        usb->usb_status = E_SIM_COMES_LOCKED;
+    else
+        usb->usb_status = E_SIM_COMES_READY;
 
-    if (rc < 0 || p_response->success == 0) {
-        // assume radio is off
-        goto error;
-    }
+    mobile_at_get_operator(usb_operator_match);
+    mobile_at_get_signal();
+    mobile_at_search_network(usb->item.modem_type, LS_AUTO);
 
-    line = p_response->p_intermediates->line;
+    usleep(500);
 
-    rc = at_tok_start(&line);
-    if (rc < 0) goto error;
+    mobile_at_get_network_mode();
 
-    rc = at_tok_nextbool(&line, &ret);
-    if (rc < 0) goto error;
+    mobile_at_get_network_3gpp();
 
-    at_response_free(p_response);
+    mobile_at_get_apns();
 
-    if (ret == 1) {
-    	rc = at_send_command("AT+EHRPDENABLE=0", &p_response);
-    	if (rc < 0 || p_response->success == 0) {
-    		goto error;
-    	}
-    }
+    // Give initializeCallback a chance to dispatched, since
+    // we don't presently have a cancellation mechanism
+    sleep(1);
+    s_closed = 1;
 
-    at_response_free(p_response);
+    waitForClose();
+
     return 0;
-    error:
-
-    at_response_free(p_response);
-    return -1;
-
-    }
-
-/** returns 1 if on, 0 if off, and -1 on error */
-static s32 usb_query_radio_status(void) {
-    ATResponse *p_response = NULL;
-    s32 rc;
-    s8 *line = NULL;
-    s8 ret = -1;
-
-    rc = at_send_command_singleline("AT+CFUN?", "+CFUN:", &p_response);
-    if (rc < 0 || p_response->success == 0) {
-        // assume radio is off
-        goto error;
-    }
-
-    line = p_response->p_intermediates->line;
-
-    rc = at_tok_start(&line);
-    if (rc < 0) goto error;
-
-    rc = at_tok_nextbool(&line, &ret);
-    if (rc < 0) goto error;
-
-    at_response_free(p_response);
-
-    return (int)ret;
-
-    error:
-
-    at_response_free(p_response);
-    return -1;
 }
 
-static s32 usb_set_radio_state(enum MOBILE_FUNC cfun) {
-    s32 count = 5;
-    s32 rc;
-    enum MOBILE_FUNC curr_radio_mode = CFUN_LPM_MODE;
-    ATResponse* p_response = NULL;
-    s8 at_cmd[64];
-
-    memset(at_cmd, 0, sizeof(at_cmd));
-
-    curr_radio_mode = usb_query_radio_status();
-    if(curr_radio_mode == cfun) {
-        return 0;
-    }
-
-    snprintf(at_cmd, sizeof(at_cmd)-1, "AT+CFUN=%d", cfun);  
-    while(count-- < 0) {
-        rc = at_send_command(at_cmd, &p_response);
-        if (rc < 0 || p_response->success == 0) {
-        continue;
-        }else {
-            curr_radio_mode = usb_query_radio_status();
-            if (curr_radio_mode == cfun) 
-                break;
-        }
-    }
-    at_response_free(p_response);
+static s32 usb_get_info(void *data, u32 datalen) {
+    if (datalen != sizeof(struct usb_info))
+        return -1;
+    memcpy(data, usb, sizeof(struct usb_info));
     return 0;
-    }
-
-
-static s32 usb_search_network(enum NETWORK_SERACH_TYPE s_mode) {
-     if(usb->item.modem_type == MODEM_HUAWEI)
-        at_send_command("AT^SYSCFGEX=\"030201\",3FFFFFFF,1,2,7FFFFFFFFFFFFFFF,,", NULL);
-     
-     if(usb->item.modem_type == MODEM_LONGSUNG)
-     at_send_command("AT+MODODREX=2", NULL);
-
-     return 0;
 }
+
+/***************************AT Related Function******************************/
 
 static void waitForClose() {
+
     pthread_mutex_lock(&s_state_mutex);
 
     while (s_closed == 0) {
@@ -1067,7 +510,6 @@ static void onUnsolicited (const s8 *s, const s8 *sms_pdu) {
     s8 *line = NULL, *p;
     s32 rc = -1;
 
-    //时区报告功能：AT+CTZ
     if (at_str_startwith(s, "%CTZV:")) {
         /* TI specific -- NITZ time */
         s8 *response;
@@ -1087,8 +529,6 @@ static void onUnsolicited (const s8 *s, const s8 *sms_pdu) {
                 || at_str_startwith(s, "RING")
                 || at_str_startwith(s, "NO CARRIER")
                 || at_str_startwith(s, "+CCWA")) {
-          //设置自动应答前振铃次数：ATS0
-          //呼叫等待：AT+CCWA
 
     } else if (at_str_startwith(s,"+CREG:")
                 || at_str_startwith(s,"+CGREG:")) {
@@ -1100,9 +540,212 @@ static void onUnsolicited (const s8 *s, const s8 *sms_pdu) {
     	//新短信状态报告到达指示: +CDSI
     } else if (at_str_startwith(s, "+CME ERROR: 150")) {
 
-    } else {
+    } else if (at_str_startwith(s, "+CMTI")) {
+        /*鎺ユ敹鍒颁竴鏉℃柊鐨勭煭淇￠�氱煡*/
+        //if(MODE_EVDO == mobile_mode)
+        {
+           // sprintf((char *)command, "AT^HCMGR=%d", );
+        }
+        //else
+        {
+           // sprintf((char *)command, "AT+CMGR=%d", );
+        }
+
+    } else if (at_str_startwith(s, "+CGDCONT:")) {
 
     }
+    //^HCMGR +CMGR:
+
+    //^SMMEMFULL", "%SMMEMFULL", "+SMMEMFULL"
+    //^MODE:
+    //^SYSINFO:", "%SYSINFO:", %SYSINFO:"
+    //sscanf(p, ":%d,%d,%d,%d,%d", &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4]);
+    //sscanf(last, ",%d", &tmp[6]);
+    #if 0
+    	mobile_srvStat = tmp[0]; 
+
+		if (255 == tmp[1])
+		{
+			mobile_srvDomain = 3;
+		}
+		else
+		{
+			mobile_srvDomain = tmp[1];
+		}
+	 
+		if(OPERATOR_CHINA_TELECOM == pDevDialParam->mobile_operator
+			|| (M_HUAWEI_3G == shareMemParam->iModel ))
+		{
+			//when current mobile_operator is Telecom,current mode is only 3 kinds, MODE_EVDO，MODE_FDDLTE，MODE_CDMA1X
+			if(4 == tmp[3] ||8 == tmp[3])
+			{	
+				mobile_mode = MODE_EVDO;
+				if(0 == tmp[2])
+				{
+					mobile_reg3gInfo = CREG_STAT_REGISTED_LOCALNET;
+				}
+				else
+				{
+					mobile_reg3gInfo = CREG_STAT_REGISTED_ROAMNET;
+				}
+			}
+			else if(9 == tmp[3])
+			{
+				mobile_mode = MODE_FDDLTE;
+				if(0 == tmp[2])
+				{
+					mobile_reg4gInfo = CREG_STAT_REGISTED_LOCALNET;
+				}
+				else
+				{
+					mobile_reg4gInfo = CREG_STAT_REGISTED_ROAMNET;
+				}
+			}
+			else if(2 == tmp[3])
+			{
+				mobile_mode = MODE_CDMA1X;
+				if(0 == tmp[2])
+				{
+					mobile_reg2gInfo = CREG_STAT_REGISTED_LOCALNET;
+				}
+				else
+				{
+					mobile_reg2gInfo = CREG_STAT_REGISTED_ROAMNET;
+				}
+			}
+			else if(5 == tmp[3])
+			{
+				mobile_mode = MODE_WCDMA;
+			}
+			else if(3 == tmp[3])
+			{
+				mobile_mode = MODE_GPRS;
+			}
+			else;
+
+
+			mobile_srvStat = tmp[0]; 
+
+			if (255 == tmp[1])
+			{
+				mobile_srvDomain = 3;
+			}
+			else
+			{
+				mobile_srvDomain = tmp[1];
+			}
+		}
+		else
+		{
+			mobile_simStat = tmp[4];	
+
+			if(1 == tmp[4])
+			{
+				mobile_simStat = SIM_VALID;
+			}
+			else if(255 == tmp[4])
+			{
+				mobile_simStat = SIM_NOTEXIST;
+			}
+			else  // 已知错误码240 255  后续和CPIN兼容使用
+			{
+				mobile_simStat = SIM_INVALID;  /* all invalid */
+			}
+		}
+#endif
+    //"^SYSINFOEX: 
+    #if 0
+    	if(!(p = strstr(line, ":")))
+			return FALSE;
+		sscanf(p, ":%d,%d,%d,%d,,%d,\"%s\"", &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], curr_mode);
+
+		if(M_HUAWEI_4G == shareMemParam->iModel)
+		{ 
+			mobile_srvStat = tmp[0]; 
+
+			if (255 == tmp[1])
+			{
+				mobile_srvDomain = 3;
+			}
+			else
+			{
+				mobile_srvDomain = tmp[1];
+			}
+			
+			if(1 == tmp[4])
+			{
+				mobile_mode = MODE_GPRS;
+				if(0 == tmp[2])
+					mobile_reg2gInfo = CREG_STAT_REGISTED_LOCALNET;
+				else
+					mobile_reg2gInfo = CREG_STAT_REGISTED_ROAMNET;
+			}
+			else if(3 == tmp[4])
+			{
+				mobile_mode = MODE_WCDMA;
+				if(0 == tmp[2])
+					mobile_reg3gInfo = CREG_STAT_REGISTED_LOCALNET;
+				else
+					mobile_reg3gInfo = CREG_STAT_REGISTED_ROAMNET;
+			}
+			else if(4 == tmp[4])
+			{
+				mobile_mode = MODE_TDSCDMA;
+				if(0 == tmp[2])
+					mobile_reg3gInfo = CREG_STAT_REGISTED_LOCALNET;
+				else
+					mobile_reg3gInfo = CREG_STAT_REGISTED_ROAMNET;
+			}
+			else if(6 == tmp[4])
+			{
+				if(OPERATOR_CHINA_MOBILE== pDevDialParam->mobile_operator)
+					mobile_mode = MODE_TDLTE;
+				else if(OPERATOR_CHINA_UNICOM== pDevDialParam->mobile_operator)
+					mobile_mode = MODE_FDDLTE;
+
+				if(0 == tmp[2])
+					mobile_reg4gInfo = CREG_STAT_REGISTED_LOCALNET;
+				else
+					mobile_reg4gInfo = CREG_STAT_REGISTED_ROAMNET;
+			}
+			
+			
+			if (1 == tmp[3])
+			{
+				mobile_simStat = SIM_VALID; 
+			}
+			else if(255 == tmp[3])
+			{
+				mobile_simStat = SIM_NOTEXIST;  
+			}
+			else //0  2 3 4 255 
+			{
+				mobile_simStat = SIM_INVALID;  /* all invalid */
+			}
+		}
+    #endif
+    
+    //"^CCSQ" "+CSQ" "+CCSQ"
+    //^HDRCSQ: ^HRSSILVL: ^CSQLVL: ^RSSILVL:
+    //+PSRAT: NONE  LTE FDD  LTE TDD UMTS(TDSCDMA-WCDMA) 
+        //HSUPA(WCDMA) HSDPA(WCDMA) TDSCDMA  GPRS EDGE(GPRS)
+    // ^HCSQ: WCDMA 
+    //+CFUN:
+    //+COPS:
+    //+CREG:", "+CGREG:", "+CEREG:
+    //+CLIP:
+    
+    
 }
 
+
+
+struct msf_svc mobile_usb = {
+    .init       = usb_init,
+    .deinit     = NULL,
+    .start      = usb_start,
+    .stop       = NULL,
+    .set_param  = NULL,
+    .get_param  = usb_get_info,
+};
 

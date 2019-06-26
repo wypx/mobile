@@ -87,14 +87,12 @@ static void sleepMsec(long long msec)
     } while (err < 0 && errno == EINTR);
 }
 
-
-
 /** add an intermediate response to sp_response*/
 static void addIntermediate(const char *line)
 {
     ATLine *p_new;
 
-    p_new = (ATLine  *) malloc(sizeof(ATLine));
+    p_new = (ATLine *) malloc(sizeof(ATLine));
 
     p_new->line = strdup(line);
 
@@ -203,7 +201,7 @@ static void handleUnsolicited(const char *line)
     }
 }
 
-static void processLine(const char *line)
+static void processLine(const s8 *line)
 {
     pthread_mutex_lock(&s_commandmutex);
 
@@ -401,19 +399,19 @@ static void onReaderClosed()
 
 static void *readerLoop(void *arg)
 {
+    const char * line;
+
     msf_thread_name("readerLoop");
     for (;;) {
-        const char * line;
 
         line = readline();
-
         if (line == NULL) {
             break;
         }
 
         if(isSMSUnsolicited(line)) {
-            char *line1;
-            const char *line2;
+            s8 *line1;
+            const s8 *line2;
 
             // The scope of string returned by 'readline()' is valid only
             // till next call to 'readline()' hence making a copy of line
@@ -575,9 +573,8 @@ int at_open(int fd, ATUnsolHandler h)
 void at_close()
 {
     if (s_fd >= 0) {
-        close(s_fd);
+        sclose(s_fd);
     }
-    s_fd = -1;
 
     pthread_mutex_lock(&s_commandmutex);
 
@@ -887,7 +884,6 @@ int at_handshake(void)
     if (rc == 0) {
         /* pause for a bit to let the input buffer drain any unmatched OK's
            (they will appear as extraneous unsolicited responses) */
-
         sleepMsec(HANDSHAKE_TIMEOUT_MSEC);
     }
 
@@ -895,8 +891,6 @@ int at_handshake(void)
 
     return rc;
 }
-
-
 
 /**
  * Returns error code from response

@@ -176,6 +176,23 @@ enum DIAL_USB_TYPE {
     DIAL_TTY_USB,
     DIAL_TTY_ACM,
 };
+
+enum EHRPD_STATE {
+    EHRPD_CLOSE = 0,
+    EHRPD_OPEN  = 1,
+};
+
+enum CHIP_ERROR_LEVEL {
+    CHIP_ERROR_NULL = 0,
+    CHIP_ERROR_NUMERIC,
+    CHIP_ERROR_LONG,
+};
+
+enum CALLER_ID_STATUS {
+    CALLER_ID_CLOSE = 0,
+    CALLER_ID_OPEN
+};
+
 enum USB_MODEM {
     MODEM_UNKOWN,
     MODEM_LONGSUNG,
@@ -194,6 +211,7 @@ struct usb_item {
     u8  at_port;    /* port id not more than 255*/
     u8  modem_port;
     u8  debug_port;
+    u8  apn_cid;/*data apn cid*/
 } ;
 
 struct usb_info {
@@ -210,9 +228,24 @@ struct usb_info {
     u8   network_mode_str[32];
 };
 
+typedef void (*mobile_modem_match_f)(s8 *modem);
+typedef void (*mobile_operator_match_f)(s8 *cimi);
+
 s8 *mobile_error_request(enum MOBILE_ERR err);
 s8 *mobile_modem_str(enum USB_MODEM modem);
 s8 *mobile_operator_str(enum SIM_OPERATOR oper);
+
+s32 mobile_at_modem_init(void);
+s32 mobile_at_get_modem(mobile_modem_match_f match_func);
+s32 mobile_at_set_radio(enum MOBILE_FUNC cfun);
+s32 mobile_at_get_sim(void);
+s32 mobile_at_set_ehrpd(enum EHRPD_STATE enehrpd);
+s32 mobile_at_search_network(enum USB_MODEM modem, enum NETWORK_SERACH_TYPE s_mode);
+s32 mobile_at_get_signal(void);
+s32 mobile_at_get_operator(mobile_operator_match_f match_func);
+s32 mobile_at_get_network_mode(void);
+s32 mobile_at_get_network_3gpp(void);
+s32 mobile_at_get_apns(void);
 
 /******************* DIAL **************************/
 enum DIAL_TYPE {
@@ -257,6 +290,39 @@ struct dial_info {
 } MSF_PACKED_MEMORY;
 
 /******************* SMS **************************/
+
+enum SMS_STORAGE_AREA {
+    ME_AREA = 0,
+    SM_AREA
+};
+
+enum SMS_CLEAN_MODE {
+    SMS_CLEAN_READ  = 1,                //清除已读短信
+    SMS_CLEAN_READ_SEND,                //清除已读和已发送短信
+    SMS_CLEAN_READ_SEND_UNSEND,         //清除已读，已发送和未发送短信
+    SMS_CLEAN_READ_UNREAD_SEND_UNSEND   //清除已读、未读、已发送和未发送短信
+}; 
+
+enum SMS_FORMAT {
+    SMS_PDU_MODE,
+    SMS_TEXT_MODE
+};
+
+//User SMS Code
+#define GSM_7BIT 0
+#define GSM_8BIT 4
+#define GSM_UCS2 8
+
+struct sms_param {
+    s8 sca[16];     /*SMSC:Service central number*/
+    s8 tpa[16];     /*Dst or resp number (TP-DA or TP-RA)*/
+    s8 tp_pid;      /*TP-PID:User protocol id*/
+    s8 tp_dcs;      /*TP-DCS:User sms encode*/
+    s8 tp_scts[16]; /*TP_SCTS:Service time stamp*/
+    s8 tp_ud[161];  /*TP-UD:Origin user info*/
+    u8 index;       /*Sms message index*/
+};
+
 struct sms_item {
     struct list_head sms_head;
     s8 peer_phone_num[16];
@@ -267,6 +333,9 @@ struct sms_queue {
     u32 sms_num;
     struct list_head sms_list;
 };
+
+s32 at_strUnicode2GB(const u8 *strSrc, s8 *strDest, s32 n);
+s32 at_strGB2Unicode(const s8 *str, u8 *dst, s32 n);
 
 struct mobile {
     pid_t pid;
