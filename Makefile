@@ -14,7 +14,21 @@ TARGET	= $(BINPATH)/msf_mobile
 SRCS 	= $(wildcard src/*.c)
 OBJS	= $(SRCS:%.c=$(TMP)/%.o)
 
-IFLAGS 		= -I./inc -I $(ROOTDIR)/inc -I../libmsf/msf/inc -I../librpc/comm -I../librpc/client/inc
+IFLAGS 		+= -I./inc -I $(ROOTDIR)/inc
+IFLAGS	    += -I ../libmsf/msf_thirdparty/cJSON
+IFLAGS	    += -I ../libmsf/msf/inc
+IFLAGS	    += -I ../libmsf/msf/inc/base
+IFLAGS	    += -I ../libmsf/msf/inc/log
+IFLAGS	    += -I ../libmsf/msf/inc/system 
+IFLAGS	    += -I ../libmsf/msf/inc/timer 
+IFLAGS	    += -I ../libmsf/msf/inc/event 
+IFLAGS	    += -I ../libmsf/msf/inc/mem 
+IFLAGS	    += -I ../libmsf/msf/inc/io  
+IFLAGS	    += -I ../libmsf/msf/inc/thread  
+IFLAGS	    += -I ../libmsf/msf/inc/encrypt  
+IFLAGS	    += -I ../libmsf/msf/inc/svc  
+IFLAGS	    += -I ../libmsf/msf/inc/network
+IFLAGS 		+= -I ../librpc/comm -I../librpc/client/inc
 CFLAGS 		= -Wall -Wextra -W -O2 -pipe -Wswitch-default -Wpointer-arith -g -Wno-unused -ansi -ftree-vectorize -std=gnu11
 DFLAGS 		=  
 LD_FLAGS 	= -lpthread -ldl -lnuma -L$(LIBPATH) -lmsf -lipc

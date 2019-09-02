@@ -15,9 +15,7 @@
 #define MAX_AT_CMD_LEN 256
 /*
  * AT Command Releated In at_cmd.c
- * 
  */
-
 s32 mobile_at_modem_init(void) {
 
     s32 rc;
@@ -342,7 +340,7 @@ s32 mobile_at_set_ehrpd(enum EHRPD_STATE enehrpd) {
     at_response_free(p_response);
 
     /*ret equal 1(true) represent is on*/
-    if (ret == enehrpd) {
+    if (ret == (s32)enehrpd) {
         at_response_free(p_response);
         return  0;
     }

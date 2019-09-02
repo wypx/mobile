@@ -76,7 +76,7 @@ static local_dial_param dialparam[] = {
 
 void dial_param_init(void) {
     memset(dial, 0, sizeof(struct dial_info));
-    dial->dial_enable = true;
+    dial->dial_enable = MSF_TRUE;
     dial->dial_type = DIAL_AUTO;
     dial->epname = DIAL_TTY_USB;
     dial->mtu = 1460;

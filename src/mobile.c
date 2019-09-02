@@ -55,13 +55,13 @@ static s8 *g_errmsg_map[] = {
 }
 
 static void mobile_show_version(void) {
-    MSF_MOBILE_LOG(DBG_DEBUG, "#####################################################");
-    MSF_MOBILE_LOG(DBG_DEBUG, "# Name    : Mobile Process                          #");
-    MSF_MOBILE_LOG(DBG_DEBUG, "# Author  : luotang.me                              #");
-    MSF_MOBILE_LOG(DBG_DEBUG, "# Version : 1.1                                     #");
-    MSF_MOBILE_LOG(DBG_DEBUG, "# Time    : 2018-01-27 - 2019-05-03                 #");
-    MSF_MOBILE_LOG(DBG_DEBUG, "# Content : Hardware - SIM - Dial - SMS             #");
-    MSF_MOBILE_LOG(DBG_DEBUG, "#####################################################");
+    MSF_MOBILE_LOG(DBG_DEBUG, BOLD YELLOW"#####################################################");
+    MSF_MOBILE_LOG(DBG_DEBUG, BOLD RED   "# Name    : Mobile Process                          #");
+    MSF_MOBILE_LOG(DBG_DEBUG, BOLD GREEN "# Author  : luotang.me                              #");
+    MSF_MOBILE_LOG(DBG_DEBUG, BOLD BROWN "# Version : 1.1                                     #");
+    MSF_MOBILE_LOG(DBG_DEBUG, BOLD BLUE  "# Time    : 2018-01-27 - 2019-05-03                 #");
+    MSF_MOBILE_LOG(DBG_DEBUG, BOLD PURPLE"# Content : Hardware - SIM - Dial - SMS             #");
+    MSF_MOBILE_LOG(DBG_DEBUG, BOLD GRAY  "#####################################################");
 }
 
 s32 mobile_req_scb(s8 *data, u32 len, u32 cmd) {
@@ -70,14 +70,16 @@ s32 mobile_req_scb(s8 *data, u32 len, u32 cmd) {
     return 0;
 }
 
-s32 mobile_ack_scb(s8 *data, u32 len, u32 cmd) {
+s32 mobile_ack_scb(s8 *data, u32 len, u32 cmd)
+{
     MSF_MOBILE_LOG(DBG_INFO, "Mobile ack service callback data(%p) len(%d) cmd(%d).",
                        data, len, cmd);
 
     return 0;
 }
 
-s32 sig_pppd_exit(void *lparam) {
+s32 sig_pppd_exit(void *lparam)
+{
 
     s32 status;
     s32 exitNo = 0;

@@ -325,36 +325,31 @@ static s32 sms_decode_pdu(const s8 *pSrc, struct sms_param *pstSms) {
     return nDstLength;
 }
 
-s32 sms_chkfragment(const s8 *msg)
+s32 sms_chkfragment(const u8 *msg, const u32 len)
 {
-    if(NULL == msg)
-    {
-        printf("check_sms_length: input msg NULL\n");
-        return false;
+    if (NULL == msg) {
+        MSF_MOBILE_LOG(DBG_ERROR, "Input msg NULL.");
+        return MSF_FALSE;
     }
 
-    u32 i = 0;
+    u32 msg_idx = 0;
     s32 chn_num = 0;
     s32 eng_num = 0;
 
-    for(i = 0; i < strlen(msg); i++)
-    {
-        if(msg[i] > 0xA0)
-        {
+    for (msg_idx = 0; msg_idx < len; msg_idx++) {
+        if(msg[msg_idx] > 0xA0) {
             chn_num ++;
-        }
-        else
-        {
+        } else {
             eng_num++;
         }
 
-        if((chn_num + 2*eng_num) >= 139 && (0 == chn_num % 2))
-        {
+        if((chn_num + 2*eng_num) >= 139 &&
+            (0 == chn_num % 2)) {
             return (chn_num+ eng_num);
         }
     }
 
-    return true;
+    return MSF_TRUE;
 }
 
 
