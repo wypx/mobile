@@ -10,17 +10,20 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#ifndef AT_TOK_H
-#define AT_TOK_H
+#ifndef _AT_TOK_H_
+#define _AT_TOK_H_
 
-#include <msf_utils.h>
+namespace MSF {
+namespace MOBILE {
 
-s32 at_tok_start(s8 **p_cur);
-s32 at_tok_nextint(s8 **p_cur, s32 *p_out);
-s32 at_tok_nexthexint(s8 **p_cur, s32 *p_out);
-s32 at_tok_nextbool(s8 **p_cur, s8 *p_out);
-s32 at_tok_nextstr(s8 **p_cur, s8 **out);
-s32 at_tok_hasmore(s8 **p_cur);
-s32 at_str_startwith(const s8 *line, const s8 *prefix);
-
-#endif /*AT_TOK_H */
+int AtTokStart(char **p_cur);
+int AtTokNextInt(char **p_cur, int *p_out);
+int AtTokNextHexInt(char **p_cur, int *p_out);
+int AtTokNextBool(char **p_cur, char *p_out);
+int AtTokNextStr(char **p_cur, char **out);
+int AtTokNextHasMore(char **p_cur);
+int AtStrStartWith(const char *line, const char *prefix);
+char * AtFindNextEOL(char *cur);
+}
+}
+#endif

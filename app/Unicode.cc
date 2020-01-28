@@ -10,9 +10,17 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include <mobile.h>
+#include <base/Utils.h>
+#include <base/Logger.h>
 
-const u16 g_Unicode_GB2312[][2] = {
+#include "Unicode.h"
+
+using namespace MSF::MOBILE;
+
+namespace MSF {
+namespace MOBILE {
+
+const uint16_t g_UnicodeGB2312[][2] = {
     {0x00A4,0xA1E8},/* '¤' ->   164 */
     {0x00A7,0xA1EC},/* '§' ->   167 */
     {0x00A8,0xA1A7},/* '¨' ->   168 */
@@ -21600,11 +21608,11 @@ const u16 g_Unicode_GB2312[][2] = {
     {0xFFE5,0xA3A4}/* '￥' -> 65509 */
 };
 
-static u16 at_unicode2GBcode(u16 iUnicode)
+static uint16_t Unicode2GBcode(uint16_t unicode)
 {
-    s32 i, j, n;
+    int n;
 
-    switch (iUnicode) {
+    switch (unicode) {
         case 0x0002:
             return 0x24;
         case 0x000a:
@@ -21617,21 +21625,21 @@ static u16 at_unicode2GBcode(u16 iUnicode)
             break;
     }
 
-    if ((iUnicode >= 0x20 && iUnicode <= 0x5a)
-      || (iUnicode >= 0x61 && iUnicode <= 0x7e)) {
-        return iUnicode;
+    if ((unicode >= 0x20 && unicode <= 0x5a)
+      || (unicode >= 0x61 && unicode <= 0x7e)) {
+        return unicode;
     }
 
-    s32 low, high, mid;
-    n = _ARRAY_SIZE(g_Unicode_GB2312) - 1;
+    int low, high, mid;
+    n = MSF_ARRAY_SIZE(g_UnicodeGB2312) - 1;
     low = 0;
     high = n;
     while (low <= high) {
         mid = (low + high) / 2;
-        if (g_Unicode_GB2312[mid][0] == iUnicode) {
-            return g_Unicode_GB2312[mid][1];
+        if (g_UnicodeGB2312[mid][0] == unicode) {
+            return g_UnicodeGB2312[mid][1];
         }
-        if (iUnicode > g_Unicode_GB2312[mid][0])
+        if (unicode > g_UnicodeGB2312[mid][0])
             low = mid + 1;
         else
             high = mid - 1;
@@ -21640,21 +21648,21 @@ static u16 at_unicode2GBcode(u16 iUnicode)
     return 0;
 }
 
-/*转换Unicde字符串到GB码,返回汉字数*/
-s32 at_strUnicode2GB(const u8 *strSrc, s8 *strDest, s32 n) {
+/* 转换Unicde字符串到GB码,返回汉字数 */
+uint32_t StrUnicode2GB(const char *src, char *dst, uint32_t n) 
+{
+    char cTmp;
+    uint16_t hz, tmphz;
+    const char *pSrc;
+    char *pDest;
+    uint32_t i;
 
-    s8 cTmp;
-    u16 hz, tmphz;
-    const u8 *pSrc;
-    s8 *pDest;
-    s32 i;
-
-    for (i = 0, pSrc = strSrc, pDest = strDest; n > 0;
+    for (i = 0, pSrc = src, pDest = dst; n > 0;
          n -= 2, pSrc += 2, ++i, ++pDest) {
-            
+
         hz = 0;
         hz = *pSrc << 8 | (*(pSrc + 1) & 0x00FF);
-        tmphz = at_unicode2GBcode(hz);
+        tmphz = Unicode2GBcode(hz);
 
         if (!tmphz || (tmphz > 0x7F && tmphz < 0xFF)) {
             *pDest = '.';
@@ -21676,37 +21684,33 @@ s32 at_strUnicode2GB(const u8 *strSrc, s8 *strDest, s32 n) {
     return i;
 }
 
-s32 at_strGB2Unicode(const s8 *str, u8 *dst, s32 n) {
-
-    if (!str) {
-        return -1;
-    }
-
-    s32 len = strlen(str);
-    s32 j = 0;
-    u32 k = 0;
-    s32 i = 0;
-    u8 *s = dst;
-    u16 tmp = 0;
+uint32_t StrGB2Unicode(const char *str, char *dst, uint32_t n)
+{
+    int len = strlen(str);
+    int j = 0;
+    uint32_t k = 0;
+    int i = 0;
+    char *s = dst;
+    uint16_t tmp = 0;
 
     while (i < len) {
         /*0x81为字库中最小的数字,如果小于0x81应该是英文字符*/
-        if ((unsigned char) str[i] < 0x81) {
+        if ((uint8_t) str[i] < 0x81) {
             s[j++] = 0x0;
             s[j++] = str[i++];
         } else {
             tmp = str[i] & 0xff;
             tmp = ((tmp << 8) & 0xff00) | (str[i + 1] & 0xff);
             i += 2;
-            for (k = 0; k < (_ARRAY_SIZE(g_Unicode_GB2312) - 1); k++) {
-                if (tmp == g_Unicode_GB2312[k][1]) {
-                    s[j++] = (g_Unicode_GB2312[k][0] >> 8) & 0xff;
-                    s[j++] = g_Unicode_GB2312[k][0] & 0xff;
+            for (k = 0; k < (MSF_ARRAY_SIZE(g_UnicodeGB2312) - 1); k++) {
+                if (tmp == g_UnicodeGB2312[k][1]) {
+                    s[j++] = (g_UnicodeGB2312[k][0] >> 8) & 0xff;
+                    s[j++] = g_UnicodeGB2312[k][0] & 0xff;
                     break;
                 }
             }
             /*没找到*/
-            if (k == (_ARRAY_SIZE(g_Unicode_GB2312) - 1))
+            if (k == (MSF_ARRAY_SIZE(g_UnicodeGB2312) - 1))
                 return 0;
         }
     }
@@ -21714,22 +21718,24 @@ s32 at_strGB2Unicode(const s8 *str, u8 *dst, s32 n) {
     return j;
 }
 
-void at_unicode_gb_test(void) {
+void UnicodeGbTest(void)
+{
+    char unicode[5];
+    char gb[15] = "中国.";
+    uint32_t len = 4;
 
-    u8 unicode[5];
-    s8 gb[15] = "中国.";
-    s8 *p;
-    s8 error[20];
-    s32 len = 4;
+    StrGB2Unicode(gb, unicode, strlen(gb));
 
-    at_strGB2Unicode(gb, unicode, strlen(gb));
-
-    printf("%x,%x,%x,%x\n", (u8) unicode[0],
-            (u8) unicode[1], (u8) unicode[2],
-            (u8) unicode[3]);
+    MSF_DEBUG << "After translate: (" 
+              << (uint8_t) unicode[0] << ","
+              << (uint8_t) unicode[1] << ","
+              << (uint8_t) unicode[2] << ","
+              << (uint8_t) unicode[3] << ").";
 
     unicode[4] = 0;
-    at_strUnicode2GB(unicode, gb, len);
-    printf("%s, %d\n", gb, len);
+    StrUnicode2GB(unicode, gb, len);
+    MSF_DEBUG << "gb: " << gb << ", len:" << len;
 }
 
+}
+}

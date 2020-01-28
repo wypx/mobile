@@ -10,59 +10,62 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include "at_tok.h"
+#include <base/GccAttr.h>
+
+#include "AtTok.h"
+
+#include <unistd.h>
+#include <cstdlib>
+#include <cctype>
+#include <string.h>
+
+namespace MSF {
+namespace MOBILE {
 
 /**
  * Starts tokenizing an AT response string
  * returns -1 if this is not a valid response string, 0 on success.
  * updates *p_cur with current position
  */
-s32 at_tok_start(s8 **p_cur) {
-    if (*p_cur == NULL) {
+int AtTokStart(char **p_cur)
+{
+    if (unlikely(*p_cur == nullptr)) {
         return -1;
     }
-
     // skip prefix
     // consume "^[^:]:"
-
     *p_cur = strchr(*p_cur, ':');
-
-    if (*p_cur == NULL) {
+    if (*p_cur == nullptr) {
         return -1;
     }
-
     (*p_cur)++;
 
     return 0;
 }
 
-static void skipWhiteSpace(s8 **p_cur) {
-    if (*p_cur == NULL) return;
-
+static inline void skipWhiteSpace(char **p_cur) 
+{
     while (**p_cur != '\0' && isspace(**p_cur)) {
         (*p_cur)++;
     }
 }
 
-static void skipNextComma(s8 **p_cur) {
-    if (*p_cur == NULL) return;
-
+static inline void skipNextComma(char **p_cur) {
     while (**p_cur != '\0' && **p_cur != ',') {
         (*p_cur)++;
     }
-
     if (**p_cur == ',') {
         (*p_cur)++;
     }
 }
 
-static s8 * nextTok(s8 **p_cur) {
-    s8 *ret = NULL;
-
+static inline char * nextTok(char **p_cur)
+{
+    char *ret = nullptr;
     skipWhiteSpace(p_cur);
 
-    if (*p_cur == NULL) {
-        ret = NULL;
+    if (*p_cur == nullptr) {
+        ret = nullptr;
     } else if (**p_cur == '"') {
         (*p_cur)++;
         ret = strsep(p_cur, "\"");
@@ -81,28 +84,21 @@ static s8 * nextTok(s8 **p_cur) {
  * updates *p_cur
  * "base" is the same as the base param in strtol
  */
-static s32 at_tok_nextint_base(s8 **p_cur, s32 *p_out, s32 base, s32  uns) {
-    s8 *ret;
-
-    if (*p_cur == NULL) {
-        return -1;
-    }
-
-    ret = nextTok(p_cur);
-
-    if (ret == NULL) {
+static int AtTokNextIntBase(char **p_cur, int *p_out, int base, int uns)
+{
+    char *ret = nextTok(p_cur);
+    if (ret == nullptr) {
         return -1;
     } else {
         long l;
-        s8 *end;
+        char *end;
 
         if (uns)
             l = strtoul(ret, &end, base);
         else
             l = strtol(ret, &end, base);
 
-        *p_out = (s32)l;
-
+        *p_out = (int)l;
         if (end == ret) {
             return -1;
         }
@@ -117,8 +113,12 @@ static s32 at_tok_nextint_base(s8 **p_cur, s32 *p_out, s32 base, s32  uns) {
  * returns 0 on success and -1 on fail
  * updates *p_cur
  */
-s32 at_tok_nextint(s8 **p_cur, s32 *p_out) {
-    return at_tok_nextint_base(p_cur, p_out, 10, 0);
+int AtTokNextInt(char **p_cur, int *p_out)
+{
+    if (unlikely(*p_cur == nullptr)) {
+        return -1;
+    }
+    return AtTokNextIntBase(p_cur, p_out, 10, 0);
 }
 
 /**
@@ -127,55 +127,73 @@ s32 at_tok_nextint(s8 **p_cur, s32 *p_out) {
  * returns 0 on success and -1 on fail
  * updates *p_cur
  */
-s32 at_tok_nexthexint(s8 **p_cur, s32 *p_out) {
-    return at_tok_nextint_base(p_cur, p_out, 16, 1);
+int AtTokNextHexInt(char **p_cur, int *p_out)
+{
+    if (unlikely(*p_cur == nullptr)) {
+        return -1;
+    }
+    return AtTokNextIntBase(p_cur, p_out, 16, 1);
 }
 
-s32 at_tok_nextbool(s8 **p_cur, s8 *p_out) {
-    s32 ret;
-    s32 result;
+int AtTokNextBool(char **p_cur, char *p_out)
+{
+    int ret;
+    int result;
 
-    ret = at_tok_nextint(p_cur, &result);
-
+    ret = AtTokNextInt(p_cur, &result);
     if (ret < 0) {
         return -1;
     }
-
     // booleans should be 0 or 1
     if (!(result == 0 || result == 1)) {
         return -1;
     }
-
     if (p_out != NULL) {
-        *p_out = (s8)result;
+        *p_out = (char)result;
     }
-
     return ret;
 }
 
-s32 at_tok_nextstr(s8 **p_cur, s8 **p_out) {
-    if (*p_cur == NULL) {
-        return -1;
-    }
-
+int AtTokNextStr(char **p_cur, char **p_out)
+{
     *p_out = nextTok(p_cur);
-
     return 0;
 }
 
 /** returns 1 on "has more tokens" and 0 if no */
-s32 at_tok_hasmore(s8 **p_cur) {
-    return ! (*p_cur == NULL || **p_cur == '\0');
+int AtTokHasMore(char **p_cur)
+{
+    return ! (*p_cur == nullptr || **p_cur == '\0');
 }
 
-s32 at_str_startwith(const s8 *line, const s8 *prefix) {
+int AtStrStartWith(const char *line, const char *prefix)
+{
     for ( ; *line != '\0' && *prefix != '\0' ; line++, prefix++) {
         if (*line != *prefix) {
             return 0;
         }
     }
-
     return *prefix == '\0';
 }
 
+/**
+ * Returns a pointer to the end of the next line
+ * special-cases the "> " SMS prompt
+ *
+ * returns nullptr if there is no complete line
+ */
+char * AtFindNextEOL(char *cur)
+{
+    if (cur[0] == '>' && cur[1] == ' ' && cur[2] == '\0') {
+        /* SMS prompt character...not \r terminated */
+        return cur+2;
+    }
 
+    // Find next newline
+    while (*cur != '\0' && *cur != '\r' && *cur != '\n') cur++;
+
+    return *cur == '\0' ? nullptr : cur;
+}
+
+}
+}
