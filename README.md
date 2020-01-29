@@ -31,17 +31,15 @@ Mobile for raspberry, support LongSung U8300C,9300C, Huawei ME909s, NL660, SIMCO
 ``` groovy
 git clone https://github.com/wypx/libmsf/
 ```
-- [微服务通信框库][2]
+
+- [拨号Mobile库][2]
 ``` groovy
-git clone https://github.com/wypx/librpc/
-```
-- [拨号Mobile库][3]
-``` groovy
+下载到app目录的mobile子目录
 git clone https://github.com/wypx/mobile/
 ```
+
 [1]: https://github.com/wypx/libmsf/
-[2]: https://github.com/wypx/librpc/
-[3]: https://github.com/wypx/mobile/
+[2]: https://github.com/wypx/mobile/
 
 Please see this [Wiki Download Page][Wiki] for more repository infos.
 
@@ -49,49 +47,58 @@ Please see this [Wiki Download Page][Wiki] for more repository infos.
 
 ### 编译开源库
 ```xml
-root@KaliCI:/media/psf/tomato/mod/mobile make
-Make Subdirs msf
-make[1]: Entering directory '/media/psf/tomato/mod/libmsf/msf
-arm-linux-gnueabihf-gcc lib/src/msf_log.o
-.................
-make[1]: Leaving directory '/media/psf/tomato/mod/libmsf/msf_daemon
+root@a3efcdb0894d:/home/share/tomato/mod/libmsf# python build.py    
 
-root@KaliCI:/media/psf/tomato/mod/librpc/server make
-arm-linux-gnueabihf-gcc bin/src/conn.o
-arm-linux-gnueabihf-gcc bin/src/config.o
-.......
 
-root@KaliCI:/media/psf/tomato/mod/mobile# make
-arm-linux-gnueabihf-gcc bin/src/at_channel.o
-arm-linux-gnueabihf-gcc bin/src/at_tok.o
-arm-linux-gnueabihf-gcc bin/src/at_mod.o
-arm-linux-gnueabihf-gcc bin/src/at_sms.o
-arm-linux-gnueabihf-gcc bin/src/at_usb.o
-arm-linux-gnueabihf-gcc bin/src/at_dial.o
-arm-linux-gnueabihf-gcc bin/src/mobile.o
-arm-linux-gnueabihf-gcc /media/psf/tomato/packet/binary/msf_mobile
-arm-linux-gnueabihf-strip /media/psf/tomato/packet/binary/msf_mobile
-======================
+          Welcome to join me http://luotang.me                 
+          Welcome to join me https://github.com/wypx/libmsf    
+
+******************* Micro Service Framework Build Starting **************************
+
+-- Dir 'build/lib' has already exist now.
+-- Dir 'build/app' has already exist now.
+-- INFO: Numa library is found.
+-- Current project compile in debug mode.
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/share/tomato/mod/libmsf/build/lib
+[  3%] Built target msf
+[ 10%] Built target msf_encrypt
+[ 18%] Built target msf_agent
+[ 36%] Built target msf_event
+[ 43%] Built target msf_sock
+[100%] Built target msf_base
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/share/tomato/mod/libmsf/build/app
+
+******************* Micro Service Framework Build Ending ****************************
 ```
 
 ```xml
-msf_agent  各个服务进程之间的通信代理服务端程序
-msf_dlna   测试程序 - 独立微服务进程客户端DLNA
-msf_upnp   测试程序 - 独立微服务进程客户端UPNP
-msf_daemon 用于守护监控代理进程msf_agent
-msf_shell  壳子程序，用于记载配置文件中的插件
-msf_mobile 独立编译的mobile拨号程序
-
-libipc.so 提供给各个微服务进程连接的通信代理客户端库
-libipc.so 提供给各个微服务进程的基础设施库
-          包括：网络 管道 Epoll等事件驱动 日志 共享内存 内存池 
-          串口通信 线程 进程 CPU工具 文件 加密 微服务框架 定时器
+root@a3efcdb0894d:/home/share/tomato/mod/libmsf/build/app# ls -l
+total 28
+-rw-r--r--  1 root root 13581 Jan 27 12:39 CMakeCache.txt
+drwxr-xr-x 12 root root   384 Jan 29 03:29 CMakeFiles
+-rw-r--r--  1 root root  5528 Jan 29 03:29 Makefile
+-rw-r--r--  1 root root  2234 Jan 27 12:39 cmake_install.cmake
+drwxr-xr-x  6 root root   192 Jan 29 03:29 mobile                 
+drwxr-xr-x  6 root root   192 Jan 29 03:29 msf_agent_server       各个服务进程之间的通信代理服务端程序
+drwxr-xr-x  6 root root   192 Jan 29 03:29 msf_guard              用于守护监控代理进程msf_guard
+drwxr-xr-x  6 root root   192 Jan 29 03:29 msf_shell              壳子程序，用于记载配置文件中的插件
+root@a3efcdb0894d:/home/share/tomato/mod/libmsf/build/app# ls mobile/ -l
+total 7952
+drwxr-xr-x 5 root root     160 Jan 29 03:29 CMakeFiles
+-rw-r--r-- 1 root root   12734 Jan 27 12:39 Makefile
+-rwxr-xr-x 1 root root 7159504 Jan 29 03:29 Mobile                独立编译的mobile拨号程序
+-rw-r--r-- 1 root root    1130 Jan 27 12:39 cmake_install.cmake
+root@a3efcdb0894d:/home/share/tomato/mod/libmsf/build/app#
 ```
 
 ### 运行开源库
 ```xml
 1. 执行样例程序
-   $ ./msf_mobile
+   $ ./Mobile
 2. 查看运行日志
    运行结果
 ```
@@ -115,7 +122,7 @@ Libmsf is released under the [Gnu 2.0 license](license.txt).
 ```
 /**************************************************************************
 *
-* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
+* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
 * All rights reserved.
 *
 * Distributed under the terms of the GNU General Public License v2.
