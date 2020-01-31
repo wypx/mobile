@@ -19,7 +19,7 @@
 #include <base/MemPool.h>
 #include <event/Eventloop.h>
 #include <event/EventStack.h>
-#include <agent/AgentClient.h>
+#include <client/AgentClient.h>
 
 #include <string>
 #include <list>

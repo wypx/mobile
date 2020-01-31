@@ -207,7 +207,7 @@ bool Modem::checkIdSupport(const uint32_t vendorId, const uint32_t productId)
     char      line[128];
     uint32_t  drivers = 0;
 
-    if (!File::isFileExist(USB_DRIVER_PATH)) {
+    if (!IsFileExist(USB_DRIVER_PATH)) {
         _errno= MOBILE_E_DRIVER_NOT_INSTALLED;
         return false;
     }
@@ -250,7 +250,7 @@ bool Modem::checkSerial()
     snprintf(ttyPath, sizeof(ttyPath)-1, TTY_USB_FORMAT, _modem->_dbgPort);
 
     /* ls /dev/ttyUSB# */
-    if (!File::isFileExist(ttyPath)) {
+    if (!IsFileExist(ttyPath)) {
         /* Drivers have been not installed, ttyUSB not exist,
            that is the drivers not support current productid */
         _errno = MOBILE_E_TTY_USB_NOT_FOUND;
