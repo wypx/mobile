@@ -13,14 +13,6 @@ else()
     endif()
 endif()
 
-# 设置链接库搜索目录
-link_directories(
-    /home/share/tomato/mod/libmsf/build/lib/msf_base/
-    /home/share/tomato/mod/libmsf/build/lib/msf_sock/
-    /home/share/tomato/mod/libmsf/build/lib/msf_event/
-    /home/share/tomato/mod/libmsf/build/app/msf_agent/
-    /home/share/tomato/mod/libmsf/build/lib/
-)
 include (${PROJECT_SOURCE_DIR}/../cmake/utils.cmake)
 #include (${PROJECT_SOURCE_DIR}/cmake/FindNUMA.cmake)
 add_cplusplus_standard_support()
