@@ -1,0 +1,27 @@
+debug
+nodetach
+/dev/ttyUSB2
+115200
+crtscts
+show-password
+usepeerdns
+#refuse-pap
+#refuse-eap
+#auth
+#require-chap
+refuse-pap
+refuse-eap
+auth
+require-chap
+user "user"
+password "user"
+noauth
+noipdefault
+novj
+novjccomp
+noccp
+defaultroute
+ipcp-accept-local
+ipcp-accept-remote
+connect 'chat -s -v -f /home/chat-connect'
+disconnect 'chat -s -v -f /home/chat-disconnect'

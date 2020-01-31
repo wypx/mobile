@@ -1,0 +1,18 @@
+ABORT "NO CARRIER"
+ABORT "NO DIALTONE"
+ABORT "ERROR"
+ABORT "NO ANSWER"
+ABORT "BUSY"
+TIMEOUT 120
+""at
+#目前基线支持配置了自动APN，在专网情况下把自动APN关闭。
+OK AT+NVRW=1,50058,"00"
+#如果是专网/VPDN则都设置为专网/VPDN的APN，但有时需要将第一个设置为公网的，第二个设置为专网的APN。
+#OK AT+CGDCONT=1,"IP","cmnet"
+#OK AT+CGDCONT=2,"IP","cmnet"
+#第二个数字代表当前使用的chap还是pap，如果pap填1，chap填2
+#OK AT$QCPDPP=1,2,"card","card"
+#OK AT$QCPDPP=1,2,"card","card"
+#拨号号码，如果是专网，在客户没有特殊的情况下，4G模式拨号号码填*99***2#，电信3G填#777
+OK atd*98*1#
+CONNECT

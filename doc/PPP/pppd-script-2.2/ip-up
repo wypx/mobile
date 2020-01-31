@@ -1,0 +1,6 @@
+#!/bin/sh
+# author:jiangyanfeng@gmail.com
+# data:  2007-08-04
+cp -f /etc/resolv.conf /etc/resolv.conf.local
+cp -f /etc/ppp/resolv.conf /etc/resolv.conf
+cat /etc/resolv.conf.local >> /etc/resolv.conf

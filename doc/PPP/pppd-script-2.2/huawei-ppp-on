@@ -1,0 +1,235 @@
+#!/bin/sh
+#
+# Script to initiate a ppp connection. This is the first part of the
+# pair of scripts. This is not a secure pair of scripts as the codes
+# are visible with the 'ps' command.  However, it is simple.
+# Modify: fangxiaozhi <huananhu@huawei.com>
+programName=${0##*/}
+# These are the parameters. Change as needed.
+#DEVICE=/dev/usb/tts/0
+#DEVICE=/dev/ttyACM0               	    #The modem file name of the data card
+DEVICE=/dev/ttyUSB2               	    #The modem file name of the data card
+TELEPHONE=*99#                             # The telephone number for the connection, by default, it will be *99#
+ACCOUNT=""                              # The account name for logon, by default, it  will be null
+PASSWORD=""  	                    # The password for this account, by default, it  will be null
+AUTH=""					    # Authentic protocol,byi default, it will be null
+APN=ctlte
+STR_USER="user \"card\""
+STR_PASSWD="password \"card\""
+
+show_usage(){
+  echo "usage:"
+  echo " $programName [--usr=username] [--pwd=password] [--pn=phonenumber][--apn=apn][--auth=authentic protocol]"
+  echo "	[--local_ip=local_ip] [--remote_ip=remote_ip] [--usepeernds=usepeernds]"
+  echo "username: The account name get from your ISP, by default, it will be null"
+  echo "password: The password for your account, by default, it will be null"
+  echo "phonenumber: The phone  number for dialing up, by default, it will be *99#"
+  echo "apn: access point name"
+  echo "auth: chap/pap.   for example: --auth=chap"
+  exit 0
+}
+
+PID=`ps -ef | grep -v grep | grep "huawei-dial" | grep "pppd" | awk '{ print $2; exit }'`
+
+
+if test $PID; then
+	echo "PPP link is active"
+	exit 1
+fi
+
+if [ $# -eq 1 -a "$1" = "--help" ]
+then
+	show_usage
+fi
+
+for i in "$@"
+do
+    case $i in
+       --device=*)
+            echo "--device*=$i"
+            DEVICE=${i#--device=}
+            ;;
+       --usr=*)
+            echo "--usr*=$i"
+            ACCOUNT=${i#--usr=}
+            ;;
+       --pwd=*)
+            echo "--pwd*=$i"
+            PASSWORD=${i#--pwd=}
+            ;;
+       --pn=*)
+            echo "--pn*$i"
+            TELEPHONE=${i#--pn=}
+            ;;
+       --apn=*)
+      	     echo "--apn*=$i"
+       	    APN=${i#--apn=}
+       	    ;;
+       --auth=*)
+      	     echo "--auth*=$i"
+       	    AUTH=${i#--auth=}
+			if [ "$AUTH" = "chap" ]; then
+				AUTH=-pap
+			fi
+			if [ "$AUTH" = "pap" ]; then
+				AUTH=-chap
+			fi
+       	    ;;
+       --local_ip=*)
+      	     echo "--local_ip*=$i"
+       	    PAR_LOCAL=${i#--local_ip=}
+       	    ;;
+       --remote_ip=*)
+      	     echo "--remote_ip*=$i"
+       	    PAR_REMOTE=${i#--remote_ip=}
+       	    ;;
+       --usepeernds=*)
+      	     echo "--usepeernds*=$i"
+       	    PAR_USEERDNS=${i#--usepeernds=}
+       	    ;;       	           	           
+          *)
+            echo "*=$i"
+   esac
+
+done
+
+if [ "$PAR_LOCAL" = "" ]; then
+        LOCAL_IP=0.0.0.0
+else
+        LOCAL_IP=$PAR_LOCAL
+fi
+
+if [ "$PAR_REMOTE" = "" ]; then
+        REMOTE_IP=0.0.0.0
+else
+        REMOTE_IP=$PAR_REMOTE
+fi
+
+if [ ! "$PAR_USEERDNS" = "" ]; then
+	USEPEERDNS=''
+	for NAMESERVER in `echo $PAR_USEERDNS | awk -F: '{for (i=1;i<=NF;i++) print $i}'`
+	do
+        	echo "nameserver $NAMESERVER" >> /etc/ppp/resolv.conf
+	done
+else
+	USEPEERDNS='usepeerdns'
+fi
+
+NETMASK=255.255.255.0	# The proper netmask if needed
+
+#
+# Export them so that they will be available at 'ppp-on-dialer' time.
+export TELEPHONE APN ACCOUNT PASSWORD 
+# 
+# This is the location of the script which dials the phone and logs
+# in.  Please use the absolute file name as the $PATH variable is not
+# used on the connect option.  (To do so on a 'root' account would be
+# a security hole so don't ask.)
+#
+# Initiate the connection
+# 
+# I put most of the common options on this command. Please, don't
+# forget the 'lock' option or some programs such as mgetty will not
+# work. The asyncmap and escape will permit the PPP link to work with
+# a telnet or rlogin connection. You are welcome to make any changes
+# as desired. Don't use the 'defaultroute' option if you currently
+# have a default route to an ethernet gateway.
+#
+
+if [ ! -d "/etc/ppp" ]
+then
+    mkdir /etc/ppp
+fi
+
+if [ -f "/etc/ppp/options" ]
+then
+    echo "" >/etc/ppp/options 
+fi
+
+if [ -f "/etc/ppp/pap-secrets" ]
+then
+    chmod 700 /etc/ppp/pap-secrets
+fi
+
+if [ -f "/etc/ppp/chap-secrets" ]
+then
+    chmod 700 /etc/ppp/chap-secrets
+fi
+
+if [ ! "$ACCOUNT" = "" ]
+then
+    echo "$ACCOUNT * $PASSWORD *" > /etc/ppp/pap-secrets
+    echo "$ACCOUNT * $PASSWORD *" > /etc/ppp/chap-secrets
+    STR_USER="user \"$ACCOUNT\""
+    STR_PASSWD="password \"$PASSWORD\""
+else
+    echo "* * * *" > /etc/ppp/pap-secrets
+    echo "* * * *" > /etc/ppp/chap-secrets  
+fi
+
+chmod 400 /etc/ppp/pap-secrets
+chmod 400 /etc/ppp/chap-secrets
+
+if [ "$TELEPHONE" = "*99#" ]; then
+echo " ABORT \"NO CARRIER\"		
+ABORT \"NO DIALTONE\"			
+ABORT \"ERROR\"				
+ABORT \"NO ANSWER\"			
+ABORT \"BUSY\"				
+ABORT \"Username/Password Incorrect\"   
+\"\"   	AT
+\"OK-+++\c-OK\" ATH0			
+OK	AT+CGDCONT=1,\"IP\",\"$APN\"
+OK	ATDT$TELEPHONE
+CONNECT	\"\"
+	" > /etc/ppp/huawei-chat
+fi
+
+if [ "$TELEPHONE" = "#777" ]; then
+
+echo -e "at^pppcfg=\"$ACCOUNT\",\"$PASSWORD\"\r\n" > $DEVICE
+echo " ABORT \"NO CARRIER\"		
+ABORT \"NO DIALTONE\"			
+ABORT \"ERROR\"				
+ABORT \"NO ANSWER\"			
+ABORT \"BUSY\"
+TIMEOUT 120				
+ABORT \"Username/Password Incorrect\"   
+\"\"   	AT
+OK	ATDT#777
+CONNECT	\"\"
+	" > /etc/ppp/huawei-chat
+fi
+
+if [ ! -d "/etc/ppp/peers" ]
+then
+	mkdir /etc/ppp/peers
+fi
+
+echo "$DEVICE
+115200
+crtscts
+modem
+debug
+nodetach
+usepeerdns
+noipdefault
+defaultroute
+$LOCAL_IP:$REMOTE_IP
+$STR_USER
+$STR_PASSWD
+noauth
+$AUTH
+-mschap
+-mschap-v2
+ipcp-accept-local
+ipcp-accept-remote
+connect '/sbin/chat -s -v -f /etc/ppp/huawei-chat'
+	" > /etc/ppp/peers/huawei-dial
+
+/bin/cp ./ip-up /etc/ppp/ip-up
+/bin/cp ./ip-down /etc/ppp/ip-down
+
+exec /sbin/pppd call huawei-dial&
+
+exit 0

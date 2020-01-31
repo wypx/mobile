@@ -1,0 +1,13 @@
+--pn*--pn=#777
+abort on (NO CARRIER)
+abort on (NO DIALTONE)
+abort on (ERROR)
+abort on (NO ANSWER)
+abort on (BUSY)
+timeout set to 120 seconds
+abort on (Username/Password Incorrect)
+send (AT^M)
+ -- write timed out
+Failed
+Script /usr/sbin/chat -s -v -f /etc/ppp/huawei-chat finished (pid 23968), status = 0x1
+Connect script failed

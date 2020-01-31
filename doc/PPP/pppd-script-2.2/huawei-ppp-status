@@ -1,0 +1,30 @@
+#!/bin/sh
+# author: jiangyanfeng@gmail.com
+# date:   2008-05-07
+export LANG="en_US.UTF-8"
+if [ "$1" = "" ]; then
+	DEVICE=/dev/ttyUSB0
+#        echo "parameter error"
+#	exit 1
+else
+        DEVICE=$1
+fi
+
+PID=`ps -ef | grep -v grep | grep "huawei-dial" | grep "pppd" | awk '{ print $2; exit }'`
+
+if test $PID; then
+	for P2P in `ifconfig | grep "Link encap" | awk '{ print $1 }'`
+	do
+		if test -e /var/run/$P2P.pid; then
+			if test `cat /var/run/$P2P.pid` =  $PID; then
+				echo "connected"
+				exit 0
+			fi
+		fi
+	done
+	echo "connecting"
+	exit 3
+else
+	echo "not connected"
+	exit 2
+fi

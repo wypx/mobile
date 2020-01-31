@@ -1,0 +1,12 @@
+使用文档
+./huawei-ppp-on --help
+./huawei-ppp-on [--usr=username] [--pwd=passwd]  \
+	[--pn=phonenumber] [--apn=apn] [--auth=auth]
+	
+
+例子：
+用户名：card  密码：card  电话：*99# 
+
+root权限下执行
+./huawei-ppp-on --user=card --pwd=card --pn=*99# --auth=chap --apn=1234
+./huawei-ppp-on --user=card --pwd=card --pn=*98*1# --auth=chap --apn=cmnet

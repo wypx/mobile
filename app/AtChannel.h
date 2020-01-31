@@ -22,6 +22,11 @@
 namespace MSF {
 namespace MOBILE {
 
+/**
+ * Ref android source:
+ * https://android.googlesource.com/platform/hardware/ril/
+ * */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
