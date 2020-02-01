@@ -24,10 +24,10 @@ set(COMMLIBS msf_agent msf_event msf_sock msf_base numa pthread dl)
 
 # 设置源代码路径
 aux_source_directory (app DIR_SRCS)
-add_executable(Mobile ${DIR_SRCS})
+add_executable(${EXECUTABLE_NAME} ${DIR_SRCS})
 add_definitions(-Wno-builtin-macro-redefined)
-msf_redefine_file(Mobile)
-target_link_libraries(Mobile ${COMMLIBS})
+msf_redefine_file(${EXECUTABLE_NAME})
+target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 
-#install (TARGETS lib LIBRARY DESTINATION lib)            # 安装到 usr/lib
-#install (FILES * DESTINATION include/msf/base/)          # 安装到 usr/include/msf/base
+set(CMAKE_INSTALL_PREFIX /home/luotang.me)           # 安装路径前缀 $ENV{HOME}/usr: /home/xxx/usr
+install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)    # 二进制安装到 /home/luotang.me/bin

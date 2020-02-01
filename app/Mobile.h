@@ -351,6 +351,8 @@ class Mobile : public Noncopyable
         AgentClient   *agent_;
         bool    quit_;
         pid_t   pppId_;
+
+        void onRequestCb(const char *data, const uint32_t len, const uint32_t cmd);
 };
 
 }
