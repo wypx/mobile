@@ -47,8 +47,7 @@ Mobile::Mobile(const std::string & config)
         MSF_FATAL << "Fail to alloc event stack for mobile.";
         return;
     }
-    agent_ = new AgentClient("Mobile", APP_MOBILE);
-    agent_->init(stack_->getBaseLoop());
+    agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", APP_MOBILE);
     agent_->setReqCb(std::bind(&Mobile::onRequestCb, this,
             std::placeholders::_1,
             std::placeholders::_2,
