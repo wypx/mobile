@@ -328,7 +328,7 @@ class Mobile : public Noncopyable
         void debugInfo();
 
         bool loadConfig();
-        void start(const std::vector<struct ThreadArg> & threadArgs);
+        void start();
 
         /* Unix server addr */
         void setAgent(const std::string & addr)
@@ -342,6 +342,7 @@ class Mobile : public Noncopyable
         }
     private:
         std::string config_;
+        std::string logFile_;
 
         OsInfo os_;
         EventStack *stack_;

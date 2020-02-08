@@ -27,6 +27,7 @@
 #include <memory>
 #include <iostream>
 #include <string>
+#include <cassert>
 
 using namespace MSF::BASE;
 using namespace MSF::EVENT;
@@ -42,11 +43,22 @@ Mobile::Mobile(const std::string & config)
 {
     os_.enableCoreDump();
     debugInfo();
+
+    logFile_ = "/var/log/luotang.me/Mobile.log";
+    assert(Logger::getLogger().init(logFile_.c_str()));
+
     stack_ = new EventStack();
     if (stack_ == nullptr) {
         MSF_FATAL << "Fail to alloc event stack for mobile.";
         return;
     }
+    std::vector<struct ThreadArg> threadArgs;
+    threadArgs.push_back(std::move(ThreadArg("ReadLoop")));
+    threadArgs.push_back(std::move(ThreadArg("SendLoop")));
+    threadArgs.push_back(std::move(ThreadArg("DialLoop")));
+    threadArgs.push_back(std::move(ThreadArg("StatLoop")));
+    assert(stack_->startThreads(threadArgs));
+
     agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", APP_MOBILE);
     agent_->setReqCb(std::bind(&Mobile::onRequestCb, this,
             std::placeholders::_1,
@@ -102,9 +114,9 @@ void Mobile::onRequestCb(const char *data, const uint32_t len, const uint32_t cm
     MSF_INFO << "Cmd: " << cmd << " len: " << len;
 }
 
-void Mobile::start(const std::vector<struct ThreadArg> & threadArgs)
+void Mobile::start()
 {
-    stack_->setThreadArgs(threadArgs);
+    // stack_->setThreadArgs(threadArgs);
     stack_->start();
 }
 
@@ -118,15 +130,11 @@ int main(int argc, char **argv)
     if (!mob.loadConfig()) {
         return -1;
     };
-    std::vector<struct ThreadArg> threadArgs;
-    threadArgs.push_back(std::move(ThreadArg("ReadLoop")));
-    threadArgs.push_back(std::move(ThreadArg("SendLoop")));
-    threadArgs.push_back(std::move(ThreadArg("DialLoop")));
-    threadArgs.push_back(std::move(ThreadArg("StatLoop")));
+
 
     // mob.setAgent("/var/tmp/mobile.sock");
     mob.setAgent("127.0.0.1", 8888);
-    mob.start(threadArgs);
+    mob.start();
     return 0;
 }
 
