@@ -108,9 +108,19 @@ bool Mobile::loadConfig()
     return true;
 }
 
-void Mobile::onRequestCb(const char *data, const uint32_t len, const uint32_t cmd)
+void Mobile::onRequestCb(char *data, const uint32_t len, const AgentCommand cmd)
 {
     MSF_INFO << "Cmd: " << cmd << " len: " << len;
+    if (cmd == AGENT_READ_MOBILE_PARAM) {
+        MSF_INFO << "Read mobile param ====> ";
+
+        struct ApnItem item;
+        item.cid = 1;
+        item.active = 2,
+        MSF_INFO << "ApnItem size: " << sizeof(struct ApnItem) << " len: " << len;
+        assert(sizeof(struct ApnItem) == len);
+        memcpy(data, &item ,sizeof(struct ApnItem));
+    }
 }
 
 void Mobile::start()

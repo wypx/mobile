@@ -353,7 +353,7 @@ class Mobile : public Noncopyable
         bool    quit_;
         pid_t   pppId_;
 
-        void onRequestCb(const char *data, const uint32_t len, const uint32_t cmd);
+        void onRequestCb(char *data, const uint32_t len, const AgentCommand cmd);
 };
 
 }
