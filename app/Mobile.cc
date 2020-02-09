@@ -96,9 +96,8 @@ void Mobile::debugInfo()
 
 bool Mobile::loadConfig()
 {
-    config_ = "/home/share/tomato/mod/libmsf/app/mobile/conf/Mobile.conf";
     if (config_.empty()) {
-        config_ = "/home/luotang.me/mobile/Mobile.conf";
+        config_ = "/home/luotang.me/conf/Mobile.conf";
         MSF_INFO << "Use default config: " << config_;
     }
     // if (!File::isFileExist(config_))  {
