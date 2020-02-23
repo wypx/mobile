@@ -20,7 +20,7 @@ add_cplusplus_standard_support()
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -fPIC -O0 -Wall -g -ggdb")
 
 # 设置依赖库
-set(COMMLIBS msf_agent msf_event msf_sock msf_base numa pthread dl)
+set(COMMLIBS msf_agent msf_proto msf_event msf_sock msf_base protobuf protoc numa pthread dl)
 
 # 设置源代码路径
 aux_source_directory (app DIR_SRCS)

@@ -60,22 +60,19 @@ Mobile::Mobile(const std::string & config)
     assert(stack_->startThreads(threadArgs));
 
     agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", APP_MOBILE);
+    assert(agent_);
     agent_->setReqCb(std::bind(&Mobile::onRequestCb, this,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3));
     pool_ = new MemPool();
-    pool_->init();
-
-    char *buff = static_cast<char*>(pool_->alloc(500));
-    memset(buff, 0, 512);
-
-    memcpy(buff, "hhhhhhhhhhkkkgkjfjfhhfhffffh", sizeof("hhhhhhhhhhkkkgkjfjfhhfhffffh"));
-    MSF_INFO << "Mp : " << buff;
-    pool_->free(buff);
+    assert(pool_->init());
 
     channel_ = new ATChannel(nullptr, nullptr, nullptr);
+    assert(channel_);
+
     acm_ = new ATCmdManager();
+    assert(acm_);
     channel_->registSendCmdCb(acm_);
 }
 
@@ -108,7 +105,7 @@ bool Mobile::loadConfig()
     return true;
 }
 
-void Mobile::onRequestCb(char *data, const uint32_t len, const AgentCommand cmd)
+void Mobile::onRequestCb(char *data, uint32_t *len, const AgentCommand cmd)
 {
     MSF_INFO << "Cmd: " << cmd << " len: " << len;
     if (cmd == AGENT_READ_MOBILE_PARAM) {
@@ -118,7 +115,7 @@ void Mobile::onRequestCb(char *data, const uint32_t len, const AgentCommand cmd)
         item.cid = 1;
         item.active = 2,
         MSF_INFO << "ApnItem size: " << sizeof(struct ApnItem) << " len: " << len;
-        assert(sizeof(struct ApnItem) == len);
+        *len = (uint32_t)sizeof(struct ApnItem);
         memcpy(data, &item ,sizeof(struct ApnItem));
     }
 }
