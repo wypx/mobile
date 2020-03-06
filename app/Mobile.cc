@@ -97,11 +97,11 @@ bool Mobile::loadConfig() {
 }
 
 void Mobile::onRequestCb(char *data, uint32_t *len, const Agent::Command cmd) {
-  MSF_INFO << "Cmd: " << cmd << " len: " << len;
+  MSF_INFO << "Cmd: " << cmd << " len: " << *len;
   if (cmd == Agent::Command::CMD_REQ_MOBILE_READ) {
     MSF_INFO << "Read mobile param ====> ";
 
-    struct ApnItem item;
+    struct ApnItem item = {0};
     item.cid = 1;
     item.active = 2,
     MSF_INFO << "ApnItem size: " << sizeof(struct ApnItem) << " len: " << len;
