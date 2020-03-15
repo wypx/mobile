@@ -14,7 +14,7 @@
 #define __AT_MOBILE_H__
 
 #include <base/GccAttr.h>
-#include <base/MemPool.h>
+#include <base/mem/MemPool.h>
 #include <base/Noncopyable.h>
 #include <base/Os.h>
 #include <client/AgentClient.h>

@@ -56,6 +56,7 @@ Mobile::Mobile(const std::string &config) : config_(config), os_(OsInfo()) {
   threadArgs.push_back(std::move(ThreadArg("StatLoop")));
   assert(stack_->startThreads(threadArgs));
 
+  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE, "luotang.me", 8888);
   agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE);
   assert(agent_);
   agent_->setReqCb(std::bind(&Mobile::onRequestCb, this, std::placeholders::_1,
@@ -125,7 +126,7 @@ int main(int argc, char **argv) {
   };
 
   // mob.setAgent("/var/tmp/mobile.sock");
-  mob.setAgent("127.0.0.1", 8888);
+  mob.setAgent("luotang.me", 8888);
   mob.start();
   return 0;
 }
