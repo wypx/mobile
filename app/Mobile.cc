@@ -59,7 +59,7 @@ Mobile::Mobile(const std::string &config) : config_(config), os_(OsInfo()) {
   // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE, "luotang.me", 8888);
   agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE);
   assert(agent_);
-  agent_->setReqCb(std::bind(&Mobile::onRequestCb, this, std::placeholders::_1,
+  agent_->setRequestCb(std::bind(&Mobile::onRequestCb, this, std::placeholders::_1,
                              std::placeholders::_2, std::placeholders::_3));
   pool_ = new MemPool();
   assert(pool_->init());
@@ -97,16 +97,21 @@ bool Mobile::loadConfig() {
   return true;
 }
 
-void Mobile::onRequestCb(char *data, uint32_t *len, const Agent::Command cmd) {
+void Mobile::onRequestCb(char **data, uint32_t *len, const Agent::Command cmd) {
   MSF_INFO << "Cmd: " << cmd << " len: " << *len;
   if (cmd == Agent::Command::CMD_REQ_MOBILE_READ) {
     MSF_INFO << "Read mobile param ====> ";
 
     struct ApnItem item = {0};
     item.cid = 1;
-    item.active = 2,
+    item.active = 2;
+
     MSF_INFO << "ApnItem size: " << sizeof(struct ApnItem) << " len: " << len;
+
     *len = (uint32_t)sizeof(struct ApnItem);
+    *data = agent_->allocBuffer(*len);
+    assert(*data);
+
     memcpy(data, &item, sizeof(struct ApnItem));
   }
 }
