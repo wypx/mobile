@@ -111,8 +111,7 @@ void Mobile::onRequestCb(char **data, uint32_t *len, const Agent::Command cmd) {
     *len = (uint32_t)sizeof(struct ApnItem);
     *data = agent_->allocBuffer(*len);
     assert(*data);
-
-    memcpy(data, &item, sizeof(struct ApnItem));
+    memcpy(*data, &item, sizeof(struct ApnItem));
   }
 }
 
