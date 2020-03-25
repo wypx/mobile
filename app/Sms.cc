@@ -452,8 +452,7 @@ int SMSManager::ATReadSMSThread(char *line1, char *line2, int index,
     }
     // strncpy((char *)(smsStatus->phoneNum), phoneNum,
     // MIN(sizeof(smsStatus->phoneNum) - 1, strlen(phoneNum)));
-    // smsStatus->recvTime[0] = '2';						/* ����20xx
-    // ͷ
+    // smsStatus->recvTime[0] = '2'; /* ����20xx ͷ
     // */
     // smsStatus->recvTime[1] = '0';
     // strncpy((char *)(&smsStatus->recvTime[2]), smParam.TP_SCTS, 12);	/* SMS
