@@ -14,7 +14,7 @@
 
 #include <base/Logger.h>
 
-#include "AtChannel.h"
+#include "ATChannel.h"
 #include "Mobile.h"
 #include "Unicode.h"
 

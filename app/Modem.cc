@@ -15,8 +15,8 @@
 #include <base/File.h>
 #include <base/Utils.h>
 
-#include "AtChannel.h"
-#include "AtTok.h"
+#include "ATChannel.h"
+#include "ATTok.h"
 #include "Errno.h"
 #include "Idx.h"
 

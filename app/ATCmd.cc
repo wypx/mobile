@@ -15,8 +15,8 @@
 #include <base/Time.h>
 #include <event/EventLoop.h>
 
-#include "AtChannel.h"
-#include "AtTok.h"
+#include "ATChannel.h"
+#include "ATTok.h"
 #include "Modem.h"
 #include "Sms.h"
 

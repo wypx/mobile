@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "AtChannel.h"
+#include "ATChannel.h"
 #include "Mobile.h"
 
 using namespace MSF::BASE;
