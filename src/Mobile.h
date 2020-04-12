@@ -333,12 +333,13 @@ class ATChannel;
 class ATCmdManager;
 class Mobile : public Noncopyable {
  public:
-  Mobile(const std::string &config = std::string());
+  Mobile();
   ~Mobile();
 
   void debugInfo();
-
+  void parseOption(int argc, char **argv);
   bool loadConfig();
+  void init(int argc, char **argv);
   void start();
 
   /* Unix server addr */
@@ -351,8 +352,25 @@ class Mobile : public Noncopyable {
   }
 
  private:
-  std::string config_;
-  std::string logFile_;
+  std::string version_;
+  std::string confFile_;
+  bool daemon_ = true;
+  int logLevel_;
+  std::string logDir_;
+  std::string pidFile_;
+  std::vector<std::string> pluginsList_;
+
+  enum AgentNet agentNet_;
+  std::string agentIp_;
+  uint16_t agentPort_;
+  std::string agentUnixServer_;
+  std::string agentUnixClient_;
+  std::string agentUnixClientMask_;
+
+  int maxQueue_;
+  int maxThread_;
+  bool authChap_;
+  std::string packType_;
 
   OsInfo os_;
   EventStack *stack_;

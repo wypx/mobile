@@ -31,7 +31,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -fPIC -O0 -Wall -g -ggdb")
 set(COMMLIBS msf_agent msf_proto msf_event msf_sock msf_base protobuf.a protoc.a numa.a pthread dl)
 
 # 设置源代码路径
-aux_source_directory (app DIR_SRCS)
+aux_source_directory (src DIR_SRCS)
 add_executable(${EXECUTABLE_NAME} ${DIR_SRCS})
 add_definitions(-Wno-builtin-macro-redefined)
 msf_redefine_file(${EXECUTABLE_NAME})
@@ -39,3 +39,6 @@ set_target_properties(${EXECUTABLE_NAME} PROPERTIES VERSION ${MOBILE_SERVER_VERS
 target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 
 install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)    # 二进制安装到 /home/luotang.me/bin
+
+set(MOBILE_CONF ${PROJECT_SOURCE_DIR}/mobile/conf/Mobile.conf)
+install(FILES ${MOBILE_CONF} DESTINATION conf)
