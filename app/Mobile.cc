@@ -1,23 +1,15 @@
-/*
-                        .::::.
-                        .::::::::.
-                    :::::::::::
-                    ..:::::::::::'
-                '::::::::::::'
-                .::::::::::
-            '::::::::::::::..
-                ..::::::::::::.
-                ``::::::::::::::::
-                ::::``:::::::::'        .:::.
-                ::::'   ':::::'       .::::::::.
-            .::::'      ::::     .:::::::'::::.
-            .:::'       :::::  .:::::::::' ':::::.
-            .::'        :::::.:::::::::'      ':::::.
-            .::'         ::::::::::::::'         ``::::.
-        ...:::           ::::::::::::'              ``::.
-    ```` ':.          ':::::::::'                  ::::..
-                        '.:::::'                    ':'````..
- */
+/**************************************************************************
+ *
+ * Copyright (c) 2017-2020, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 #include <base/Logger.h>
 // #include <base/File.h>
 #include <cassert>
@@ -56,9 +48,9 @@ Mobile::Mobile(const std::string &config) : config_(config), os_(OsInfo()) {
   threadArgs.push_back(std::move(ThreadArg("StatLoop")));
   assert(stack_->startThreads(threadArgs));
 
-  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
-  // "luotang.me", 8888);
-  agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE);
+  agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
+  "luotang.me", 8888);
+  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE);
   assert(agent_);
   agent_->setRequestCb(std::bind(&Mobile::onRequestCb, this,
                                  std::placeholders::_1, std::placeholders::_2,

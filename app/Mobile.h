@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __AT_MOBILE_H__
-#define __AT_MOBILE_H__
+#ifndef MOBILE_APP_MOBILE_H
+#define MOBILE_APP_MOBILE_H
 
 #include <base/GccAttr.h>
 #include <base/Noncopyable.h>
