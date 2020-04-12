@@ -18,8 +18,8 @@
  *	51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-#ifndef __MSF_UNICODE_H__
-#define __MSF_UNICODE_H__
+#ifndef MOBILE_APP_UNICODE_H
+#define MOBILE_APP_UNICODE_H
 
 #include <cstdint>
 

@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_AT_ERRNO_H__
-#define __MSF_AT_ERRNO_H__
+#ifndef MOBILE_APP_ERRNO_H
+#define MOBILE_APP_ERRNO_H
 
 #include <iostream>
 

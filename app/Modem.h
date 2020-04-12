@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __AT_MODEM_H__
-#define __AT_MODEM_H__
+#ifndef MOBILE_APP_MODEM_H
+#define MOBILE_APP_MODEM_H
 
 #include <iostream>
 

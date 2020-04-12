@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef _AT_SMS_H_
-#define _AT_SMS_H_
+#ifndef MOBILE_APP_SMS_H
+#define MOBILE_APP_SMS_H
 
 #include <iostream>
 #include <list>

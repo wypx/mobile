@@ -48,9 +48,9 @@ Mobile::Mobile(const std::string &config) : config_(config), os_(OsInfo()) {
   threadArgs.push_back(std::move(ThreadArg("StatLoop")));
   assert(stack_->startThreads(threadArgs));
 
-  agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
-  "luotang.me", 8888);
-  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE);
+  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
+  // "luotang.me", 8888);
+  agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE);
   assert(agent_);
   agent_->setRequestCb(std::bind(&Mobile::onRequestCb, this,
                                  std::placeholders::_1, std::placeholders::_2,

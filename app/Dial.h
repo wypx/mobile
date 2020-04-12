@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_AT_DIAL_H__
-#define __MSF_AT_DIAL_H__
+#ifndef MOBILE_APP_DIAL_H
+#define MOBILE_APP_DIAL_H
 
 #include <unistd.h>
 
