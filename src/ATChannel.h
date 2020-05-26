@@ -70,7 +70,7 @@ typedef struct ATLine {
 typedef struct ATResponse {
   int success_;           /* true if final response indicates
                                  success (eg "OK") */
-  char *final_resp_;       /* eg OK, ERROR */
+  char *final_resp_;      /* eg OK, ERROR */
   ATLine *intermediates_; /* any intermediate responses */
 } ATResponse;
 

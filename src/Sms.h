@@ -14,8 +14,8 @@
 #define MOBILE_SRC_SMS_H_
 
 #include <iostream>
-#include <queue>
 #include <mutex>
+#include <queue>
 
 namespace MSF {
 namespace MOBILE {
@@ -29,10 +29,10 @@ enum SMSMode { SMS_PDU, SMS_TEXT };
 enum SMS_STORAGE_AREA { ME_AREA = 0, SM_AREA };
 
 enum SMS_CLEAN_MODE {
-  SMS_CLEAN_READ = 1,          /* 清除已读短信 */
-  SMS_CLEAN_READ_SEND,         /* 清除已读和已发送短信 */
-  SMS_CLEAN_READ_SEND_UNSEND,  /* 清除已读,已发送和未发送短信 */
-  SMS_CLEAN_READ_UNREAD_SEND_UNSEND  /* 清除已读,未读,已发送和未发送短信 */
+  SMS_CLEAN_READ = 1,         /* 清除已读短信 */
+  SMS_CLEAN_READ_SEND,        /* 清除已读和已发送短信 */
+  SMS_CLEAN_READ_SEND_UNSEND, /* 清除已读,已发送和未发送短信 */
+  SMS_CLEAN_READ_UNREAD_SEND_UNSEND /* 清除已读,未读,已发送和未发送短信 */
 };
 
 struct SMS {
@@ -45,15 +45,15 @@ struct SMS {
 struct ATChannel;
 class SMSManager {
  public:
-  SMSManager(uint32_t max_msg_num) : max_msg_num_(max_msg_num) { }
+  SMSManager(uint32_t max_msg_num) : max_msg_num_(max_msg_num) {}
   bool AddMsg(const std::string &msg);
-  SMS & DelMsg();
+  SMS &DelMsg();
 
  private:
   std::mutex mutex_;
   std::string sms_center_; /* Max len 16*/
   uint32_t max_msg_num_;
-  std::queue<struct SMS> sms_queue_; /* SMS message queue */
+  std::queue<struct SMS> sms_queue_;    /* SMS message queue */
   std::list<std::string> white_phones_; /* White phone list to recieve msg */
 
   char sca_[16];     /* SMSC:Service central number */

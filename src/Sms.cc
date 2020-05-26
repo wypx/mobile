@@ -10,13 +10,13 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "Sms.h"
+
 #include <base/Logger.h>
 
 #include "ATChannel.h"
 #include "Mobile.h"
 #include "Unicode.h"
-
-#include "Sms.h"
 
 using namespace MSF::BASE;
 using namespace MSF::MOBILE;
@@ -39,7 +39,7 @@ bool SMSManager::AddMsg(const std::string &msg) {
   return true;
 }
 
-SMS & SMSManager::DelMsg() {
+SMS &SMSManager::DelMsg() {
   std::lock_guard<std::mutex> lock(mutex_);
   SMS &sms = sms_queue_.front();
   sms_queue_.pop();
@@ -222,7 +222,7 @@ uint32_t SMSManager::EncodePdu(char *dst) {
   buf[1] = 0x91;                          //固定:用国际格式号码
   nDstLength = Byte2String(buf, dst, 2);  //转换2个字节到目标PDU串
   nDstLength +=
-    InvetNumbers(sca_, &dst[nDstLength], nLength);  //转换SMSC到目标PDU串
+      InvetNumbers(sca_, &dst[nDstLength], nLength);  //转换SMSC到目标PDU串
 
   // TPDU段基本参数、目标地址等nLength=strlen(pSrc->tpa_);//TP-DA地址字符串的长度
   buf[0] = 0x11;  //是发送短信(TP-MTI=01)，TP-VP用相对格式(TP-VPF=10)
@@ -238,7 +238,7 @@ uint32_t SMSManager::EncodePdu(char *dst) {
   nLength = strlen(tp_ud_);  //用户信息字符串的长度
   buf[0] = tp_pid_;          //协议标识(TP-PID)
   buf[1] = tp_dcs_;          //用户信息编码方式(TP-DCS)
-  buf[2] = 0;               //有效期(TP-VP)为5分钟
+  buf[2] = 0;                //有效期(TP-VP)为5分钟
 
   if (tp_dcs_ == GSM_7BIT) {
     // 7-bit编码方式
@@ -269,7 +269,7 @@ uint32_t SMSManager::DecodePdu(char *src) {
   String2Byte(src, (char *)&tmp, 2);  //取长度
   tmp = (tmp - 1) * 2;                // SMSC号码串长度
   src += 4;                           //指针后移
-  SerializeNumbers(src, sca_, tmp);    //转换SMSC号码到目标PDU串
+  SerializeNumbers(src, sca_, tmp);   //转换SMSC号码到目标PDU串
   src += tmp;                         //指针后移
   // TPDU段基本参数、回复地址等
   String2Byte(src, (char *)&tmp, 2);  //取基本参数
@@ -280,18 +280,18 @@ uint32_t SMSManager::DecodePdu(char *src) {
   if (tmp & 1) {
     tmp += 1;  //调整奇偶性
   }
-  src += 4;                         //指针后移
+  src += 4;                          //指针后移
   SerializeNumbers(src, tpa_, tmp);  //取TP-RA号码
-  src += tmp;                       //指针后移
+  src += tmp;                        //指针后移
   // TPDU段协议标识、编码方式、用户信息等
   String2Byte(src, (char *)&tp_pid_, 2);  //取协议标识TP-PID)
-  src += 2;                              //指针后移
+  src += 2;                               //指针后移
   String2Byte(src, (char *)&tp_dcs_, 2);  //取编码方式(TP-DCS)
-  src += 2;                              //指针后移
-  SerializeNumbers(src, tp_scts_, 14);    //服务时间戳字符串   (tp_scts_)
-  src += 14;                             //指针后移
-  String2Byte(src, (char *)&tmp, 2);     //用户信息长度(TP-UDL)
-  src += 2;                              //指针后移
+  src += 2;                               //指针后移
+  SerializeNumbers(src, tp_scts_, 14);  //服务时间戳字符串   (tp_scts_)
+  src += 14;                            //指针后移
+  String2Byte(src, (char *)&tmp, 2);    //用户信息长度(TP-UDL)
+  src += 2;                             //指针后移
 
   /*有UDHI*/
   if (TP_MTI_MMS_RP & 0x40) {
@@ -306,15 +306,15 @@ uint32_t SMSManager::DecodePdu(char *src) {
     nDstLength = String2Byte(
         src, buf,
         tmp & 7 ? (int)tmp * 7 / 4 + 2 : (int)tmp * 7 / 4);  //格式转换
-    Decode7Bit(buf, tp_ud_, nDstLength);                      //转换到TP-DU
+    Decode7Bit(buf, tp_ud_, nDstLength);                     //转换到TP-DU
     nDstLength = tmp;
   } else if (tp_dcs_ == GSM_UCS2) {
     // UCS2解码
-    nDstLength = String2Byte(src, buf, tmp * 2);         //格式转换
+    nDstLength = String2Byte(src, buf, tmp * 2);          //格式转换
     nDstLength = StrUnicode2GB(buf, tp_ud_, nDstLength);  //转换到TP-DU
   } else {
     // 8-bit解码
-    nDstLength = String2Byte(src, buf, tmp * 2);      //格式转换
+    nDstLength = String2Byte(src, buf, tmp * 2);       //格式转换
     nDstLength = Decode8Bit(buf, tp_ud_, nDstLength);  //转换到TP-DU
   }
   //返回目标字符串长度
@@ -379,7 +379,7 @@ int SMSManager::SendSMSMsg(const char *phone, const char *msg) {
       sprintf(atCommand, "AT+CMGS=%d",
               nPduLength / 2 - nSmscLength); /* SMS send */
     }
-  
+
     ch_->WriteLine(atCommand, kCtrlEnter.c_str());
 
     /* wait \r\n> */
@@ -461,8 +461,8 @@ int SMSManager::ATReadSMSThread(char *line1, char *line2, int index,
     // smsStatus->recvTime[0] = '2'; /* ����20xx ͷ
     // */
     // smsStatus->recvTime[1] = '0';
-    // strncpy((char *)(&smsStatus->recvTime[2]), smParam.tp_scts_, 12);	/* SMS
-    // received time */
+    // strncpy((char *)(&smsStatus->recvTime[2]), smParam.tp_scts_, 12);	/*
+    // SMS received time */
   }
   return 0;
 }

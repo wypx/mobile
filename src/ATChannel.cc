@@ -433,12 +433,12 @@ int ATChannel::WriteLine(const char *s, const char *ctrl) {
 
 const std::string &ATChannel::ParseATErrno(const ATErrno code) const {
   static std::string kATErrStr[] = {"AT_SUCCESS",
-                                      "AT_ERROR_GENERIC",
-                                      "AT_ERROR_COMMAND_PENDING",
-                                      "AT_ERROR_CHANNEL_CLOSED",
-                                      "AT_ERROR_TIMEOUT",
-                                      "AT_ERROR_INVALID_THREAD",
-                                      "AT_ERROR_INVALID_RESPONSE"};
+                                    "AT_ERROR_GENERIC",
+                                    "AT_ERROR_COMMAND_PENDING",
+                                    "AT_ERROR_CHANNEL_CLOSED",
+                                    "AT_ERROR_TIMEOUT",
+                                    "AT_ERROR_INVALID_THREAD",
+                                    "AT_ERROR_INVALID_RESPONSE"};
   return kATErrStr[code];
 }
 

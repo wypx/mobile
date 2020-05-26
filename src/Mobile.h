@@ -13,11 +13,6 @@
 #ifndef MOBILE_SRC_MOBILE_H_
 #define MOBILE_SRC_MOBILE_H_
 
-#include <list>
-#include <string>
-#include <tuple>
-#include <vector>
-
 #include <base/GccAttr.h>
 #include <base/Noncopyable.h>
 #include <base/Os.h>
@@ -25,6 +20,11 @@
 #include <client/AgentClient.h>
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
+
+#include <list>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include "Errno.h"
 

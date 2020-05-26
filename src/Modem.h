@@ -107,8 +107,8 @@ class ATChannel;
 
 class Modem {
  public:
-  Modem() { }
-  virtual ~Modem() { }
+  Modem() {}
+  virtual ~Modem() {}
 
   bool Init();
   const NetMode net_mode() const { return net_mode_; }

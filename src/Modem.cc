@@ -10,6 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "Modem.h"
+
 #include <base/File.h>
 #include <base/Utils.h>
 
@@ -17,7 +19,6 @@
 #include "ATTok.h"
 #include "Errno.h"
 #include "Idx.h"
-#include "Modem.h"
 
 using namespace MSF::BASE;
 using namespace MSF::MOBILE;
@@ -38,7 +39,7 @@ const std::string &Modem::PasreModem() const {
       "MODEM_NODECOM",  /* 诺控 */
       "MODEM_NEOWAY",   /* 有方 */
       "MODEM_QUECTEL"   /* 移远 */
-  };  
+  };
   return kModemPasrer[modem_->modem_type_];
 }
 
@@ -47,16 +48,25 @@ Operator Modem::MatchOperator(const char *cimiStr) {
     char cimi_[16];
     Operator oper_;
   } kOperMatch[] = {
-      {"OPERATOR MOBILE", OPERATOR_MOBILE}, {"CMCC", OPERATOR_MOBILE},
-      {"46000", OPERATOR_MOBILE},           {"46002", OPERATOR_MOBILE},
+      {"OPERATOR MOBILE", OPERATOR_MOBILE},
+      {"CMCC", OPERATOR_MOBILE},
+      {"46000", OPERATOR_MOBILE},
+      {"46002", OPERATOR_MOBILE},
       {"46004", OPERATOR_MOBILE}, /*NB-IOT*/
-      {"46007", OPERATOR_MOBILE},           {"46008", OPERATOR_MOBILE},
-      {"46020", OPERATOR_MOBILE},           {"46027", OPERATOR_MOBILE},
-      {"CHN-UNICOM", OPERATOR_UNICOM},      {"UNICOM", OPERATOR_UNICOM},
-      {"46001", OPERATOR_UNICOM},           {"46006", OPERATOR_UNICOM}, /*NB-IOT*/
-      {"46009", OPERATOR_UNICOM},           {"CHN-UNICOM", OPERATOR_TELCOM},
-      {"46003", OPERATOR_TELCOM},           {"46005", OPERATOR_TELCOM},
-      {"46011", OPERATOR_TELCOM},           {"2040", OPERATOR_TELCOM},
+      {"46007", OPERATOR_MOBILE},
+      {"46008", OPERATOR_MOBILE},
+      {"46020", OPERATOR_MOBILE},
+      {"46027", OPERATOR_MOBILE},
+      {"CHN-UNICOM", OPERATOR_UNICOM},
+      {"UNICOM", OPERATOR_UNICOM},
+      {"46001", OPERATOR_UNICOM},
+      {"46006", OPERATOR_UNICOM}, /*NB-IOT*/
+      {"46009", OPERATOR_UNICOM},
+      {"CHN-UNICOM", OPERATOR_TELCOM},
+      {"46003", OPERATOR_TELCOM},
+      {"46005", OPERATOR_TELCOM},
+      {"46011", OPERATOR_TELCOM},
+      {"2040", OPERATOR_TELCOM},
   };
 
   for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kOperMatch); ++i) {
@@ -75,7 +85,7 @@ const std::string &Modem::PasreOperator(Operator op) const {
       "OPERATOR_UNICOM",
       "OPERATOR_TELCOM",
       "OPERATOR_UNKOWN",
-  };  
+  };
   return kOperParser[op];
 }
 
@@ -106,20 +116,20 @@ static struct NetModeItem {
 };
 
 static ModemInfo kUsbModems[] = {
-    ModemInfo(USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300,
-                  "U8300", MODEM_LONGSUNG, 1, 3, 2, 2),
+    ModemInfo(USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300, "U8300",
+              MODEM_LONGSUNG, 1, 3, 2, 2),
     ModemInfo(USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300W,
-                  "U8300W", MODEM_LONGSUNG, 1, 3, 2, 2),
+              "U8300W", MODEM_LONGSUNG, 1, 3, 2, 2),
     ModemInfo(USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300C,
-                  "U8300C", MODEM_LONGSUNG, 2, 1, 3, 2),
+              "U8300C", MODEM_LONGSUNG, 2, 1, 3, 2),
     ModemInfo(USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U9300C,
-                  "U9300C", MODEM_LONGSUNG, 2, 1, 3, 2),
+              "U9300C", MODEM_LONGSUNG, 2, 1, 3, 2),
     ModemInfo(USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909u_521,
-                  "ME909u_521", MODEM_HUAWEI, 4, 2, 1, 0),
+              "ME909u_521", MODEM_HUAWEI, 4, 2, 1, 0),
     ModemInfo(USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909s_821,
-                  "ME909s-821", MODEM_HUAWEI, 4, 2, 1, 0),
+              "ME909s-821", MODEM_HUAWEI, 4, 2, 1, 0),
     ModemInfo(USB_MODEM_IDVENDOR_HUAWEI, USB_MODEM_IDPRODUCT_ME909s_121,
-                  "ME909s_121", MODEM_HUAWEI, 4, 2, 1, 0)};
+              "ME909s_121", MODEM_HUAWEI, 4, 2, 1, 0)};
 
 bool Modem::CheckIdSupport(const uint32_t vendorId, const uint32_t productId) {
   for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kUsbModems); ++i) {
@@ -272,8 +282,8 @@ void Modem::MatchNetMode(const char *netStr) {
           net_mode_ = MODE_TDSCDMA;
           break;
         case 6:
-          net_mode_ =
-              (modem_->sim_operator_ == OPERATOR_MOBILE) ? MODE_TDLTE : MODE_FDDLTE;
+          net_mode_ = (modem_->sim_operator_ == OPERATOR_MOBILE) ? MODE_TDLTE
+                                                                 : MODE_FDDLTE;
           break;
         default:
           break;

@@ -33,9 +33,7 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace MOBILE {
 
-Mobile::Mobile() : os_(OsInfo()) {
-  os_.enableCoreDump();
-}
+Mobile::Mobile() : os_(OsInfo()) { os_.enableCoreDump(); }
 
 Mobile::~Mobile() {}
 
@@ -220,9 +218,7 @@ void Mobile::onRequestCb(char **data, uint32_t *len, const Agent::Command cmd) {
   }
 }
 
-void Mobile::start() {
-  stack_->start();
-}
+void Mobile::start() { stack_->start(); }
 }  // namespace MOBILE
 }  // namespace MSF
 

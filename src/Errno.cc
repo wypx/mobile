@@ -33,6 +33,6 @@ static const std::string kErrMsgMap[] = {
     "SIM_RECOGNOSED",     /* SIM is ready and operator is known*/
 };
 
-const std::string &ErrCodeParse(const MobileErrno & e) { return kErrMsgMap[e]; }
+const std::string &ErrCodeParse(const MobileErrno &e) { return kErrMsgMap[e]; }
 }  // namespace MOBILE
 }  // namespace MSF
