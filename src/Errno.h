@@ -82,7 +82,7 @@ enum MobileErrno {
 
 // see https://android.googlesource.com/platform/hardware/ril/
 
-std::string ErrCodeParse(enum MobileErrno e);
+const std::string &ErrCodeParse(const MobileErrno & e);
 }  // namespace MOBILE
 }  // namespace MSF
 #endif

@@ -18,8 +18,8 @@
  *	51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-#ifndef MOBILE_APP_UNICODE_H
-#define MOBILE_APP_UNICODE_H
+#ifndef MOBILE_SRC_UNICODE_H_
+#define MOBILE_SRC_UNICODE_H_
 
 #include <cstdint>
 
@@ -28,6 +28,7 @@ namespace MOBILE {
 
 uint32_t StrUnicode2GB(const char *src, char *dst, uint32_t n);
 uint32_t StrGB2Unicode(const char *str, char *dst, uint32_t n);
+
 }  // namespace MOBILE
 }  // namespace MSF
 #endif

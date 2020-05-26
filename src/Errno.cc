@@ -15,7 +15,7 @@
 namespace MSF {
 namespace MOBILE {
 
-static const std::string _errMsgMap_[] = {
+static const std::string kErrMsgMap[] = {
     "MOBILE_STATE_INIT",     /* Mobile init state*/
     "DRIVER_NOT_INSTALLED",  /* lsmod driver in /proc/moudules not installed */
     "DRIVER_ID_NOT_FOUND",   /* lsusb show id file not found*/
@@ -33,6 +33,6 @@ static const std::string _errMsgMap_[] = {
     "SIM_RECOGNOSED",     /* SIM is ready and operator is known*/
 };
 
-std::string ErrCodeParse(enum MobileErrno e) { return _errMsgMap_[e]; }
+const std::string &ErrCodeParse(const MobileErrno & e) { return kErrMsgMap[e]; }
 }  // namespace MOBILE
 }  // namespace MSF

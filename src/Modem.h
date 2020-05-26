@@ -10,12 +10,11 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef MOBILE_APP_MODEM_H
-#define MOBILE_APP_MODEM_H
+#ifndef MOBILE_SRC_MODEM_H_
+#define MOBILE_SRC_MODEM_H_
 
 #include <iostream>
 
-#include "Errno.h"
 #include "Mobile.h"
 
 namespace MSF {
@@ -77,75 +76,77 @@ enum EchoStatus {
 
 /* Fixed modem infomations */
 struct ModemInfo {
-  const uint32_t _vendorId;
-  const uint32_t _productId;
-  const std::string _manufact;
-  const std::string _modemName; /* CGMR */
-  const ModemType _modemType;
-  const uint8_t _atPort; /* port id not more than 255*/
-  const uint8_t _dialPort;
-  const uint8_t _dbgPort;
-  const uint8_t _apnCid; /*data apn cid*/
+  const uint32_t vendor_id_;
+  const uint32_t product_id_;
+  const std::string manufact_;
+  const std::string modem_name_; /* CGMR */
+  const ModemType modem_type_;
+  const uint8_t at_port_; /* port id not more than 255*/
+  const uint8_t dial_port_;
+  const uint8_t dbg_port_;
+  const uint8_t apn_cid_; /* data apn cid */
 
-  std::string _simNum;
-  enum Operator _simOper;
+  std::string sim_number_;
+  Operator sim_operator_;
 
   ModemInfo(const uint32_t vendorId, const uint32_t productId,
-            const std::string &modemName, const enum ModemType modemType,
+            const std::string &modemName, const ModemType modemType,
             const uint8_t atPort, const uint8_t dialPort, const uint8_t dbgPort,
             const uint8_t apnCid)
-      : _vendorId(vendorId),
-        _productId(productId),
-        _modemName(modemName),
-        _modemType(modemType),
-        _atPort(atPort),
-        _dialPort(dialPort),
-        _dbgPort(dbgPort),
-        _apnCid(apnCid) {}
+      : vendor_id_(vendorId),
+        product_id_(productId),
+        modem_name_(modemName),
+        modem_type_(modemType),
+        at_port_(atPort),
+        dial_port_(dialPort),
+        dbg_port_(dbgPort),
+        apn_cid_(apnCid) {}
 };
 
 class ATChannel;
+
 class Modem {
  public:
-  Modem();
-  virtual ~Modem();
-  bool init();
+  Modem() { }
+  virtual ~Modem() { }
 
-  const enum NetMode getNetMode() const { return _netMode; }
-  const struct ModemInfo *getModemInfo() const { return _modem; }
+  bool Init();
+  const NetMode net_mode() const { return net_mode_; }
+  const ModemInfo *modem_info() const { return modem_; }
 
- protected:
-  void probeDev();
-  virtual bool checkSim();
-  virtual bool checkCfun();
-  virtual bool startDial();
-  virtual bool stopDial();
+  bool ProbeDevice();
+  virtual bool CheckSimcard();
+  virtual bool CheckCellfun();
+  virtual bool StartDial();
+  virtual bool StopDial();
 
-  MobileErrno _errno;
-  struct ModemInfo *_modem;
-  enum SIMStatus _simStat;
+  void UnsolHandler(const char *line, const char *smsPdu);
+  void ReaderCloseHandler();
+  void ReadTimeoutHandler();
 
-  uint32_t _signal;
-  enum NetMode _netMode;
-  uint32_t _netSearchMode;
-  uint8_t _netModeStr[32];
+  bool CheckIdSupport(const uint32_t vendorId, const uint32_t productId);
+  bool CheckUsbDriver();
+  bool CheckSerialMod();
+  bool CheckSerialPort();
+  void MatchModem(const char *modemStr);
+  const std::string &PasreModem() const;
+  Operator MatchOperator(const char *cimi);
+  const std::string &PasreOperator(Operator op) const;
+  void MatchNetMode(const char *netStr);
 
-  ATChannel *_ch;
+ private:
+  MobileErrno errno_;
+  ModemInfo *modem_;
+  SIMStatus sim_stat_;
 
-  void unsolHandler(const char *line, const char *smsPdu);
-  void readerCloseHandler();
-  void readTimeoutHandler();
+  uint32_t net_signal_;
+  NetMode net_mode_;
+  uint32_t net_search_mode_;
+  uint8_t net_mode_str_[32];
 
-  bool checkIdSupport(const uint32_t vendorId, const uint32_t productId);
-  bool checkLsUsb();
-  bool checkLsMod();
-  bool checkSerial();
-  void matchModem(const char *modemStr);
-  const std::string &pasreModem() const;
-  enum Operator matchOperator(const char *cimi);
-  const std::string &pasreOperator(enum Operator op) const;
-  void matchNetMode(const char *netStr);
+  ATChannel *ch_;
 };
+
 }  // namespace MOBILE
 }  // namespace MSF
 #endif

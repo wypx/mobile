@@ -116,5 +116,6 @@ namespace MOBILE {
 #define USB_MODEM_IDVENDOR_INNOFIDEI 0x1d53
 #define USB_MODEM_IDPRODUCT_E7B01_04_C 0x3d53
 #define USB_MODEM_IDPRODUCT_E5530 0x3d53
+
 }  // namespace MOBILE
 }  // namespace MSF

@@ -10,10 +10,10 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "Unicode.h"
-
 #include <base/Logger.h>
 #include <base/Utils.h>
+
+#include "Unicode.h"
 
 using namespace MSF::MOBILE;
 

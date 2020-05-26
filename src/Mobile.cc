@@ -63,8 +63,6 @@ void Mobile::init(int argc, char **argv) {
 
   agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
                            agentIp_, agentPort_);
-  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile",
-  // Agent::APP_MOBILE);
   assert(agent_);
   agent_->setRequestCb(std::bind(&Mobile::onRequestCb, this,
                                  std::placeholders::_1, std::placeholders::_2,
@@ -131,18 +129,14 @@ void Mobile::parseOption(int argc, char **argv) {
     }
     switch (c) {
       case 'c':
-        printf("c: %s\n", optarg);
         confFile_ = std::string(optarg);
         break;
       case 'g':
-        printf("d: %s\n", optarg);
         break;
       case 'd':
-        printf("d: %s\n", optarg);
         daemon_ = static_cast<bool>(atoi(optarg));
         break;
       case 'v':
-        printf("v: %s\n", optarg);
         MSF::BuildInfo();
         exit(0);
       case 'h':
@@ -160,7 +154,7 @@ void Mobile::parseOption(int argc, char **argv) {
 bool Mobile::loadConfig() {
   if (confFile_.empty()) {
     confFile_ = "/home/luotang.me/conf/Mobile.conf";
-    MSF_INFO << "Set default config: " << confFile_;
+    MSF_INFO << "Use default config: " << confFile_;
   }
 
   IniFile ini;
@@ -227,7 +221,6 @@ void Mobile::onRequestCb(char **data, uint32_t *len, const Agent::Command cmd) {
 }
 
 void Mobile::start() {
-  // stack_->setThreadArgs(threadArgs);
   stack_->start();
 }
 }  // namespace MOBILE

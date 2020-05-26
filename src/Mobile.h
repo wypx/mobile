@@ -10,8 +10,13 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef MOBILE_APP_MOBILE_H
-#define MOBILE_APP_MOBILE_H
+#ifndef MOBILE_SRC_MOBILE_H_
+#define MOBILE_SRC_MOBILE_H_
+
+#include <list>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include <base/GccAttr.h>
 #include <base/Noncopyable.h>
@@ -21,10 +26,7 @@
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
 
-#include <list>
-#include <string>
-#include <tuple>
-#include <vector>
+#include "Errno.h"
 
 using namespace MSF::BASE;
 using namespace MSF::EVENT;

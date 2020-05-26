@@ -171,8 +171,8 @@ bool Dial::dialPPP(DialCb cb) {
 
   uint32_t j;
   for (j = 0; j < MSF_ARRAY_SIZE(_g_dilaParam_); ++j) {
-    if (_modem->getModemInfo()->_simOper == _g_dilaParam_[j].oper &&
-        _modem->getNetMode() == _g_dilaParam_[j].mode) {
+    if (_modem->modem_info()->sim_operator_ == _g_dilaParam_[j].oper &&
+        _modem->net_mode() == _g_dilaParam_[j].mode) {
       break;
     }
   }
@@ -202,7 +202,7 @@ bool Dial::dialPPP(DialCb cb) {
 
   char portStr[32] = {0};
   snprintf(portStr, sizeof(portStr) - 1, MODEM_TTY_USB_PREFIX,
-           _modem->getModemInfo()->_dialPort);
+           _modem->modem_info()->dial_port_);
 
   pppArgv[i++] = portStr;
 
