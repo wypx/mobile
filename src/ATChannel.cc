@@ -39,18 +39,18 @@ static char _ATBuffer[MAX_AT_RESPONSE + 1];
 static char *_ATBufferCur;
 
 /** add an intermediate response to sp_response*/
-void ATChannel::addIntermediate(const char *line) {
+void ATChannel::AddIntermediate(const char *line) {
   ATLine *p_new = (ATLine *)malloc(sizeof(ATLine));
 
   if (!p_new) return;
 
-  p_new->line = strdup(line);
+  p_new->line_ = strdup(line);
 
   /* note: this adds to the head of the list, so the list
      will be in reverse order of lines received. the order is flipped
      again before passing on to the command issuer */
-  p_new->p_next = _rsp->p_intermediates;
-  _rsp->p_intermediates = p_new;
+  p_new->next_ = rsp_->intermediates_;
+  rsp_->intermediates_ = p_new;
 }
 
 /**
@@ -58,13 +58,13 @@ void ATChannel::addIntermediate(const char *line) {
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
-static const char *g_finalResponsesError[] = {
+static const char *kFinalResponsesError[] = {
     "ERROR",     "+CMS ERROR:", "+CME ERROR:", "NO CARRIER", /* sometimes! */
     "NO ANSWER", "NO DIALTONE",
 };
-bool ATChannel::isFinalResponseError(const char *line) {
-  for (size_t i = 0; i < MSF_ARRAY_SIZE(g_finalResponsesError); ++i) {
-    if (AtStrStartWith(line, g_finalResponsesError[i])) {
+bool ATChannel::IsFinalResponseError(const char *line) {
+  for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kFinalResponsesError); ++i) {
+    if (AtStrStartWith(line, kFinalResponsesError[i])) {
       return true;
     }
   }
@@ -76,13 +76,13 @@ bool ATChannel::isFinalResponseError(const char *line) {
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
-static const char *g_finalResponsesSuccess[] = {
+static const char *kFinalResponsesSuccess[] = {
     "OK", "CONNECT" /* some stacks start up data on another channel */
 };
 
-bool ATChannel::isFinalResponseSuccess(const char *line) {
-  for (size_t i = 0; i < MSF_ARRAY_SIZE(g_finalResponsesSuccess); ++i) {
-    if (AtStrStartWith(line, g_finalResponsesSuccess[i])) {
+bool ATChannel::IsFinalResponseSuccess(const char *line) {
+  for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kFinalResponsesSuccess); ++i) {
+    if (AtStrStartWith(line, kFinalResponsesSuccess[i])) {
       return true;
     }
   }
@@ -94,19 +94,19 @@ bool ATChannel::isFinalResponseSuccess(const char *line) {
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
-bool ATChannel::isFinalResponse(const char *line) {
-  return isFinalResponseSuccess(line) || isFinalResponseError(line);
+bool ATChannel::IsFinalResponse(const char *line) {
+  return IsFinalResponseSuccess(line) || IsFinalResponseError(line);
 }
 
 /** assumes s_commandmutex is held */
-void ATChannel::handleFinalResponse(const char *line) {
-  _rsp->finalResponse = strdup(line);
-  _cond.notify_one();
+void ATChannel::HandleFinalResponse(const char *line) {
+  rsp_->final_resp_ = strdup(line);
+  cond_.notify_one();
 }
 
-void ATChannel::handleUnsolicited(const char *line) {
-  if (_unsolHandler != nullptr) {
-    _unsolHandler(line, nullptr);
+void ATChannel::HandleUnsolicited(const char *line) {
+  if (unsol_handler_ != nullptr) {
+    unsol_handler_(line, nullptr);
   }
 }
 
@@ -114,25 +114,25 @@ void ATChannel::handleUnsolicited(const char *line) {
  * The line reader places the intermediate responses in reverse order
  * here we flip them back
  */
-void ATChannel::reverseIntermediates(ATResponse *p_response) {
+void ATChannel::ReverseIntermediates(ATResponse *p_response) {
   ATLine *pcur, *pnext;
 
-  pcur = p_response->p_intermediates;
-  p_response->p_intermediates = nullptr;
+  pcur = p_response->intermediates_;
+  p_response->intermediates_ = nullptr;
 
   while (pcur != nullptr) {
-    pnext = pcur->p_next;
-    pcur->p_next = p_response->p_intermediates;
-    p_response->p_intermediates = pcur;
+    pnext = pcur->next_;
+    pcur->next_ = p_response->intermediates_;
+    p_response->intermediates_ = pcur;
     pcur = pnext;
   }
 }
 
-void ATChannel::clearPendingCommand() {
-  freeResponce(_rsp);
-  _rsp = nullptr;
-  _rspPrefix = nullptr;
-  _smsPdu = nullptr;
+void ATChannel::ClearPendingCommand() {
+  FreeResponce(rsp_);
+  rsp_ = nullptr;
+  rsp_prefix_ = nullptr;
+  sms_pdu_ = nullptr;
 }
 
 /**
@@ -141,61 +141,61 @@ void ATChannel::clearPendingCommand() {
  *
  * timeoutMsec == 0 means infinite timeout
  */
-int ATChannel::sendCommandNoLock(const char *cmd, ATCmdType type,
+int ATChannel::SendCommandNoLock(const char *cmd, ATCmdType type,
                                  const char *rspPrefix, const char *smsPdu,
                                  uint64_t timeoutMsec, ATResponse **outRsp) {
   int ret = 0;
   /* clean last responce */
-  if (unlikely(_rsp != nullptr)) {
+  if (unlikely(rsp_ != nullptr)) {
     ret = AT_ERROR_COMMAND_PENDING;
-    clearPendingCommand();
+    ClearPendingCommand();
     return ret;
   }
 
-  ret = writeLine(cmd, CTRL_ENTER);
+  ret = WriteLine(cmd, kCtrlEnter.c_str());
   if (ret < 0) {
-    clearPendingCommand();
+    ClearPendingCommand();
     return ret;
   }
 
-  _type = type;
-  _rspPrefix = rspPrefix;
-  _smsPdu = smsPdu;
-  _rsp = allocResponce();
+  type_ = type;
+  rsp_prefix_ = rspPrefix;
+  sms_pdu_ = smsPdu;
+  rsp_ = AllocResponce();
 
-  std::unique_lock<std::mutex> lock(_mutexCond);
-  while (_rsp->finalResponse == nullptr && !_readClosed) {
+  std::unique_lock<std::mutex> lock(mutex_cond_);
+  while (rsp_->final_resp_ == nullptr && !read_closed_) {
     if (timeoutMsec != 0) {
       // https://zh.cppreference.com/w/cpp/thread/condition_variable/wait_for
       using namespace std::chrono_literals;
-      _cond.wait_for(lock, timeoutMsec * 1ms);
+      cond_.wait_for(lock, timeoutMsec * 1ms);
     } else {
-      _cond.wait(lock);
+      cond_.wait(lock);
     }
 
     if (errno == ETIMEDOUT) {
       ret = AT_ERROR_TIMEOUT;
-      clearPendingCommand();
+      ClearPendingCommand();
       return ret;
     }
   }
 
   if (outRsp == nullptr) {
-    freeResponce(_rsp);
+    FreeResponce(rsp_);
   } else {
     /* line reader stores intermediate responses in reverse order */
-    reverseIntermediates(_rsp);
-    *outRsp = _rsp;
+    ReverseIntermediates(rsp_);
+    *outRsp = rsp_;
   }
 
-  _rsp = nullptr;
+  rsp_ = nullptr;
 
-  if (unlikely(_readClosed)) {
+  if (unlikely(read_closed_)) {
     ret = AT_ERROR_CHANNEL_CLOSED;
-    clearPendingCommand();
+    ClearPendingCommand();
     return ret;
   }
-  clearPendingCommand();
+  ClearPendingCommand();
   return 0;
 }
 
@@ -204,7 +204,7 @@ int ATChannel::sendCommandNoLock(const char *cmd, ATCmdType type,
  *
  * timeoutMsec == 0 means infinite timeout
  */
-int ATChannel::sendCommandFull(const char *cmd, ATCmdType type,
+int ATChannel::SendCommandFull(const char *cmd, ATCmdType type,
                                const char *rspPrefix, const char *smsPdu,
                                uint64_t timeoutMsec, ATResponse **outRsp) {
   int ret;
@@ -215,12 +215,12 @@ int ATChannel::sendCommandFull(const char *cmd, ATCmdType type,
   // }
 
   {
-    std::lock_guard<std::mutex> lock(_mutex);
-    ret = sendCommandNoLock(cmd, type, rspPrefix, smsPdu, timeoutMsec, outRsp);
+    std::lock_guard<std::mutex> lock(mutex_);
+    ret = SendCommandNoLock(cmd, type, rspPrefix, smsPdu, timeoutMsec, outRsp);
   }
 
-  if (ret == AT_ERROR_TIMEOUT && _timeoutHandler != nullptr) {
-    _timeoutHandler();
+  if (ret == AT_ERROR_TIMEOUT && timeout_handler_ != nullptr) {
+    timeout_handler_();
   }
 
   return ret;
@@ -235,19 +235,19 @@ int ATChannel::sendCommandFull(const char *cmd, ATCmdType type,
  * if non-NULL, the resulting ATResponse * must be eventually freed with
  * at_response_free
  */
-int ATChannel::sendCommand(const char *cmd, ATResponse **outRsp) {
-  return sendCommandFull(cmd, NO_RESULT, nullptr, nullptr, 0, outRsp);
+int ATChannel::SendCommand(const char *cmd, ATResponse **outRsp) {
+  return SendCommandFull(cmd, NO_RESULT, nullptr, nullptr, 0, outRsp);
 }
 
-int ATChannel::sendCommandSingleLine(const char *cmd, const char *rspPrefix,
+int ATChannel::SendCommandSingleLine(const char *cmd, const char *rspPrefix,
                                      ATResponse **outRsp) {
   int ret;
 
-  ret = sendCommandFull(cmd, SINGLELINE, rspPrefix, nullptr, 0, outRsp);
-  if (ret == 0 && outRsp != nullptr && (*outRsp)->success > 0 &&
-      (*outRsp)->p_intermediates == nullptr) {
+  ret = SendCommandFull(cmd, SINGLELINE, rspPrefix, nullptr, 0, outRsp);
+  if (ret == 0 && outRsp != nullptr && (*outRsp)->success_ > 0 &&
+      (*outRsp)->intermediates_ == nullptr) {
     /* successful command must have an intermediate response */
-    freeResponce(*outRsp);
+    FreeResponce(*outRsp);
     *outRsp = nullptr;
     return AT_ERROR_INVALID_RESPONSE;
   }
@@ -255,14 +255,14 @@ int ATChannel::sendCommandSingleLine(const char *cmd, const char *rspPrefix,
   return ret;
 }
 
-int ATChannel::sendCommandNumeric(const char *cmd, ATResponse **outRsp) {
+int ATChannel::SendCommandNumeric(const char *cmd, ATResponse **outRsp) {
   int ret;
 
-  ret = sendCommandFull(cmd, NUMERIC, nullptr, nullptr, 0, outRsp);
-  if (ret == 0 && outRsp != nullptr && (*outRsp)->success > 0 &&
-      (*outRsp)->p_intermediates == nullptr) {
+  ret = SendCommandFull(cmd, NUMERIC, nullptr, nullptr, 0, outRsp);
+  if (ret == 0 && outRsp != nullptr && (*outRsp)->success_ > 0 &&
+      (*outRsp)->intermediates_ == nullptr) {
     /* successful command must have an intermediate response */
-    freeResponce(*outRsp);
+    FreeResponce(*outRsp);
     *outRsp = nullptr;
     return AT_ERROR_INVALID_RESPONSE;
   }
@@ -270,20 +270,20 @@ int ATChannel::sendCommandNumeric(const char *cmd, ATResponse **outRsp) {
   return ret;
 }
 
-int ATChannel::sendCommandMultiLine(const char *cmd, const char *rspPrefix,
+int ATChannel::SendCommandMultiLine(const char *cmd, const char *rspPrefix,
                                     ATResponse **outRsp) {
-  return sendCommandFull(cmd, MULTILINE, rspPrefix, nullptr, 0, outRsp);
+  return SendCommandFull(cmd, MULTILINE, rspPrefix, nullptr, 0, outRsp);
 }
 
-int ATChannel::sendCommandSms(const char *cmd, const char *pdu,
+int ATChannel::SendCommandSms(const char *cmd, const char *pdu,
                               const char *rspPrefix, ATResponse **outRsp) {
   int ret;
 
-  ret = sendCommandFull(cmd, SINGLELINE, rspPrefix, pdu, 0, outRsp);
-  if (ret == AT_SUCCESS && outRsp != nullptr && (*outRsp)->success > 0 &&
-      (*outRsp)->p_intermediates == nullptr) {
+  ret = SendCommandFull(cmd, SINGLELINE, rspPrefix, pdu, 0, outRsp);
+  if (ret == AT_SUCCESS && outRsp != nullptr && (*outRsp)->success_ > 0 &&
+      (*outRsp)->intermediates_ == nullptr) {
     /* successful command must have an intermediate response */
-    freeResponce(*outRsp);
+    FreeResponce(*outRsp);
     *outRsp = nullptr;
     return AT_ERROR_INVALID_RESPONSE;
   }
@@ -295,7 +295,7 @@ int ATChannel::sendCommandSms(const char *cmd, const char *pdu,
  * Periodically issue an AT command and wait for a response.
  * Used to ensure channel has start up and is active
  */
-int ATChannel::handShake(void) {
+int ATChannel::HandShake(void) {
   // if (0 != pthread_equal(MSF::CurrentThread::tid(), pthread_self())) {
   //     /* cannot be called from reader thread */
   //     return AT_ERROR_INVALID_THREAD;
@@ -303,7 +303,7 @@ int ATChannel::handShake(void) {
   int ret;
   for (int i = 0; i < HANDSHAKE_RETRY_COUNT; ++i) {
     /* some stacks start with verbose off */
-    ret = sendCommandFull("ATE0Q0V1", NO_RESULT, nullptr, nullptr,
+    ret = SendCommandFull("ATE0Q0V1", NO_RESULT, nullptr, nullptr,
                           HANDSHAKE_TIMEOUT_MSEC, nullptr);
     if (ret == 0) {
       break;
@@ -320,39 +320,39 @@ int ATChannel::handShake(void) {
 
 ATChannel::ATChannel(ATUnsolHandler h1, ATReaderClosedHandler h2,
                      ATReaderTimeOutHandler h3)
-    : _unsolHandler(std::move(h1)),
-      _closeHandler(std::move(h2)),
-      _timeoutHandler(std::move(h3)),
-      _readClosed(false),
-      _mutex(),
-      _mutexCond(),
-      _rsp(nullptr),
-      _rspPrefix(nullptr),
-      _smsPdu(nullptr) {
+    : unsol_handler_(std::move(h1)),
+      close_handler_(std::move(h2)),
+      timeout_handler_(std::move(h3)),
+      read_closed_(false),
+      mutex_(),
+      mutex_cond_(),
+      rsp_(nullptr),
+      rsp_prefix_(nullptr),
+      sms_pdu_(nullptr) {
   _ATBufferCur = _ATBuffer;
 }
 
-ATChannel::~ATChannel() { readerClose(); }
+ATChannel::~ATChannel() { ReaderClose(); }
 
 /**
  * Returns error code from response
  * Assumes AT+CMEE=1 (numeric) mode
  */
-ATCmeError ATChannel::getCmeError(const ATResponse *rsp) {
+ATCmeError ATChannel::GetCmeError(const ATResponse *rsp) {
   int ret;
   int err;
   char *p_cur;
 
-  if (rsp->success > 0) {
+  if (rsp->success_ > 0) {
     return CME_SUCCESS;
   }
 
-  if (rsp->finalResponse == nullptr ||
-      !AtStrStartWith(rsp->finalResponse, "+CME ERROR:")) {
+  if (rsp->final_resp_ == nullptr ||
+      !AtStrStartWith(rsp->final_resp_, "+CME ERROR:")) {
     return CME_ERROR_NON_CME;
   }
 
-  p_cur = rsp->finalResponse;
+  p_cur = rsp->final_resp_;
   err = AtTokStart(&p_cur);
   if (err < 0) {
     return CME_ERROR_NON_CME;
@@ -366,26 +366,26 @@ ATCmeError ATChannel::getCmeError(const ATResponse *rsp) {
   return (ATCmeError)ret;
 }
 
-ATResponse *ATChannel::allocResponce() {
+ATResponse *ATChannel::AllocResponce() {
   return (ATResponse *)calloc(1, sizeof(ATResponse));
 }
 
-void ATChannel::freeResponce(ATResponse *rsp) {
+void ATChannel::FreeResponce(ATResponse *rsp) {
   if (unlikely(rsp == nullptr)) return;
 
-  ATLine *p_line = rsp->p_intermediates;
+  ATLine *p_line = rsp->intermediates_;
 
   while (p_line != nullptr) {
     ATLine *p_toFree;
 
     p_toFree = p_line;
-    p_line = p_line->p_next;
+    p_line = p_line->next_;
 
-    free(p_toFree->line);
+    free(p_toFree->line_);
     free(p_toFree);
   }
 
-  free(rsp->finalResponse);
+  free(rsp->final_resp_);
   free(rsp);
 }
 
@@ -396,12 +396,12 @@ void ATChannel::freeResponce(ATResponse *rsp) {
  * This function exists because as of writing, android libc does not
  * have buffered stdio.
  */
-int ATChannel::writeLine(const char *s, const char *ctrl) {
+int ATChannel::WriteLine(const char *s, const char *ctrl) {
   size_t cur = 0;
   size_t len = strlen(s);
   ssize_t written;
 
-  if (unlikely(_readFd < 0 || _readClosed)) {
+  if (unlikely(read_fd_ < 0 || read_closed_)) {
     MSF_ERROR << "AT channel has beed closed.";
     return AT_ERROR_CHANNEL_CLOSED;
   }
@@ -411,7 +411,7 @@ int ATChannel::writeLine(const char *s, const char *ctrl) {
   /* the main string */
   while (cur < len) {
     do {
-      written = write(_readFd, s + cur, len - cur);
+      written = write(read_fd_, s + cur, len - cur);
     } while (written < 0 && errno == EINTR);
 
     if (written < 0) {
@@ -422,7 +422,7 @@ int ATChannel::writeLine(const char *s, const char *ctrl) {
 
   /* the \r  or ctrl z*/
   do {
-    written = write(_readFd, ctrl, 1);
+    written = write(read_fd_, ctrl, 1);
   } while ((written < 0 && errno == EINTR) || (written == 0));
 
   if (written < 0) {
@@ -431,32 +431,32 @@ int ATChannel::writeLine(const char *s, const char *ctrl) {
   return AT_SUCCESS;
 }
 
-const std::string &ATChannel::parseATErrno(const ATErrno code) const {
-  static std::string _g_ATErrStr[] = {"AT_SUCCESS",
+const std::string &ATChannel::ParseATErrno(const ATErrno code) const {
+  static std::string kATErrStr[] = {"AT_SUCCESS",
                                       "AT_ERROR_GENERIC",
                                       "AT_ERROR_COMMAND_PENDING",
                                       "AT_ERROR_CHANNEL_CLOSED",
                                       "AT_ERROR_TIMEOUT",
                                       "AT_ERROR_INVALID_THREAD",
                                       "AT_ERROR_INVALID_RESPONSE"};
-  return _g_ATErrStr[code];
+  return kATErrStr[code];
 }
 
-bool ATChannel::readerOpen() {
-  _readFd = open("/dev/ttyUSB2", O_RDWR);
-  if (_readFd < 0) {
+bool ATChannel::ReaderOpen() {
+  read_fd_ = open("/dev/ttyUSB2", O_RDWR);
+  if (read_fd_ < 0) {
     return false;
   }
 
-  if (setSerialBaud(_readFd, B115200) != 0) {
-    close(_readFd);
-    _readFd = -1;
+  if (SetSerialBaud(read_fd_, B115200) != 0) {
+    close(read_fd_);
+    read_fd_ = -1;
     return false;
   }
 
-  if (setSerialRawMode(_readFd) != 0) {
-    close(_readFd);
-    _readFd = -1;
+  if (SetSerialRawMode(read_fd_) != 0) {
+    close(read_fd_);
+    read_fd_ = -1;
     return false;
   }
 
@@ -470,21 +470,20 @@ bool ATChannel::readerOpen() {
  *  You should still call at_close()
  */
 /* FIXME is it ok to call this from the reader and the command thread? */
-void ATChannel::readerClose() {
-  std::lock_guard<std::mutex> lock(_mutex);
-
-  if (!_readClosed) {
-    if (_readFd > 0) {
-      close(_readFd);
-      _readFd = -1;
+void ATChannel::ReaderClose() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (!read_closed_) {
+    if (read_fd_ > 0) {
+      close(read_fd_);
+      read_fd_ = -1;
     }
 
-    _readClosed = true;
-    _cond.notify_one();
+    read_closed_ = true;
+    cond_.notify_one();
     /* the reader thread should eventually die */
 
-    if (_closeHandler != nullptr) {
-      _closeHandler();
+    if (close_handler_ != nullptr) {
+      close_handler_();
     }
   }
 }
@@ -493,18 +492,18 @@ void ATChannel::readerClose() {
  * returns 1 if line is the first line in (what will be) a two-line
  * SMS unsolicited response
  */
-static const char *g_smsUnsoliciteds[] = {"+CMT:", "+CDS:", "+CBM:"};
+static const char *kSsmsUnsoliciteds[] = {"+CMT:", "+CDS:", "+CBM:"};
 
-bool ATChannel::isSMSUnsolicited(const char *line) {
-  for (size_t i = 0; i < MSF_ARRAY_SIZE(g_smsUnsoliciteds); ++i) {
-    if (AtStrStartWith(line, g_smsUnsoliciteds[i])) {
+bool ATChannel::IsSMSUnsolicited(const char *line) {
+  for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kSsmsUnsoliciteds); ++i) {
+    if (AtStrStartWith(line, kSsmsUnsoliciteds[i])) {
       return true;
     }
   }
   return false;
 }
 
-void ATChannel::processUnsolLine(const char *line) {
+void ATChannel::ProcessUnsolLine(const char *line) {
   char *line1;
   const char *line2;
 
@@ -512,71 +511,70 @@ void ATChannel::processUnsolLine(const char *line) {
   // till next call to 'readline()' hence making a copy of line
   // before calling readline again.
   line1 = strdup(line);
-  line2 = readLine();
+  line2 = ReadLine();
 
   if (unlikely(line2 == nullptr)) {
     MSF_FATAL << "Read channel got some fatal error: " << errno;
     free(line1);
-    readerClose();
+    ReaderClose();
     return;
   }
 
-  if (_unsolHandler != nullptr) {
-    _unsolHandler(line1, line2);
+  if (unsol_handler_ != nullptr) {
+    unsol_handler_(line1, line2);
   }
   free(line1);
 }
 
-void ATChannel::processLine(const char *line) {
-  std::lock_guard<std::mutex> lock(_mutex);
-
-  if (_rsp == nullptr) {
+void ATChannel::ProcessLine(const char *line) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (rsp_ == nullptr) {
     /* no command pending */
-    handleUnsolicited(line);
-  } else if (isFinalResponseSuccess(line)) {
-    _rsp->success = true;
-    handleFinalResponse(line);
-  } else if (isFinalResponseError(line)) {
-    _rsp->success = false;
-    handleFinalResponse(line);
-  } else if (_smsPdu != nullptr && 0 == strcmp(line, "> ")) {
+    HandleUnsolicited(line);
+  } else if (IsFinalResponseSuccess(line)) {
+    rsp_->success_ = true;
+    HandleFinalResponse(line);
+  } else if (IsFinalResponseError(line)) {
+    rsp_->success_ = false;
+    HandleFinalResponse(line);
+  } else if (sms_pdu_ != nullptr && 0 == strcmp(line, "> ")) {
     // See eg. TS 27.005 4.3
     // Commands like AT+CMGS have a "> " prompt
-    writeLine(_smsPdu, CTRL_Z);
-    _smsPdu = nullptr;
+    WriteLine(sms_pdu_, kCtrlZ.c_str());
+    sms_pdu_ = nullptr;
   } else
-    switch (_type) {
+    switch (type_) {
       case NO_RESULT:
-        handleUnsolicited(line);
+        HandleUnsolicited(line);
         break;
       case NUMERIC:
-        if (_rsp->p_intermediates == nullptr && isdigit(line[0])) {
-          addIntermediate(line);
+        if (rsp_->intermediates_ == nullptr && isdigit(line[0])) {
+          AddIntermediate(line);
         } else {
           /* either we already have an intermediate response or
              the line doesn't begin with a digit */
-          handleUnsolicited(line);
+          HandleUnsolicited(line);
         }
         break;
       case SINGLELINE:
-        if (_rsp->p_intermediates == NULL && AtStrStartWith(line, _rspPrefix)) {
-          addIntermediate(line);
+        if (rsp_->intermediates_ == NULL && AtStrStartWith(line, rsp_prefix_)) {
+          AddIntermediate(line);
         } else {
           /* we already have an intermediate response */
-          handleUnsolicited(line);
+          HandleUnsolicited(line);
         }
         break;
       case MULTILINE:
-        if (AtStrStartWith(line, _rspPrefix)) {
-          addIntermediate(line);
+        if (AtStrStartWith(line, rsp_prefix_)) {
+          AddIntermediate(line);
         } else {
-          handleUnsolicited(line);
+          HandleUnsolicited(line);
         }
         break;
 
       default: /* this should never be reached */
-        MSF_ERROR << "Unsupported AT command type: " << _type;
-        handleUnsolicited(line);
+        MSF_ERROR << "Unsupported AT command type: " << type_;
+        HandleUnsolicited(line);
         break;
     }
 }
@@ -590,7 +588,7 @@ void ATChannel::processLine(const char *line) {
  * This function exists because as of writing, android libc does not
  * have buffered stdio.
  */
-char *ATChannel::readLine() const {
+char *ATChannel::ReadLine() const {
   ssize_t count;
   char *p_read = nullptr;
   char *p_eol = nullptr;
@@ -635,7 +633,7 @@ char *ATChannel::readLine() const {
     }
 
     do {
-      count = read(_readFd, p_read, MAX_AT_RESPONSE - (p_read - _ATBuffer));
+      count = read(read_fd_, p_read, MAX_AT_RESPONSE - (p_read - _ATBuffer));
     } while (count < 0 && errno == EINTR);
 
     if (count > 0) {
@@ -668,17 +666,17 @@ char *ATChannel::readLine() const {
   return ret;
 }
 
-void ATChannel::readerLoop() {
-  const char *line = readLine();
+void ATChannel::ReaderLoop() {
+  const char *line = ReadLine();
   if (unlikely(line == nullptr)) {
     MSF_FATAL << "Read channel got some fatal error: " << errno;
-    readerClose();
+    ReaderClose();
   }
 
-  if (unlikely(isSMSUnsolicited(line))) {
-    processUnsolLine(line);
+  if (unlikely(IsSMSUnsolicited(line))) {
+    ProcessUnsolLine(line);
   } else {
-    processLine(line);
+    ProcessLine(line);
   }
 }
 }  // namespace MOBILE

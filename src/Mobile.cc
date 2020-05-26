@@ -75,7 +75,7 @@ void Mobile::init(int argc, char **argv) {
 
   acm_ = new ATCmdManager();
   assert(acm_);
-  channel_->registSendCmdCb(acm_);
+  channel_->RegisterATCommandCb(acm_);
 }
 
 void Mobile::debugInfo() {
@@ -228,9 +228,7 @@ void Mobile::start() {
 
 int main(int argc, char **argv) {
   Mobile mob = Mobile();
-
   mob.init(argc, argv);
-
   // mob.setAgent("/var/tmp/mobile.sock");
   mob.setAgent("luotang.me", 8888);
   mob.start();

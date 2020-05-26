@@ -33,8 +33,9 @@ extern "C" {
 
 #define TTY_USB_FORMAT "/dev/ttyUSB%d"
 
-#define CTRL_Z "\032"
-#define CTRL_ENTER "\r"
+static const std::string kTTyUsbPrefix = "/dev/ttyUSB";
+static const std::string kCtrlZ = "\032";
+static const std::string kCtrlEnter = "\r";
 
 typedef enum {
   AT_SUCCESS = 0,
@@ -61,16 +62,16 @@ typedef enum {
 
 /** a singly-lined list of intermediate responses */
 typedef struct ATLine {
-  struct ATLine *p_next;
-  char *line;
+  struct ATLine *next_;
+  char *line_;
 } ATLine;
 
 /** Free this with at_response_free() */
 typedef struct ATResponse {
-  int success;             /* true if final response indicates
+  int success_;           /* true if final response indicates
                                  success (eg "OK") */
-  char *finalResponse;     /* eg OK, ERROR */
-  ATLine *p_intermediates; /* any intermediate responses */
+  char *final_resp_;       /* eg OK, ERROR */
+  ATLine *intermediates_; /* any intermediate responses */
 } ATResponse;
 
 /**
@@ -81,6 +82,7 @@ typedef struct ATResponse {
  */
 typedef std::function<void(const char *line, const char *smsPdu)>
     ATUnsolHandler;
+
 /* This callback is invoked on the reader thread (like ATUnsolHandler)
    when the input stream closes before you call at_close
    (not when you call at_close())
@@ -88,6 +90,7 @@ typedef std::function<void(const char *line, const char *smsPdu)>
    It may also be invoked immediately from the current thread if the read
    channel is already closed */
 typedef std::function<void()> ATReaderClosedHandler;
+
 /* This callback is invoked on the command thread.
    You should reset or handshake here to avoid getting out of sync */
 typedef std::function<void()> ATReaderTimeOutHandler;
@@ -98,95 +101,95 @@ class ATChannel {
             ATReaderTimeOutHandler h3);
   ~ATChannel();
 
-  int handShake(void);
+  int HandShake(void);
 
-  int sendCommandSms(const char *cmd, const char *pdu, const char *rspPrefix,
+  int SendCommandSms(const char *cmd, const char *pdu, const char *rspPrefix,
                      ATResponse **outRsp);
 
-  const std::string &parseATErrno(const ATErrno code) const;
-  void readerLoop();
-  void senderLoop();
+  const std::string &ParseATErrno(const ATErrno code) const;
+  void ReaderLoop();
+  void SenderLoop();
 
-  int writeLine(const char *s, const char *ctrl);
+  int WriteLine(const char *s, const char *ctrl);
 
   /* Use friend class also ok */
-  void registSendCmdCb(ATCmdManager *acm) {
+  void RegisterATCommandCb(ATCmdManager *acm) {
     if (acm != nullptr) {
-      acm->setSendCommandCb(
-          std::bind(&ATChannel::sendCommand, this, std::placeholders::_1,
+      acm->SetSendCommandCb(
+          std::bind(&ATChannel::SendCommand, this, std::placeholders::_1,
                     std::placeholders::_2),
-          std::bind(&ATChannel::sendCommandNumeric, this, std::placeholders::_1,
+          std::bind(&ATChannel::SendCommandNumeric, this, std::placeholders::_1,
                     std::placeholders::_2),
-          std::bind(&ATChannel::sendCommandSingleLine, this,
+          std::bind(&ATChannel::SendCommandSingleLine, this,
                     std::placeholders::_1, std::placeholders::_2,
                     std::placeholders::_3),
-          std::bind(&ATChannel::sendCommandMultiLine, this,
+          std::bind(&ATChannel::SendCommandMultiLine, this,
                     std::placeholders::_1, std::placeholders::_2,
                     std::placeholders::_3),
-          std::bind(&ATChannel::allocResponce, this),
-          std::bind(&ATChannel::freeResponce, this, std::placeholders::_1),
-          std::bind(&ATChannel::getCmeError, this, std::placeholders::_1));
+          std::bind(&ATChannel::AllocResponce, this),
+          std::bind(&ATChannel::FreeResponce, this, std::placeholders::_1),
+          std::bind(&ATChannel::GetCmeError, this, std::placeholders::_1));
     }
   }
 
  private:
-  ATUnsolHandler _unsolHandler;
-  ATReaderClosedHandler _closeHandler;
-  ATReaderTimeOutHandler _timeoutHandler;
+  ATUnsolHandler unsol_handler_;
+  ATReaderClosedHandler close_handler_;
+  ATReaderTimeOutHandler timeout_handler_;
 
-  int _readFd;
-  bool _readClosed;
-  std::mutex _mutex; /* Protected current pending command */
-  std::condition_variable _cond;
-  std::mutex _mutexCond;
-  ATResponse *_rsp;
-  const char *_rspPrefix;
-  const char *_smsPdu;
-  ATCmdType _type;
+  int read_fd_;
+  bool read_closed_;
+  std::mutex mutex_; /* Protected current pending command */
+  std::condition_variable cond_;
+  std::mutex mutex_cond_;
+  ATResponse *rsp_;
+  const char *rsp_prefix_;
+  const char *sms_pdu_;
+  ATCmdType type_;
 
-  void clearPendingCommand();
+  void ClearPendingCommand();
 
-  int sendCommandNoLock(const char *cmd, ATCmdType type, const char *rspPrefix,
+  int SendCommandNoLock(const char *cmd, ATCmdType type, const char *rspPrefix,
                         const char *smsPdu, uint64_t timeoutMsec,
                         ATResponse **outRsp);
 
-  int sendCommandFull(const char *cmd, ATCmdType type, const char *rspPrefix,
+  int SendCommandFull(const char *cmd, ATCmdType type, const char *rspPrefix,
                       const char *smsPdu, uint64_t timeoutMsec,
                       ATResponse **outRsp);
 
-  ATResponse *allocResponce();
-  void freeResponce(ATResponse *rsp);
-  ATCmeError getCmeError(const ATResponse *rsp);
+  ATResponse *AllocResponce();
+  void FreeResponce(ATResponse *rsp);
+  ATCmeError GetCmeError(const ATResponse *rsp);
 
-  int sendCommand(const char *cmd, ATResponse **outRsp);
+  int SendCommand(const char *cmd, ATResponse **outRsp);
 
-  int sendCommandSingleLine(const char *cmd, const char *rspPrefix,
+  int SendCommandSingleLine(const char *cmd, const char *rspPrefix,
                             ATResponse **outRsp);
-  int sendCommandNumeric(const char *cmd, ATResponse **outRsp);
+  int SendCommandNumeric(const char *cmd, ATResponse **outRsp);
 
-  int sendCommandMultiLine(const char *cmd, const char *rspPrefix,
+  int SendCommandMultiLine(const char *cmd, const char *rspPrefix,
                            ATResponse **outRsp);
 
-  bool isSMSUnsolicited(const char *line);
-  void processUnsolLine(const char *line);
+  bool IsSMSUnsolicited(const char *line);
+  void ProcessUnsolLine(const char *line);
 
-  void handleUnsolicited(const char *line);
+  void HandleUnsolicited(const char *line);
 
-  bool isFinalResponseSuccess(const char *line);
-  bool isFinalResponse(const char *line);
-  void handleFinalResponse(const char *line);
+  bool IsFinalResponseSuccess(const char *line);
+  bool IsFinalResponse(const char *line);
+  void HandleFinalResponse(const char *line);
 
-  bool isFinalResponseError(const char *line);
+  bool IsFinalResponseError(const char *line);
 
-  void addIntermediate(const char *line);
-  void reverseIntermediates(ATResponse *p_response);
+  void AddIntermediate(const char *line);
+  void ReverseIntermediates(ATResponse *p_response);
 
-  void processLine(const char *line);
+  void ProcessLine(const char *line);
 
-  char *readLine() const;
+  char *ReadLine() const;
 
-  bool readerOpen();
-  void readerClose();
+  bool ReaderOpen();
+  void ReaderClose();
 };
 
 #ifdef __cplusplus

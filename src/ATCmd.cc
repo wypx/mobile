@@ -60,7 +60,7 @@ bool ATCmdManager::initModem() {
   /*  Network registration events */
   ret = sendCommand_("AT+CREG=2", &rsp);
   /* some handsets -- in tethered mode -- don't support CREG=2 */
-  if (ret < 0 || rsp->success == 0) {
+  if (ret < 0 || rsp->success_ == 0) {
     sendCommand_("AT+CREG=1", nullptr);
   }
 
@@ -124,12 +124,12 @@ bool ATCmdManager::getModem(ModemMatch cb) {
 
   /* use ATI or AT+CGMM or AT+LCTSW */
   ret = sendCommandSingleLine_("ATI", "Model:", &rsp);
-  if (ret < 0 || rsp->success == 0) {
+  if (ret < 0 || rsp->success_ == 0) {
     freeResponce_(rsp);
     return false;
   }
 
-  line = rsp->p_intermediates->line;
+  line = rsp->intermediates_->line_;
 
   ret = AtTokStart(&line);
   if (ret < 0) {
@@ -155,13 +155,13 @@ enum RadioMode ATCmdManager::getRadioState() {
   char *line = nullptr;
 
   ret = sendCommandSingleLine_("AT+CFUN?", "+CFUN:", &rsp);
-  if (ret < 0 || rsp->success == 0) {
+  if (ret < 0 || rsp->success_ == 0) {
     // assume radio is off
     freeResponce_(rsp);
     return RADIO_LPM_MODE;
   }
 
-  line = rsp->p_intermediates->line;
+  line = rsp->intermediates_->line_;
   ret = AtTokStart(&line);
   if (ret < 0) {
     freeResponce_(rsp);
@@ -193,7 +193,7 @@ bool ATCmdManager::setRadioState(enum RadioMode cfun) {
   snprintf(cmd, sizeof(cmd) - 1, "AT+CFUN=%d", cfun);
   while (count-- < 0) {
     rc = sendCommand_(cmd, &rsp);
-    if (rc < 0 || rsp->success == 0) {
+    if (rc < 0 || rsp->success_ == 0) {
       continue;
     } else {
       radioMode = getRadioState();
@@ -231,7 +231,7 @@ int ATCmdManager::getSIMStatus() {
   }
 
   /* CPIN/QCPIN has succeeded, now look at the result */
-  cpinLine = rsp->p_intermediates->line;
+  cpinLine = rsp->intermediates_->line_;
   ret = AtTokStart(&cpinLine);
   if (ret < 0) {
     freeResponce_(rsp);
@@ -308,12 +308,12 @@ bool ATCmdManager::setEhrpd() {
   char cmd[MAX_AT_CMD_LEN] = {0};
 
   rc = sendCommandSingleLine_("AT+EHRPDENABLE?", "+EHRPDENABLE:", &rsp);
-  if (rc < 0 || rsp->success == 0) {
+  if (rc < 0 || rsp->success_ == 0) {
     // assume radio is off
     freeResponce_(rsp);
     return false;
   }
-  line = rsp->p_intermediates->line;
+  line = rsp->intermediates_->line_;
 
   rc = AtTokStart(&line);
   if (rc < 0) {
@@ -337,7 +337,7 @@ bool ATCmdManager::setEhrpd() {
   }
   snprintf(cmd, sizeof(cmd) - 1, "AT+EHRPDENABLE=%d", enehrpd);
   rc = sendCommand_(cmd, &rsp);
-  if (rc < 0 || rsp->success == 0) {
+  if (rc < 0 || rsp->success_ == 0) {
     freeResponce_(rsp);
     return false;
   }
@@ -568,12 +568,12 @@ int ATCmdManager::getOperator() {
         }
     }
 
-    if (rc < 0 || rsp->success == 0) {
+    if (rc < 0 || rsp->success_ == 0) {
        // assume radio is off
        goto done;
    }
 
-   line = rsp->p_intermediates->line;
+   line = rsp->intermediates_->line_;
    rc = AtTokStart(&line);
    if (rc < 0) goto done;
 
@@ -616,7 +616,7 @@ done:
      *  +COPS: 0
      */
      
-    for (i = 0, p_cur = rsp->p_intermediates
+    for (i = 0, p_cur = rsp->intermediates_
             ; p_cur != nullptr
             ; p_cur = p_cur->p_next, i++) {
 
@@ -705,12 +705,12 @@ int ATCmdManager::getNet3GPP() {
   // AT+COPS?
   //+COPS: 0,2,"46001",7
   ret = sendCommandSingleLine_("AT+COPS?", "+COPS:", &rsp);
-  if (ret < 0 || rsp->success == 0) {
+  if (ret < 0 || rsp->success_ == 0) {
     freeResponce_(rsp);
     return -1;
   }
 
-  line = rsp->p_intermediates->line;
+  line = rsp->intermediates_->line_;
   ret = AtTokStart(&line);
   if (ret < 0) {
     freeResponce_(rsp);
@@ -826,12 +826,12 @@ bool ATCmdManager::getAPNS(void) {
   ATResponse *rsp;
 
   ret = sendCommandMutiLine_("AT+CGDCONT?", "+CGDCONT:", &rsp);
-  if (ret != 0 || rsp->success == 0) {
+  if (ret != 0 || rsp->success_ == 0) {
     return -1;
   }
 
-  for (p_cur = rsp->p_intermediates; p_cur != nullptr; p_cur = p_cur->p_next) {
-    char *line = p_cur->line;
+  for (p_cur = rsp->intermediates_; p_cur != nullptr; p_cur = p_cur->next_) {
+    char *line = p_cur->line_;
     int cid;
 
     ret = AtTokStart(&line);

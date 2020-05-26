@@ -351,16 +351,16 @@ int SMSManager::SendSMSMsg(const char *phone, const char *msg) {
   int mobile_mode;
 
   if (SMS_TEXT == format_) {
-    ch_->writeLine("AT^HSMSSS=0,0,6,0", CTRL_ENTER); /* set SMS param */
+    ch_->WriteLine("AT^HSMSSS=0,0,6,0", kCtrlEnter.c_str()); /* set SMS param */
     nSmscLength = StrGB2Unicode(msg, pdu, strlen(msg));
     sprintf(printfBuf, "%d, %ld", nSmscLength, strlen(msg));
     MSF_DEBUG << printfBuf;
     sprintf(atCommand, "AT^HCMGS=\"%s\"", phone);
-    ch_->writeLine(atCommand, CTRL_ENTER);
+    ch_->WriteLine(atCommand, kCtrlEnter.c_str());
     // ret = waitATResponse(">", nullptr, 0, true, 2000);
     if (ret == 0) {
-      ch_->writeLine(pdu, CTRL_Z);
-      // ret = ch_->writeLine(pdu, nSmscLength);
+      ch_->WriteLine(pdu, kCtrlZ.c_str());
+      // ret = ch_->WriteLine(pdu, nSmscLength);
     }
 
   } else {
@@ -380,14 +380,14 @@ int SMSManager::SendSMSMsg(const char *phone, const char *msg) {
               nPduLength / 2 - nSmscLength); /* SMS send */
     }
   
-    ch_->writeLine(atCommand, CTRL_ENTER);
+    ch_->WriteLine(atCommand, kCtrlEnter.c_str());
 
     /* wait \r\n> */
     // ret = waitATResponse(">", nullptr, 0, true, 2000);
     if (ret == 0) {
-      //    ret = ch_->writeLine(pdu, nPduLength);
+      //    ret = ch_->WriteLine(pdu, nPduLength);
     } else {
-      //    ret = ch_->writeLine(pdu, nSmscLength);
+      //    ret = ch_->WriteLine(pdu, nSmscLength);
     }
   }
   return 0;

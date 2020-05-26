@@ -123,7 +123,7 @@ class ATCmdManager {
   virtual int setCallInfo();
   virtual int getCallInfo();
 
-  void setSendCommandCb(SendCmdCb send, SendCmdNumbericCb sendNum,
+  void SetSendCommandCb(SendCmdCb send, SendCmdNumbericCb sendNum,
                         SendCmdSingleLineCb sendSLine,
                         SendCmdMultiLineCb sendMLine, AllocResponceCb allocRsp,
                         FreeResponceCb freeRsp, GetCmeError getErr) {
