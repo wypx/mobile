@@ -20,8 +20,7 @@
 
 #include "Modem.h"
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 static char const *kPPPd = "pppd";
 static char const *kModem = "modem";
@@ -67,14 +66,14 @@ static char const *kMaxFailVal = "0";
 static char const *kDisconnect = "disconnect";
 static char const *kPPPdEnd = nullptr;
 
-struct LocalDialParam {
-  enum Operator oper;
-  enum NetMode mode;
-  char number[32];
-  char user[32];
-  char pass[32];
-  char apn[32];
-} _g_dilaParam_[] = {
+static struct LocalDialParam {
+  Operator oper_;
+  NetMode mode_;
+  char number_[32];
+  char user_[32];
+  char pass_[32];
+  char apn_[32];
+} kDefaultDialParam[] = {
     {OPERATOR_TELCOM, MODE_EVDO, "#777", "card", "card", ""}, /* EVDO mode */
     {OPERATOR_UNICOM, MODE_WCDMA, "*99#", "user", "user",
      "3gnet"}, /* WCDMA mode */
@@ -107,25 +106,25 @@ struct LocalDialParam {
 };
 
 Dial::Dial()
-    : _enable(true),
-      _authType(AUTH_PAP_CHAP),
-      _mtu(1460),
-      _epName(DIAL_TTY_USB),
-      _dialType(DIAL_AUTO_PERSIST),
-      _dialStat(DIAL_INIT),
-      _testDomian("luotang.me") {}
-void Dial::addPlan(time_t startSime, time_t stopSime) {
+    : enable_(true),
+      auth_type_(AUTH_PAP_CHAP),
+      mtu_(1460),
+      ep_name_(DIAL_TTY_USB),
+      dial_type_(DIAL_AUTO_PERSIST),
+      dial_stat_(DIAL_INIT),
+      test_domain_("luotang.me") {}
+void Dial::AddPlan(time_t start, time_t stop) {
   //检查是否重复区间
-  _plans.push_back(std::make_pair(startSime, stopSime));
+  plans_.push_back(std::make_pair(start, stop));
 }
 
-void Dial::delPlan(time_t startSime, time_t stopSime) {}
+void Dial::DelPlan(time_t start, time_t stop) {}
 
-bool Dial::killPPPID() { return true; }
+bool Dial::KillPPPID() { return true; }
 
-bool Dial::reDialPPP() { return true; }
+bool Dial::ReDialPPP() { return true; }
 
-int Dial::sigPPPExist(void *args) {
+int Dial::SigPPPExist(void *args) {
   int status;
   int exitNo = 0;
   pid_t *pid = (pid_t *)args;
@@ -146,14 +145,14 @@ int Dial::sigPPPExist(void *args) {
   return 0;
 }
 
-void Dial::sigHandler(int sig) {
+void Dial::SigHandler(int sig) {
   MSF_INFO << "Catch signal: " << sig;
   switch (sig) {
     case SIGINT:
     case SIGKILL:
     case SIGSEGV:
     case SIGBUS:
-      sigPPPExist(&_pppId);
+      SigPPPExist(&pppid_);
       MSF_DEBUG << "pppd exit.";
       exit(0);
     default:
@@ -161,22 +160,22 @@ void Dial::sigHandler(int sig) {
   };
 }
 
-bool Dial::dialPPP(DialCb cb) {
+bool Dial::DialPPP(DialCb cb) {
   int i = 0;
   const char *pppArgv[56];
   char chatConnScript[512] = {0};
   char chatDisconScript[512] = {0};
 
-  _pppId = -1;
+  pppid_ = -1;
 
   uint32_t j;
-  for (j = 0; j < MSF_ARRAY_SIZE(_g_dilaParam_); ++j) {
-    if (_modem->modem_info()->sim_operator_ == _g_dilaParam_[j].oper &&
-        _modem->net_mode() == _g_dilaParam_[j].mode) {
+  for (j = 0; j < MSF_ARRAY_SIZE(kDefaultDialParam); ++j) {
+    if (modem_->modem_info()->sim_operator_ == kDefaultDialParam[j].oper_ &&
+        modem_->net_mode() == kDefaultDialParam[j].mode_) {
       break;
     }
   }
-  if (unlikely(j == MSF_ARRAY_SIZE(_g_dilaParam_))) {
+  if (unlikely(j == MSF_ARRAY_SIZE(kDefaultDialParam))) {
     cb(-1, nullptr);
     return false;
   }
@@ -184,7 +183,7 @@ bool Dial::dialPPP(DialCb cb) {
   snprintf(chatConnScript, sizeof(chatConnScript) - 1,
            "chat -v  TIMEOUT 15 ABORT BUSY  ABORT 'NO ANSWER' '' ATH0 OK AT "
            "'OK-+++\\c-OK' ATDT%s CONNECT ",
-           _g_dilaParam_[j].number);
+           kDefaultDialParam[j].number_);
 
   snprintf(chatDisconScript, sizeof(chatDisconScript) - 1,
            "chat -v ABORT 'BUSY' ABORT 'ERROR' ABORT 'NO DIALTONE' '' '\\K' '' "
@@ -202,7 +201,7 @@ bool Dial::dialPPP(DialCb cb) {
 
   char portStr[32] = {0};
   snprintf(portStr, sizeof(portStr) - 1, MODEM_TTY_USB_PREFIX,
-           _modem->modem_info()->dial_port_);
+           modem_->modem_info()->dial_port_);
 
   pppArgv[i++] = portStr;
 
@@ -226,25 +225,25 @@ bool Dial::dialPPP(DialCb cb) {
   pppArgv[i++] = kMtuKey;
   pppArgv[i++] = kMtuVal;
 
-  if (_authType == AUTH_NONE) {
+  if (auth_type_ == AUTH_NONE) {
     pppArgv[i++] = kNoAuth;
-  } else if (_authType == AUTH_PAP) {
+  } else if (auth_type_ == AUTH_PAP) {
     pppArgv[i++] = kRefuseChap;
     pppArgv[i++] = kRefuseEap;
     pppArgv[i++] = kAuth;
     pppArgv[i++] = kRequirePap;
-  } else if (_authType == AUTH_CHAP) {
+  } else if (auth_type_ == AUTH_CHAP) {
     pppArgv[i++] = kRefusePap;
     pppArgv[i++] = kRefuseEap;
     pppArgv[i++] = kAuth;
     pppArgv[i++] = kRequireChap;
-  } else if (_authType == AUTH_PAP_CHAP) {
+  } else if (auth_type_ == AUTH_PAP_CHAP) {
   }
 
   pppArgv[i++] = kUser;
-  pppArgv[i++] = _g_dilaParam_[j].user;
+  pppArgv[i++] = kDefaultDialParam[j].user_;
   pppArgv[i++] = kPassWord;
-  pppArgv[i++] = _g_dilaParam_[j].pass;
+  pppArgv[i++] = kDefaultDialParam[j].pass_;
 
   pppArgv[i++] = kUsePeerDns;
   pppArgv[i++] = kLcpEchoIntervalKey;
@@ -257,12 +256,12 @@ bool Dial::dialPPP(DialCb cb) {
   pppArgv[i++] = chatDisconScript;
   pppArgv[i++] = kPPPdEnd;
 
-  if ((_pppId = vfork()) < 0) {
+  if ((pppid_ = vfork()) < 0) {
     MSF_ERROR << "Can not fork, exit now.";
     return false;
   }
 
-  if (_pppId == 0) {
+  if (pppid_ == 0) {
     /* https://blog.csdn.net/diehuojiang5959/article/details/101620215
      * https://blog.csdn.net/wtguo1022/article/details/80882891 */
     int ret = execvp(kPPPd, const_cast<char **>(pppArgv));
@@ -270,8 +269,7 @@ bool Dial::dialPPP(DialCb cb) {
     MSF_ERROR << "Execvp failed with error code: " << ret;
     abort();
   } else {
-    return _pppId;
+    return pppid_;
   }
 }
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile

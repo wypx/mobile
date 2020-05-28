@@ -19,8 +19,7 @@
 #include <cctype>
 #include <cstdlib>
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 /**
  * Starts tokenizing an AT response string
@@ -182,5 +181,5 @@ char *AtFindNextEOL(char *cur) {
 
   return *cur == '\0' ? nullptr : cur;
 }
-}  // namespace MOBILE
-}  // namespace MSF
+
+}  // namespace mobile

@@ -20,12 +20,11 @@
 
 #include "Mobile.h"
 
-using namespace MSF::MOBILE;
+using namespace mobile;
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
-#define MAX_AT_CMD_LEN 256
+static const uint32_t kMaxATCmdLen = 256;
 
 typedef std::function<void(void *)> ModemMatch;
 
@@ -68,7 +67,7 @@ class ATCmdManager {
   virtual bool initModem();
   virtual bool resetModem();
   virtual bool getModem(ModemMatch cb);
-  virtual enum RadioMode getRadioState();
+  virtual RadioMode getRadioState();
   virtual bool setRadioState(enum RadioMode cfun);
   virtual bool setChipErrorLevel(const int level);
   virtual int getSIMStatus();
@@ -127,24 +126,23 @@ class ATCmdManager {
                         SendCmdSingleLineCb sendSLine,
                         SendCmdMultiLineCb sendMLine, AllocResponceCb allocRsp,
                         FreeResponceCb freeRsp, GetCmeError getErr) {
-    sendCommand_ = send;
-    sendCommandNumberic_ = sendNum;
-    sendCommandSingleLine_ = sendSLine;
-    sendCommandMutiLine_ = sendMLine;
-    allocResponce_ = allocRsp;
-    freeResponce_ = freeRsp;
-    getCmeError_ = getErr;
+    send_command_numberic_ = send;
+    send_command_numberic_ = sendNum;
+    send_command_singleline_ = sendSLine;
+    send_command_mutiline_ = sendMLine;
+    alloc_resp_ = allocRsp;
+    free_resp_ = freeRsp;
+    get_cme_error_ = getErr;
   }
 
  private:
-  SendCmdCb sendCommand_;
-  SendCmdNumbericCb sendCommandNumberic_;
-  SendCmdSingleLineCb sendCommandSingleLine_;
-  SendCmdMultiLineCb sendCommandMutiLine_;
-  AllocResponceCb allocResponce_;
-  FreeResponceCb freeResponce_;
-  GetCmeError getCmeError_;
+  SendCmdCb send_command_;
+  SendCmdNumbericCb send_command_numberic_;
+  SendCmdSingleLineCb send_command_singleline_;
+  SendCmdMultiLineCb send_command_mutiline_;
+  AllocResponceCb alloc_resp_;
+  FreeResponceCb free_resp_;
+  GetCmeError get_cme_error_;
 };
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
 #endif

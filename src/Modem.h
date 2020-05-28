@@ -17,8 +17,7 @@
 
 #include "Mobile.h"
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 enum ModemType {
   MODEM_UNKOWN,
@@ -147,6 +146,5 @@ class Modem {
   ATChannel *ch_;
 };
 
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
 #endif

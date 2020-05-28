@@ -23,10 +23,9 @@
 using namespace MSF::BASE;
 using namespace MSF::TIME;
 using namespace MSF::EVENT;
-using namespace MSF::MOBILE;
+using namespace mobile;
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 bool ATCmdManager::initModem() {
   int ret;
@@ -39,72 +38,72 @@ bool ATCmdManager::initModem() {
 
   /*  atchannel is tolerant of echo but it must */
   /*  have verbose result codes */
-  sendCommand_("ATE1", nullptr);
+  send_command_("ATE1", nullptr);
   // queueATCmdInLoop("ATE0", nullptr);
 
   /*  No auto-answer */
-  sendCommand_("ATS0=0", nullptr);
+  send_command_("ATS0=0", nullptr);
 
   /*  Extended errors */
-  sendCommand_("AT+CMEE=1", nullptr);
+  send_command_("AT+CMEE=1", nullptr);
 
   /*  set apn autometicly according to curent network operator */
-  sendCommand_("AT+NVRW=1,50058,\"01\"", nullptr);
+  send_command_("AT+NVRW=1,50058,\"01\"", nullptr);
 
   // PDP_DEACTIVE
-  // at_send_command("AT+CGACT=1,1", nullptr);
+  // send_command_("AT+CGACT=1,1", nullptr);
 
   /* Auto:All band search*/
-  sendCommand_("AT+BNDPRF=896,1272,131072", nullptr);
+  send_command_("AT+BNDPRF=896,1272,131072", nullptr);
 
   /*  Network registration events */
-  ret = sendCommand_("AT+CREG=2", &rsp);
+  ret = send_command_("AT+CREG=2", &rsp);
   /* some handsets -- in tethered mode -- don't support CREG=2 */
   if (ret < 0 || rsp->success_ == 0) {
-    sendCommand_("AT+CREG=1", nullptr);
+    send_command_("AT+CREG=1", nullptr);
   }
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
 
   /*  GPRS registration events */
-  sendCommand_("AT+CGREG=1", nullptr);
+  send_command_("AT+CGREG=1", nullptr);
 
   /*  Call Waiting notifications */
-  sendCommand_("AT+CCWA=1", nullptr);
+  send_command_("AT+CCWA=1", nullptr);
 
   /*  Alternating voice/data off */
-  sendCommand_("AT+CMOD=0", nullptr);
+  send_command_("AT+CMOD=0", nullptr);
 
   /*  Not muted */
-  // sendCommand_("AT+CMUT=0", nullptr);
+  // send_command_("AT+CMUT=0", nullptr);
 
   /*  +CSSU unsolicited supp service notifications */
-  sendCommand_("AT+CSSN=0,1", nullptr);
+  send_command_("AT+CSSN=0,1", nullptr);
 
   /*  no connected line identification */
-  sendCommand_("AT+COLP=0", nullptr);
+  send_command_("AT+COLP=0", nullptr);
 
   /*  HEX character set */
   // at_send_command("AT+CSCS=\"HEX\"", nullptr);
 
   /*  USSD unsolicited */
-  sendCommand_("AT+CUSD=1", nullptr);
+  send_command_("AT+CUSD=1", nullptr);
 
   /*  Enable +CGEV GPRS event notifications, but don't buffer */
-  sendCommand_("AT+CGEREP=1,0", nullptr);
+  send_command_("AT+CGEREP=1,0", nullptr);
 
   /*  SMS PDU mode */
-  sendCommand_("AT+CMGF=0", nullptr);
+  send_command_("AT+CMGF=0", nullptr);
 
   return ret == 0 ? true : false;
 }
 
 bool ATCmdManager::setChipErrorLevel(const int level) {
   int ret;
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd) - 1, "AT+CMEE=%d", level);
 
-  ret = sendCommand_(cmd, nullptr);
+  ret = send_command_(cmd, nullptr);
   if (ret == AT_SUCCESS) {
     return true;
   }
@@ -112,7 +111,7 @@ bool ATCmdManager::setChipErrorLevel(const int level) {
 }
 
 bool ATCmdManager::resetModem() {
-  sendCommand_("AT^RESET", nullptr);
+  send_command_("AT^RESET", nullptr);
   return true;
 }
 
@@ -123,9 +122,9 @@ bool ATCmdManager::getModem(ModemMatch cb) {
   ATResponse *rsp = nullptr;
 
   /* use ATI or AT+CGMM or AT+LCTSW */
-  ret = sendCommandSingleLine_("ATI", "Model:", &rsp);
+  ret = send_command_singleline_("ATI", "Model:", &rsp);
   if (ret < 0 || rsp->success_ == 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return false;
   }
 
@@ -133,48 +132,48 @@ bool ATCmdManager::getModem(ModemMatch cb) {
 
   ret = AtTokStart(&line);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return false;
   }
 
   ret = AtTokNextStr(&line, &out);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return false;
   }
   cb(out);
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
   return true;
 }
 
 /** returns 1 if on, 0 if off, and -1 on error */
-enum RadioMode ATCmdManager::getRadioState() {
+RadioMode ATCmdManager::getRadioState() {
   ATResponse *rsp = nullptr;
   char ret;
   char *line = nullptr;
 
-  ret = sendCommandSingleLine_("AT+CFUN?", "+CFUN:", &rsp);
+  ret = send_command_singleline_("AT+CFUN?", "+CFUN:", &rsp);
   if (ret < 0 || rsp->success_ == 0) {
     // assume radio is off
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return RADIO_LPM_MODE;
   }
 
   line = rsp->intermediates_->line_;
   ret = AtTokStart(&line);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return RADIO_LPM_MODE;
   }
 
   ret = AtTokNextBool(&line, &ret);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return RADIO_LPM_MODE;
   }
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
   return RadioMode(ret);
 }
 
@@ -189,10 +188,10 @@ bool ATCmdManager::setRadioState(enum RadioMode cfun) {
     return 0;
   }
 
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd) - 1, "AT+CFUN=%d", cfun);
   while (count-- < 0) {
-    rc = sendCommand_(cmd, &rsp);
+    rc = send_command_(cmd, &rsp);
     if (rc < 0 || rsp->success_ == 0) {
       continue;
     } else {
@@ -200,7 +199,7 @@ bool ATCmdManager::setRadioState(enum RadioMode cfun) {
       if (radioMode == cfun) break;
     }
   }
-  freeResponce_(rsp);
+  free_resp_(rsp);
   return true;
 }
 
@@ -210,23 +209,23 @@ int ATCmdManager::getSIMStatus() {
   char *cpinResult = nullptr;
   ATResponse *rsp = nullptr;
 
-  ret = sendCommandSingleLine_("AT+CPIN?", "+CPIN:", &rsp);
+  ret = send_command_singleline_("AT+CPIN?", "+CPIN:", &rsp);
   if (ret != 0) {
-    ret = sendCommandSingleLine_("AT+QCPIN?", "+QCPIN:", &rsp);
+    ret = send_command_singleline_("AT+QCPIN?", "+QCPIN:", &rsp);
     if (ret != 0) {
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return SIM_NOT_READY;
     }
   }
 
-  switch (getCmeError_(rsp)) {
+  switch (get_cme_error_(rsp)) {
     case CME_SUCCESS:
       break;
     case CME_SIM_NOT_INSERTED:
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return SIM_ABSENT;
     default:
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return SIM_NOT_READY;
   }
 
@@ -234,41 +233,41 @@ int ATCmdManager::getSIMStatus() {
   cpinLine = rsp->intermediates_->line_;
   ret = AtTokStart(&cpinLine);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return SIM_NOT_READY;
   }
 
   ret = AtTokNextStr(&cpinLine, &cpinResult);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return SIM_NOT_READY;
   }
 
   // AT_DBG("sim:%s\n", cpinResult);
   if (0 == strcmp(cpinResult, "SIM PIN")) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return SIM_PIN;
   } else if (0 == strcmp(cpinResult, "SIM PUK")) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return SIM_PUK;
   } else if (0 == strcmp(cpinResult, "PH-NET PIN")) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return SIM_NETWORK_PERSONALIZATION;
   } else if (0 != strcmp(cpinResult, "READY")) {
     /* we're treating unsupported lock types as "sim absent" */
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return SIM_ABSENT;
   }
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
   return SIM_READY;
 }
 
 int ATCmdManager::getSIMLock() {
-  int ret = sendCommand_("AT+CLCK=\"SC\",2", nullptr);
+  int ret = send_command_("AT+CLCK=\"SC\",2", nullptr);
   if (ret != 0) {
     /*Telecom*/
-    ret = sendCommand_("AT+QCLCK=\"SC\",2", nullptr);
+    ret = send_command_("AT+QCLCK=\"SC\",2", nullptr);
     if (ret != 0) {
       return -1;
     }
@@ -277,9 +276,9 @@ int ATCmdManager::getSIMLock() {
 }
 
 int ATCmdManager::setSIMUnlockPinCode(const std::string &pincode) {
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd) - 1, "AT+CPIN=\"%s\"", pincode.c_str());
-  int ret = sendCommand_(cmd, nullptr);
+  int ret = send_command_(cmd, nullptr);
   if (ret != 0) {
     // error info
   }
@@ -288,10 +287,10 @@ int ATCmdManager::setSIMUnlockPinCode(const std::string &pincode) {
 
 int ATCmdManager::setNewPinCode(const std::string &oldcode,
                                 const std::string &newcode) {
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+CPIN=\"%s\",\"%s\"", oldcode.c_str(),
            newcode.c_str());
-  int ret = sendCommand_(cmd, nullptr);
+  int ret = send_command_(cmd, nullptr);
   if (ret != 0) {
     // error info
   }
@@ -305,49 +304,49 @@ bool ATCmdManager::setEhrpd() {
   char *line = nullptr;
   ATResponse *rsp = nullptr;
   char ret = -1;
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
 
-  rc = sendCommandSingleLine_("AT+EHRPDENABLE?", "+EHRPDENABLE:", &rsp);
+  rc = send_command_singleline_("AT+EHRPDENABLE?", "+EHRPDENABLE:", &rsp);
   if (rc < 0 || rsp->success_ == 0) {
     // assume radio is off
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return false;
   }
   line = rsp->intermediates_->line_;
 
   rc = AtTokStart(&line);
   if (rc < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return false;
   }
 
   rc = AtTokNextBool(&line, &ret);
   if (rc < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return false;
   }
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
 
   uint32_t enehrpd;
   /*ret equal 1(true) represent is on*/
   if ((uint32_t)ret == enehrpd) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return 0;
   }
   snprintf(cmd, sizeof(cmd) - 1, "AT+EHRPDENABLE=%d", enehrpd);
-  rc = sendCommand_(cmd, &rsp);
+  rc = send_command_(cmd, &rsp);
   if (rc < 0 || rsp->success_ == 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return false;
   }
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
   return true;
 }
 
 int ATCmdManager::getNetSearchType() {
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+MODODREX?");
 
   // huawei 3g
@@ -376,9 +375,9 @@ int ATCmdManager::setNetSearchType() {
 int ATCmdManager::setSignalNotify() {
   int ret;
 
-  ret = sendCommand_("AT+CSQ", nullptr);
+  ret = send_command_("AT+CSQ", nullptr);
   if (ret != 0) {
-    ret = sendCommand_("AT+CCSQ", nullptr);
+    ret = send_command_("AT+CCSQ", nullptr);
     if (ret != 0) {
       return -1;
     }
@@ -388,7 +387,7 @@ int ATCmdManager::setSignalNotify() {
 
 int ATCmdManager::getSignal(void) {
   // 8300c
-  int ret = sendCommand_("AT+SIGNALIND=1", nullptr);
+  int ret = send_command_("AT+SIGNALIND=1", nullptr);
   if (ret != 0) {
   }
   return 0;
@@ -400,7 +399,7 @@ int ATCmdManager::getSignal(void) {
 int ATCmdManager::setWapen(void) {
   // 8300c
   // AT+ SIMSWAPEN?
-  sendCommand_("AT+SIMSWAPEN=1", nullptr);
+  send_command_("AT+SIMSWAPEN=1", nullptr);
   return 0;
 }
 
@@ -409,7 +408,7 @@ int ATCmdManager::getLSCellInfo(void) {
   int rc = -1;
 
   // 8300c
-  rc = sendCommand_("AT+LSCELLINFO", nullptr);
+  rc = send_command_("AT+LSCELLINFO", nullptr);
   if (rc != 0) {
   }
   return 0;
@@ -434,7 +433,7 @@ int ATCmdManager::getClccInfo(void) {
   int rc = -1;
 
   // 8300c
-  rc = sendCommand_("AT+CLCC", nullptr);
+  rc = send_command_("AT+CLCC", nullptr);
   if (rc != 0) {
   }
   return 0;
@@ -470,7 +469,7 @@ int ATCmdManager::setDtmf(void) {
    *	+DTMF: 0
    *	====
    */
-  rc = sendCommand_("AT+LSHTONEDET=%d", nullptr);
+  rc = send_command_("AT+LSHTONEDET=%d", nullptr);
   if (rc != 0) {
   }
   return 0;
@@ -487,10 +486,10 @@ int ATCmdManager::setAudio(void) {
 
   // 8300c
   //启动pcm并加载acdb,速度慢,需要18s 后才有pcm clock 输出,音质优化。
-  rc = sendCommand_("AT+SYSCMD=start_pcm acdb", nullptr);
+  rc = send_command_("AT+SYSCMD=start_pcm acdb", nullptr);
   if (rc != 0) {
   }
-  rc = sendCommand_("AT+SYSCMD=start_pcm volume 33", nullptr);
+  rc = send_command_("AT+SYSCMD=start_pcm volume 33", nullptr);
   if (rc != 0) {
   }
   return 0;
@@ -500,7 +499,7 @@ int ATCmdManager::answerCall(void) {
   int rc = -1;
 
   // 8300c
-  rc = sendCommand_("ATA", nullptr);
+  rc = send_command_("ATA", nullptr);
   if (rc != 0) {
   }
   return 0;
@@ -512,7 +511,7 @@ int ATCmdManager::setCallInfo(void) {
   //+CLIP:02150809688,129,,,,0   模块来电,号码是02150809688
 
   // 8300c
-  rc = sendCommand_("AT+CLIP=%d", nullptr);
+  rc = send_command_("AT+CLIP=%d", nullptr);
   if (rc != 0) {
   }
   return 0;
@@ -522,7 +521,7 @@ int ATCmdManager::getCallInfo(void) {
   int rc = -1;
 
   // 8300c
-  rc = sendCommand_("AT+CLIP", nullptr);
+  rc = send_command_("AT+CLIP", nullptr);
   if (rc != 0) {
   }
   return 0;
@@ -560,9 +559,9 @@ int ATCmdManager::getOperator() {
     char resp[16] = { 0 };
     char *line;
 
-    rc = sendCommandSingleLine_("AT+CIMI", "+CIMI:", &rsp);
+    rc = send_command_singleline_("AT+CIMI", "+CIMI:", &rsp);
     if (rc != 0) {
-        rc = sendCommandSingleLine_("AT+QCIMI", "+QCIMI:", &rsp);
+        rc = send_command_singleline_("AT+QCIMI", "+QCIMI:", &rsp);
         if (rc != 0) {
             goto done;
         }
@@ -582,7 +581,7 @@ int ATCmdManager::getOperator() {
 
 //    match_func(resp);
 done:
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return rc;
 
 
@@ -593,7 +592,7 @@ done:
     int skip;
     ATLine *p_cur;
     char* response[3];
-    rc = sendCommand_("AT+COPS=3,0;+COPS?;+COPS=3,1;+COPS?;+COPS=3,2;+COPS?", "+COPS:", &p_response);
+    rc = send_command_("AT+COPS=3,0;+COPS?;+COPS=3,1;+COPS?;+COPS=3,2;+COPS?", "+COPS:", &p_response);
     /* we expect 3 lines here:
      * +COPS: 0,0,"T - Mobile"
      * +COPS: 0,1,"TMO"
@@ -668,26 +667,26 @@ done:
 }
 
 bool ATCmdManager::listAllOperators() {
-  sendCommand_("AT+COPS=?", nullptr);
+  send_command_("AT+COPS=?", nullptr);
   return true;
 }
 
 bool ATCmdManager::listOperatorByNumberic() {
-  sendCommand_("AT+COPS=3,2", nullptr);
+  send_command_("AT+COPS=3,2", nullptr);
   return true;
 }
 
 bool ATCmdManager::setAutoRegister() {
-  sendCommand_("AT+COPS=0,0", nullptr);
+  send_command_("AT+COPS=0,0", nullptr);
   return true;
 }
 
 bool ATCmdManager::getNetMode() {
-  sendCommand_("AT+PSRAT", nullptr);
+  send_command_("AT+PSRAT", nullptr);
   // huwei 4G
-  sendCommand_("AT^SYSINFOEX", nullptr);
+  send_command_("AT^SYSINFOEX", nullptr);
   // huwei 3G
-  sendCommand_("AT^HCSQ?", nullptr);
+  send_command_("AT^HCSQ?", nullptr);
   return true;
 }
 
@@ -704,39 +703,39 @@ int ATCmdManager::getNet3GPP() {
   // MOBILE","CMCC","46000",7),,(0,1,2,3,4),(0,1,2)
   // AT+COPS?
   //+COPS: 0,2,"46001",7
-  ret = sendCommandSingleLine_("AT+COPS?", "+COPS:", &rsp);
+  ret = send_command_singleline_("AT+COPS?", "+COPS:", &rsp);
   if (ret < 0 || rsp->success_ == 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return -1;
   }
 
   line = rsp->intermediates_->line_;
   ret = AtTokStart(&line);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return -1;
   }
 
   ret = AtTokNextInt(&line, &response);
   if (ret < 0) {
-    freeResponce_(rsp);
+    free_resp_(rsp);
     return -1;
   }
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
   return 0;
 }
 
 bool ATCmdManager::getNetStatus(enum NetWorkType type) {
   switch (type) {
     case NETWORK_2G:
-      sendCommand_("AT+CGREG?", nullptr);
+      send_command_("AT+CGREG?", nullptr);
       break;
     case NETWORK_3G:
-      sendCommand_("AT+CREG?", nullptr);
+      send_command_("AT+CREG?", nullptr);
       break;
     case NETWORK_4G:
-      sendCommand_("AT+CEREG?", nullptr);
+      send_command_("AT+CEREG?", nullptr);
       break;
     case NETWORK_5G:
 
@@ -750,39 +749,39 @@ bool ATCmdManager::getNetStatus(enum NetWorkType type) {
 bool ATCmdManager::setCallerId() {
   // enum CALLER_ID_STATUS call_id = CALLER_ID_OPEN;
   int call_id = 0;
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd) - 1, "AT+CLIP=%d", call_id);
 
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
   return true;
 }
 bool ATCmdManager::setTeStatus() {
-  sendCommand_("AT+CNMI=2,1,2,2,0", nullptr);
+  send_command_("AT+CNMI=2,1,2,2,0", nullptr);
   return true;
 }
 
 bool ATCmdManager::getSMSCenter() {
-  sendCommand_("AT+CSCA?", nullptr);
+  send_command_("AT+CSCA?", nullptr);
   return true;
 }
 bool ATCmdManager::setSMSStorageArea() {
   int area;
   if (ME_AREA == area)
-    sendCommand_("AT+CPMS=\"ME\",\"ME\",\"ME\"", nullptr);
+    send_command_("AT+CPMS=\"ME\",\"ME\",\"ME\"", nullptr);
   else if (SM_AREA == area)
-    sendCommand_("AT+CPMS=\"SM\",\"SM\",\"SM\"", nullptr);
+    send_command_("AT+CPMS=\"SM\",\"SM\",\"SM\"", nullptr);
   return true;
 }
 bool ATCmdManager::setSMSFormat() {
   uint32_t sms_format = 0;
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+CMGF=%d", sms_format);
-  if (AT_SUCCESS == sendCommand_(cmd, nullptr)) return true;
+  if (AT_SUCCESS == send_command_(cmd, nullptr)) return true;
 
   // evdo
   memset(cmd, 0, sizeof(cmd));
   snprintf(cmd, sizeof(cmd), "AT$QCMGF=%d", sms_format);
-  if (AT_SUCCESS == sendCommand_(cmd, nullptr)) return true;
+  if (AT_SUCCESS == send_command_(cmd, nullptr)) return true;
 
   return false;
 }
@@ -790,10 +789,10 @@ bool ATCmdManager::setSMSFormat() {
 bool ATCmdManager::hasSMS() {
   int ret = -1;
 
-  ret = sendCommand_("AT+CMGD=?", nullptr);
+  ret = send_command_("AT+CMGD=?", nullptr);
   if (ret != 0) {
     /*Telecom evdo*/
-    ret = sendCommand_("AT$QCMGD=?", nullptr);
+    ret = send_command_("AT$QCMGD=?", nullptr);
     if (ret != 0) {
       return false;
     }
@@ -803,19 +802,19 @@ bool ATCmdManager::hasSMS() {
 
 bool ATCmdManager::readSMS() {
   uint32_t index = 0;
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+CMGR=%d", index);
   snprintf(cmd, sizeof(cmd), "AT^HCMGR=%d", index);
 
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
   return true;
 }
 
 bool ATCmdManager::clearSMS() {
   uint32_t sms_format = 0, sms_clean_mode = 0;
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+CMGD=%d,%d", sms_format, sms_clean_mode);
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
   return true;
 }
 
@@ -825,7 +824,7 @@ bool ATCmdManager::getAPNS(void) {
   char *out;
   ATResponse *rsp;
 
-  ret = sendCommandMutiLine_("AT+CGDCONT?", "+CGDCONT:", &rsp);
+  ret = send_command_mutiline_("AT+CGDCONT?", "+CGDCONT:", &rsp);
   if (ret != 0 || rsp->success_ == 0) {
     return -1;
   }
@@ -836,13 +835,13 @@ bool ATCmdManager::getAPNS(void) {
 
     ret = AtTokStart(&line);
     if (ret < 0) {
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return false;
     }
 
     ret = AtTokNextInt(&line, &cid);
     if (ret < 0) {
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return false;
     }
 
@@ -850,7 +849,7 @@ bool ATCmdManager::getAPNS(void) {
 
     ret = AtTokNextStr(&line, &out);
     if (ret < 0) {
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return false;
     }
 
@@ -859,7 +858,7 @@ bool ATCmdManager::getAPNS(void) {
     // APN ignored for v5
     ret = AtTokNextStr(&line, &out);
     if (ret < 0) {
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return false;
     }
 
@@ -867,24 +866,24 @@ bool ATCmdManager::getAPNS(void) {
 
     ret = AtTokNextStr(&line, &out);
     if (ret < 0) {
-      freeResponce_(rsp);
+      free_resp_(rsp);
       return false;
     }
 
     // printf("addresses = %s \n", out);
   }
 
-  freeResponce_(rsp);
+  free_resp_(rsp);
   return true;
 }
 
 bool ATCmdManager::clearAPNS() {
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+cgdcont=1");
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
 
   snprintf(cmd, sizeof(cmd), "AT+cgdcont=2");
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
   return true;
 }
 
@@ -892,16 +891,16 @@ bool ATCmdManager::setAPNS() {
   char apn1[16];
   char apn2[16];
 
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+cgdcont=1,\"ip\",\"%s\"", apn1);
   snprintf(cmd, sizeof(cmd), "AT+cgdcont=2,\"ip\",\"%s\"", apn2);
 
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
   return true;
 }
 
 bool ATCmdManager::setAuthInfo() {
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   uint8_t verifyProto = 2;
   uint8_t szPassword[32];
   uint8_t szUsername[32];
@@ -914,20 +913,19 @@ bool ATCmdManager::setAuthInfo() {
   snprintf(cmd, sizeof(cmd), "AT^AUTHDATA=1,%d,\"\",\"%s\",\"%s\"", verifyProto,
            szPassword, szUsername);
 
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
   return true;
 }
 
 bool ATCmdManager::setPDPStatus(uint32_t pdpStatus) {
-  char cmd[MAX_AT_CMD_LEN] = {0};
+  char cmd[kMaxATCmdLen] = {0};
   snprintf(cmd, sizeof(cmd), "AT+CGACT=%d,1", pdpStatus);
-  sendCommand_(cmd, nullptr);
+  send_command_(cmd, nullptr);
   return true;
 }
 
 bool ATCmdManager::setQosRequestBrief(void) {
-  sendCommand_("AT+CGEQREQ=1,3,11520,11520,11520,11520,,,,,,,3", nullptr);
+  send_command_("AT+CGEQREQ=1,3,11520,11520,11520,11520,,,,,,,3", nullptr);
   return true;
 }
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile

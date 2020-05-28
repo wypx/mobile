@@ -26,17 +26,15 @@
 
 using namespace MSF::BASE;
 using namespace MSF::TIME;
-using namespace MSF::MOBILE;
-
-namespace MSF {
-namespace MOBILE {
+using namespace mobile;
+namespace mobile {
 
 #define HANDSHAKE_RETRY_COUNT 8
 #define HANDSHAKE_TIMEOUT_MSEC 250
 
 #define MAX_AT_RESPONSE (8 * 1024)
-static char _ATBuffer[MAX_AT_RESPONSE + 1];
-static char *_ATBufferCur;
+static char kATBuffer[MAX_AT_RESPONSE + 1];
+static char *kATBufferCur;
 
 /** add an intermediate response to sp_response*/
 void ATChannel::AddIntermediate(const char *line) {
@@ -329,7 +327,7 @@ ATChannel::ATChannel(ATUnsolHandler h1, ATReaderClosedHandler h2,
       rsp_(nullptr),
       rsp_prefix_(nullptr),
       sms_pdu_(nullptr) {
-  _ATBufferCur = _ATBuffer;
+  kATBufferCur = kATBuffer;
 }
 
 ATChannel::~ATChannel() { ReaderClose(); }
@@ -363,7 +361,7 @@ ATCmeError ATChannel::GetCmeError(const ATResponse *rsp) {
     return CME_ERROR_NON_CME;
   }
 
-  return (ATCmeError)ret;
+  return static_cast<ATCmeError>(ret);
 }
 
 ATResponse *ATChannel::AllocResponce() {
@@ -594,46 +592,46 @@ char *ATChannel::ReadLine() const {
   char *p_eol = nullptr;
   char *ret;
 
-  /* this is a little odd. I use *s_ATBufferCur == 0 to
+  /* this is a little odd. I use *skATBufferCur == 0 to
    * mean "buffer consumed completely". If it points to a character, than
    * the buffer continues until a \0 */
-  if (*_ATBufferCur == '\0') {
+  if (*kATBufferCur == '\0') {
     /* empty buffer */
-    _ATBufferCur = _ATBuffer;
-    *_ATBufferCur = '\0';
-    p_read = _ATBuffer;
-  } else { /* *s_ATBufferCur != '\0' */
+    kATBufferCur = kATBuffer;
+    *kATBufferCur = '\0';
+    p_read = kATBuffer;
+  } else { /* *skATBufferCur != '\0' */
     /* there's data in the buffer from the last read */
 
     // skip over leading newlines
-    while (*_ATBufferCur == '\r' || *_ATBufferCur == '\n') _ATBufferCur++;
+    while (*kATBufferCur == '\r' || *kATBufferCur == '\n') kATBufferCur++;
 
-    p_eol = AtFindNextEOL(_ATBufferCur);
+    p_eol = AtFindNextEOL(kATBufferCur);
     if (p_eol == nullptr) {
       /* a partial line. move it up and prepare to read more */
       size_t len;
 
-      len = strlen(_ATBufferCur);
+      len = strlen(kATBufferCur);
 
-      memmove(_ATBuffer, _ATBufferCur, len + 1);
-      p_read = _ATBuffer + len;
-      _ATBufferCur = _ATBuffer;
+      memmove(kATBuffer, kATBufferCur, len + 1);
+      p_read = kATBuffer + len;
+      kATBufferCur = kATBuffer;
     }
     /* Otherwise, (p_eol !- NULL) there is a complete line  */
     /* that will be returned the while () loop below        */
   }
 
   while (p_eol == nullptr) {
-    if (0 == MAX_AT_RESPONSE - (p_read - _ATBuffer)) {
+    if (0 == MAX_AT_RESPONSE - (p_read - kATBuffer)) {
       MSF_ERROR << "Input line exceeded buffer";
       /* ditch buffer and start over again */
-      _ATBufferCur = _ATBuffer;
-      *_ATBufferCur = '\0';
-      p_read = _ATBuffer;
+      kATBufferCur = kATBuffer;
+      *kATBufferCur = '\0';
+      p_read = kATBuffer;
     }
 
     do {
-      count = read(read_fd_, p_read, MAX_AT_RESPONSE - (p_read - _ATBuffer));
+      count = read(read_fd_, p_read, MAX_AT_RESPONSE - (p_read - kATBuffer));
     } while (count < 0 && errno == EINTR);
 
     if (count > 0) {
@@ -641,9 +639,9 @@ char *ATChannel::ReadLine() const {
 
       p_read[count] = '\0';
       // skip over leading newlines
-      while (*_ATBufferCur == '\r' || *_ATBufferCur == '\n') _ATBufferCur++;
+      while (*kATBufferCur == '\r' || *kATBufferCur == '\n') kATBufferCur++;
 
-      p_eol = AtFindNextEOL(_ATBufferCur);
+      p_eol = AtFindNextEOL(kATBufferCur);
       p_read += count;
     } else if (count <= 0) {
       /* read error encountered or EOF reached */
@@ -657,9 +655,9 @@ char *ATChannel::ReadLine() const {
   }
 
   /* a full line in the buffer. Place a \0 over the \r and return */
-  ret = _ATBufferCur;
+  ret = kATBufferCur;
   *p_eol = '\0';
-  _ATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
+  kATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
                             /* and there will be a \0 at *p_read */
 
   // MSF_MOBILE_LOG(DBG_DEBUG,"AT< %s\n", ret);
@@ -679,5 +677,5 @@ void ATChannel::ReaderLoop() {
     ProcessLine(line);
   }
 }
-}  // namespace MOBILE
-}  // namespace MSF
+
+}  // namespace mobile

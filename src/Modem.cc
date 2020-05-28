@@ -21,10 +21,8 @@
 #include "Idx.h"
 
 using namespace MSF::BASE;
-using namespace MSF::MOBILE;
-
-namespace MSF {
-namespace MOBILE {
+using namespace mobile;
+namespace mobile {
 
 static const std::string kSysBusUsbDevice = "/sys/bus/usb/devices";
 
@@ -594,5 +592,4 @@ static int usb_start(void *data, uint32_t datalen) {
 
   return 0;
 }
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile

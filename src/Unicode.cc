@@ -15,12 +15,11 @@
 #include <base/Logger.h>
 #include <base/Utils.h>
 
-using namespace MSF::MOBILE;
+using namespace mobile;
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
-const uint16_t g_UnicodeGB2312[][2] = {
+static const uint16_t kUnicodeGB2312Table[][2] = {
     {0x00A4, 0xA1E8}, /* '¤' ->   164 */
     {0x00A7, 0xA1EC}, /* '§' ->   167 */
     {0x00A8, 0xA1A7}, /* '¨' ->   168 */
@@ -21630,15 +21629,15 @@ static uint16_t Unicode2GBcode(uint16_t unicode) {
   }
 
   int low, high, mid;
-  n = MSF_ARRAY_SIZE(g_UnicodeGB2312) - 1;
+  n = MSF_ARRAY_SIZE(kUnicodeGB2312Table) - 1;
   low = 0;
   high = n;
   while (low <= high) {
     mid = (low + high) / 2;
-    if (g_UnicodeGB2312[mid][0] == unicode) {
-      return g_UnicodeGB2312[mid][1];
+    if (kUnicodeGB2312Table[mid][0] == unicode) {
+      return kUnicodeGB2312Table[mid][1];
     }
-    if (unicode > g_UnicodeGB2312[mid][0])
+    if (unicode > kUnicodeGB2312Table[mid][0])
       low = mid + 1;
     else
       high = mid - 1;
@@ -21697,15 +21696,15 @@ uint32_t StrGB2Unicode(const char *str, char *dst, uint32_t n) {
       tmp = str[i] & 0xff;
       tmp = ((tmp << 8) & 0xff00) | (str[i + 1] & 0xff);
       i += 2;
-      for (k = 0; k < (MSF_ARRAY_SIZE(g_UnicodeGB2312) - 1); k++) {
-        if (tmp == g_UnicodeGB2312[k][1]) {
-          s[j++] = (g_UnicodeGB2312[k][0] >> 8) & 0xff;
-          s[j++] = g_UnicodeGB2312[k][0] & 0xff;
+      for (k = 0; k < (MSF_ARRAY_SIZE(kUnicodeGB2312Table) - 1); k++) {
+        if (tmp == kUnicodeGB2312Table[k][1]) {
+          s[j++] = (kUnicodeGB2312Table[k][0] >> 8) & 0xff;
+          s[j++] = kUnicodeGB2312Table[k][0] & 0xff;
           break;
         }
       }
       /*没找到*/
-      if (k == (MSF_ARRAY_SIZE(g_UnicodeGB2312) - 1)) return 0;
+      if (k == (MSF_ARRAY_SIZE(kUnicodeGB2312Table) - 1)) return 0;
     }
   }
   s[j] = '\0';
@@ -21727,5 +21726,4 @@ void UnicodeGbTest(void) {
   StrUnicode2GB(unicode, gb, len);
   MSF_DEBUG << "gb: " << gb << ", len:" << len;
 }
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile

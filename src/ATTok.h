@@ -13,8 +13,7 @@
 #ifndef MOBILE_APP_ATTOK_H
 #define MOBILE_APP_ATTOK_H
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 int AtTokStart(char **p_cur);
 int AtTokNextInt(char **p_cur, int *p_out);
@@ -24,6 +23,6 @@ int AtTokNextStr(char **p_cur, char **out);
 int AtTokNextHasMore(char **p_cur);
 int AtStrStartWith(const char *line, const char *prefix);
 char *AtFindNextEOL(char *cur);
-}  // namespace MOBILE
-}  // namespace MSF
+
+}  // namespace mobile
 #endif

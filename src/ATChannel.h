@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef MOBILE_APP_ATCHANNEL_H
-#define MOBILE_APP_ATCHANNEL_H
+#ifndef MOBILE_SRC_ATCHANNEL_H_
+#define MOBILE_SRC_ATCHANNEL_H_
 
 #include <condition_variable>
 #include <functional>
@@ -19,8 +19,7 @@
 
 #include "ATCmd.h"
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 /**
  * Ref android source:
@@ -195,6 +194,5 @@ class ATChannel {
 #ifdef __cplusplus
 }
 #endif
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
 #endif

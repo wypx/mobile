@@ -23,12 +23,10 @@
 
 #include <cstdint>
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 uint32_t StrUnicode2GB(const char *src, char *dst, uint32_t n);
 uint32_t StrGB2Unicode(const char *str, char *dst, uint32_t n);
 
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
 #endif

@@ -12,10 +12,9 @@
  **************************************************************************/
 #include "Errno.h"
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
-static const std::string kErrMsgMap[] = {
+static const std::string kMobileErrnoString[] = {
     "MOBILE_STATE_INIT",     /* Mobile init state*/
     "DRIVER_NOT_INSTALLED",  /* lsmod driver in /proc/moudules not installed */
     "DRIVER_ID_NOT_FOUND",   /* lsusb show id file not found*/
@@ -33,6 +32,8 @@ static const std::string kErrMsgMap[] = {
     "SIM_RECOGNOSED",     /* SIM is ready and operator is known*/
 };
 
-const std::string &ErrCodeParse(const MobileErrno &e) { return kErrMsgMap[e]; }
-}  // namespace MOBILE
-}  // namespace MSF
+const std::string &StrMobileErrno(MobileErrno e) {
+  return kMobileErrnoString[e];
+}
+
+}  // namespace mobile

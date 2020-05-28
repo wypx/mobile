@@ -27,11 +27,10 @@
 
 using namespace MSF::BASE;
 using namespace MSF::EVENT;
-using namespace MSF::MOBILE;
+using namespace mobile;
 using namespace MSF::AGENT;
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 Mobile::Mobile() : os_(OsInfo()) { os_.enableCoreDump(); }
 
@@ -219,8 +218,7 @@ void Mobile::onRequestCb(char **data, uint32_t *len, const Agent::Command cmd) {
 }
 
 void Mobile::start() { stack_->start(); }
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
 
 int main(int argc, char **argv) {
   Mobile mob = Mobile();

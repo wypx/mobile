@@ -32,8 +32,7 @@ using namespace MSF::BASE;
 using namespace MSF::EVENT;
 using namespace MSF::AGENT;
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 #define MODEM_TTY_USB_PREFIX "/dev/ttyUSB%d"
 
@@ -385,6 +384,5 @@ class Mobile : public Noncopyable {
 
   void onRequestCb(char **data, uint32_t *len, const Agent::Command cmd);
 };
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
 #endif

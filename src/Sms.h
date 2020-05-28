@@ -14,11 +14,11 @@
 #define MOBILE_SRC_SMS_H_
 
 #include <iostream>
+#include <list>
 #include <mutex>
 #include <queue>
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 /**
  * 其他源码参考:
@@ -86,6 +86,5 @@ class SMSManager {
   int ATReadSMSThread(char *line1, char *line2, int index, int line2Len,
                       int *smsStatus, int bNewSms);
 };
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
 #endif

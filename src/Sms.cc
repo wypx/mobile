@@ -19,10 +19,9 @@
 #include "Unicode.h"
 
 using namespace MSF::BASE;
-using namespace MSF::MOBILE;
+using namespace mobile;
 
-namespace MSF {
-namespace MOBILE {
+namespace mobile {
 
 // User SMS Code
 #define GSM_7BIT 0
@@ -461,10 +460,9 @@ int SMSManager::ATReadSMSThread(char *line1, char *line2, int index,
     // smsStatus->recvTime[0] = '2'; /* ����20xx ͷ
     // */
     // smsStatus->recvTime[1] = '0';
-    // strncpy((char *)(&smsStatus->recvTime[2]), smParam.tp_scts_, 12);	/*
-    // SMS received time */
+    // strncpy((char *)(&smsStatus->recvTime[2]), smParam.tp_scts_, 12);
+    // /* SMS received time */
   }
   return 0;
 }
-}  // namespace MOBILE
-}  // namespace MSF
+}  // namespace mobile
