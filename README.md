@@ -1,4 +1,4 @@
-# **Linux平台开源拨号APP-mobile**
+# **Linux平台开源拨号应用程序-mobile**
 
 [![Build Status](https://travis-ci.org/alibaba/fastjson.svg?branch=master)](https://travis-ci.org/alibaba/fastjson)
 [![Codecov](https://codecov.io/gh/alibaba/fastjson/branch/master/graph/badge.svg)](https://codecov.io/gh/alibaba/fastjson/branch/master)
@@ -6,25 +6,32 @@
 [![GitHub release](https://img.shields.io/github/release/alibaba/fastjson.svg)](https://github.com/alibaba/fastjson/releases)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-Mobile for raspberry, support LongSung U8300C,9300C, Huawei ME909s, NL660, SIMCOM, N720 and etc
-
 ### __主要特性包括:__
  * 提供`USB，DIAL，NET，SMS`等多个基础组件化模块，可以快速动态适配新模块
- * 支持多种USB Modem: 龙尚, 华为, 中兴，诺控, 芯讯通, 方正, 移远等厂商模块
+ * 支持多种模块: 龙尚, 华为, 中兴，诺控, 芯讯通, 方正, 移远等厂商模块
  * 提供3G，4G等`VPDN`的企业客户的拨号入网，典型场景：公安天网，电网的企业客户
  * 提供`定时重启，定时拨号，进程监控，欠费检测, 弱网流控`等增值特性
  * 提供`短信控制上下线，短信获取设备信息`等设置和获取参数特性
  * 提供`3G，4G接入云物联网平台`功能，可远程配置，远程拍照，远程视频等 （待开发）
  * 提供`3G，4G的移动热点SOFTAP`功能，在热点范围内共享流量，可类似局域网接入（待开发）
 
-![libmsf](doc/5G.jpeg "libmsf")
+![libmsf](https://github.com/wypx/mobile/blob/master/doc/5G.jpeg "libmsf")
 
 ## __快速开始__
+
+### 环境准备
 ### 安装环境
-```xml
-安装Ubuntu, Debian等Linux, ARM环境
-测试环境（Linux KaliCI 4.19.0-kali3-amd64）: gcc version 8.2.0 (Debian 8.2.0-14)
-测试环境（Linux raspberrypi 4.14.52-v7+）：gcc version 6.4.1 20171012 (Linaro GCC 6.4-2017.11)
+```sh
+
+Linux发行版本 : 支持Debian, Ubuntu，Centos等发行版本
+Linux架构版本 : 目前仅测试支持armv7, aarch64架构的嵌入式设备
+
+测试Linux设备 : Linux raspberrypi 4.14.52-v7+
+测试GCC版本   : gcc version 6.4.1 20171012 (Linaro GCC 6.4-2017.11)
+
+测试Linux设备 : Linux jetson 4.9.140-tegra aarch64 aarch64 aarch64 GNU/Linux 
+测试GCC版本   : gcc version 7.4.0 (Ubuntu/Linaro 7.4.0-1ubuntu1~18.04.1) 
+
 ```
 ### 下载开源库
 
@@ -47,7 +54,8 @@ Please see this [Wiki Download Page][Wiki] for more repository infos.
 [Wiki]: https://github.com/wypx/mobile
 
 ### 编译开源库
-```xml
+
+```sh
 root@a3efcdb0894d:/home/share/tomato/mod/libmsf# python build.py    
 
 
@@ -76,7 +84,7 @@ root@a3efcdb0894d:/home/share/tomato/mod/libmsf# python build.py
 ******************* Micro Service Framework Build Ending ****************************
 ```
 
-```xml
+```sh
 root@a3efcdb0894d:/home/share/tomato/mod/libmsf/build/app# ls -l
 total 28
 -rw-r--r--  1 root root 13581 Jan 27 12:39 CMakeCache.txt
