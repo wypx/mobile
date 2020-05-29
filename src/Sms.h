@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright (c) 2017, luotang.me <wypx520@gmail.com>, China.
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
  * All rights reserved.
  *
  * Distributed under the terms of the GNU General Public License v2.

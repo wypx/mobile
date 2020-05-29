@@ -10,15 +10,12 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef MOBILE_SRC_UNICODE_H_
-#define MOBILE_SRC_UNICODE_H_
+#ifndef MOBILE_SRC_CONFIG_H_
+#define MOBILE_SRC_CONFIG_H_
 
-#include <cstdint>
+#include <base/Logger.h>
 
-namespace mobile {
+#include <string>
 
-uint32_t StrUnicode2GB(const char *src, char *dst, uint32_t n);
-uint32_t StrGB2Unicode(const char *str, char *dst, uint32_t n);
-
-}  // namespace mobile
+namespace mobile {}
 #endif

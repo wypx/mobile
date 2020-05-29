@@ -328,7 +328,7 @@ bool ATCmdManager::setEhrpd() {
 
   free_resp_(rsp);
 
-  uint32_t enehrpd;
+  uint32_t enehrpd = 0;
   /*ret equal 1(true) represent is on*/
   if ((uint32_t)ret == enehrpd) {
     free_resp_(rsp);
@@ -359,7 +359,7 @@ int ATCmdManager::getNetSearchType() {
 }
 
 int ATCmdManager::setNetSearchType() {
-  int ret;
+  int ret = -1;
 
   // if(modem == MODEM_HUAWEI)
   //     rc =
@@ -765,7 +765,7 @@ bool ATCmdManager::getSMSCenter() {
   return true;
 }
 bool ATCmdManager::setSMSStorageArea() {
-  int area;
+  int area =  0;
   if (ME_AREA == area)
     send_command_("AT+CPMS=\"ME\",\"ME\",\"ME\"", nullptr);
   else if (SM_AREA == area)

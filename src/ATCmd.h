@@ -86,12 +86,6 @@ class ATCmdManager {
   virtual bool getNetMode();
   virtual int getNet3GPP();
 
-  enum NetWorkType {
-    NETWORK_2G,
-    NETWORK_3G,
-    NETWORK_4G,
-    NETWORK_5G,
-  };
   virtual bool getNetStatus(enum NetWorkType type);
 
   bool setPDPStatus(uint32_t pdpStatus);

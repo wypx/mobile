@@ -341,13 +341,13 @@ int SMSManager::CheckFragment(const char *msg, const uint32_t len) {
 }
 
 int SMSManager::SendSMSMsg(const char *phone, const char *msg) {
-  int ret;
+  int ret = -1;
   int nSmscLength;
   int nPduLength;
   char pdu[512] = {0};
   char printfBuf[256] = {0};
   char atCommand[32] = {0};
-  int mobile_mode;
+  int mobile_mode  =  0;
 
   if (SMS_TEXT == format_) {
     ch_->WriteLine("AT^HSMSSS=0,0,6,0", kCtrlEnter.c_str()); /* set SMS param */

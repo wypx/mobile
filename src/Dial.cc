@@ -109,7 +109,7 @@ Dial::Dial()
     : enable_(true),
       auth_type_(AUTH_PAP_CHAP),
       mtu_(1460),
-      ep_name_(DIAL_TTY_USB),
+      ep_name_(TTY_USB),
       dial_type_(DIAL_AUTO_PERSIST),
       dial_stat_(DIAL_INIT),
       test_domain_("luotang.me") {}

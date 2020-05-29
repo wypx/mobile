@@ -557,9 +557,10 @@ bool Modem::Init() {
   /* Give initializeCallback a chance to dispatched, since
    * we don't presently have a cancellation mechanism */
   usleep(500);
+  return  true;
 }
 
-static int usb_start(void *data, uint32_t datalen) {
+int usb_start(void *data, uint32_t datalen) {
   // mobile_atmodem__init();
   // mobile_at_getmodem_(usbmodem__match);
   // mobile_at_set_radio(CFUN_ONLINE_MODE);

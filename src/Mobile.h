@@ -22,6 +22,7 @@
 #include <event/EventStack.h>
 
 #include <list>
+#include <set>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -58,9 +59,9 @@ enum PdpStatus {
   PDP_ACTIVE,
 };
 
-enum DialUsbType {
-  DIAL_TTY_USB,
-  DIAL_TTY_ACM,
+enum TTyType {
+  TTY_USB,
+  TTY_ACM,
 };
 
 enum DialType {
@@ -75,6 +76,8 @@ enum AuthType {
   AUTH_CHAP,
   AUTH_PAP_CHAP,
 };
+
+enum NetWorkType { NETWORK_2G, NETWORK_3G, NETWORK_4G, NETWORK_5G };
 
 enum DialStat {
   DIAL_INIT,
@@ -287,47 +290,184 @@ typedef enum {
 } CallState;
 
 struct ApnItem {
-  int cid;    /* Context ID, uniquely identifies this call */
-  int active; /* 0=inactive, 1=active/physical link down, 2=active/physical link
-                 up */
-  char *type; /* One of the PDP_type values in TS 27.007 section 10.1.1.
-                 For example, "IP", "IPV6", "IPV4V6", or "PPP". */
-  char *ifname;  /* The network interface name */
-  char *apn;     /* ignored */
-  char *address; /* An address, e.g., "192.0.1.3" or "2001:db8::1". */
+  int cid_;       /* Context ID, uniquely identifies this call */
+  int active_;    /* 0=inactive, 1=active/physical link down, 2=active/physical
+                    link    up */
+  char *type_;    /* One of the PDP_type values in TS 27.007 section 10.1.1.
+                    For example, "IP", "IPV6", "IPV4V6", or "PPP". */
+  char *ifname_;  /* The network interface name */
+  char *apn_;     /* ignored */
+  char *address_; /* An address, e.g., "192.0.1.3" or "2001:db8::1". */
 };
 
 struct MobileConf {
-  std::vector<ApnItem> apnList_; /* eg. "public.vpdn.hz" - cid */
+  std::string version_;
 
-  uint32_t logLevel_;
+  LogLevel log_level_;
+  std::string log_dir_;
+  std::string pid_path_;
 
-  bool smsEnbale_;
-  bool smsAlarm_;
-  bool smdControl_;
-  std::list<std::string> smsWhiteList_; /* 支持接收告警和控制命令的SIM卡号列表
-                                         */
-  std::list<uint32_t> smsAlarmType_;   /* 支持的告警类型 */
-  std::list<uint32_t> smdControlType_; /* 支持的控制类型 */
+  bool daemon_ = false;
+  bool coredump_ = true;
+
+  bool enable_dial_ = true;
+  DialType dial_type_;
+  NetWorkType net_type_;
+  AuthType auth_type_;
+  TTyType tty_type_;
+  std::map<uint32_t, ApnItem> active_apns_; /* eg. "public.vpdn.hz" - cid */
+
+  // plans
+  std::string dial_num_;
+  std::string dial_user_;
+  std::string dial_pass_;
+
+  bool enable_sms_ = false;
+  bool enable_sms_alarm_ = false;
+  bool enable_sms_control_ = false;
+  /* 支持接收告警和控制命令的SIM卡号列表 */
+  std::set<std::string> sms_white_list_;
+  std::set<uint32_t> sms_alarm_type_;   /* 支持的告警类型 */
+  std::set<uint32_t> sms_control_type_; /* 支持的控制类型 */
+
+  std::set<std::string> plugins_;
+
+  AgentNetType agent_net_type_;
+  std::string agent_ip_;
+  uint16_t agent_port_;
+  std::string agent_unix_server_;
+  std::string agent_unix_client_;
+  uint32_t agent_unix_mask_;
+  bool agent_auth_chap_ = false;
+  std::string agent_pack_type_;
+
+  std::string version() const { return version_; }
+  void set_version(const std::string &version) { version_ = version; }
+
+  void set_log_level(LogLevel level) { log_level_ = level; }
+  std::string log_dir() const { return log_dir_; }
+  void set_log_dir(const std::string &dir) { log_dir_ = dir; }
+  void set_pid_path(const std::string &pid_path) { pid_path_ = pid_path; }
+
+  bool daemon() const { return daemon_; }
+  void set_daemon(bool daemon) { daemon_ = daemon; }
+  bool coredump() const { return coredump_; }
+  void set_coredump(bool coredump) { coredump_ = coredump; }
+
+  bool enable_dial() const { return enable_dial_; }
+  void set_enable_dial(bool enable) { enable_dial_ = enable; }
+
+  DialType dial_type() const { return dial_type_; }
+  void set_dial_type(DialType type) { dial_type_ = type; }
+  NetWorkType net_type() const { return net_type_; }
+  void set_dial_type(NetWorkType type) { net_type_ = type; }
+  AuthType auth_type() const { return auth_type_; }
+  void set_auth_type(AuthType type) { auth_type_ = type; }
+  TTyType tty_type() const { return tty_type_; }
+  void set_tty_typee(TTyType type) { tty_type_ = type; }
+
+  void AddApn(const ApnItem &apn) { active_apns_[apn.cid_] = std::move(apn); }
+
+  bool DelApn(uint32_t cid) {
+    auto iter = active_apns_.find(cid);
+    if (iter != active_apns_.end()) {
+      active_apns_.erase(cid);
+      return true;
+    }
+    return false;
+  }
+
+  uint32_t ApnSize() const { return active_apns_.size(); }
+
+  void DebugApn() {
+    for (auto iter = active_apns_.begin(); iter != active_apns_.end(); ++iter) {
+    }
+  }
+
+  std::string dial_num() const { return dial_num_; }
+  void set_dial_num(const std::string &number) { dial_num_ = number; }
+  std::string dial_user() const { return dial_user_; }
+  void set_dial_user(const std::string &user) { dial_user_ = user; }
+  std::string dial_pass() const { return dial_pass_; }
+  void set_dial_pass(const std::string &pass) { dial_pass_ = pass; }
+
+  bool enable_sms() const { return enable_sms_; }
+  void set_enable_sms(bool enable_sms) { enable_sms_ = enable_sms; }
+  bool enable_sms_alarm() const { return enable_sms_alarm_; }
+  void set_enable_sms_alarm(bool enable_sms_alarm) {
+    enable_sms_alarm_ = enable_sms_alarm;
+  }
+  bool enable_sms_control() const { return enable_sms_control_; }
+  void set_enable_sms_control(bool enable_sms_control) {
+    enable_sms_control_ = enable_sms_control;
+  }
+
+  void AddSMSWhiteList(const std::string &phone_num) {
+    sms_white_list_.emplace(phone_num);
+  }
+  void DelSMSWhiteList(const std::string &phone_num) {
+    sms_white_list_.erase(phone_num);
+  }
+  uint32_t SMSWhiteListSize() const { return sms_white_list_.size(); }
+  void DebugSMSWhiteList() {}
+
+  void AddSMSAlarmType(uint32_t type) { sms_alarm_type_.emplace(type); }
+  void DelSMSAlarmType(uint32_t type) { sms_alarm_type_.erase(type); }
+  uint32_t SMSAlarmTypeSize() const { return sms_alarm_type_.size(); }
+  void DebugSMSAlarmType() {}
+
+  void AddSMSControlType(uint32_t type) { sms_control_type_.emplace(type); }
+  void DelSMSControlType(uint32_t type) { sms_control_type_.erase(type); }
+  uint32_t SMSControlTypeSize() const { return sms_control_type_.size(); }
+  void DebugSMSControlType() {}
+
+  void AddPluin(const std::string &name) { plugins_.insert(name); }
+  void DelPluin(const std::string &name) { plugins_.erase(name); }
+  uint32_t PluginSize() const { return plugins_.size(); }
+  void DebugPlugins() {}
+
+  AgentNetType agent_net_type() const { return agent_net_type_; }
+  void set_agent_net_type(AgentNetType net_type) { agent_net_type_ = net_type; }
+
+  const std::string &agent_ip() const { return agent_ip_; }
+  void set_agent_ip(const std::string &ip) { agent_ip_ = ip; }
+  uint16_t agent_port() const { return agent_port_; }
+  void set_agent_port(uint16_t port) { agent_port_ = port; }
+  const std::string &agent_unix_server() const { return agent_unix_server_; }
+  void set_agent_unix_server(const std::string &server) {
+    agent_unix_server_ = server;
+  }
+  const std::string &agent_unix_client() const { return agent_unix_client_; }
+  void set_agent_unix_client(const std::string &client) {
+    agent_unix_client_ = client;
+  }
+  uint32_t agent_unix_mask() const { return agent_unix_mask_; }
+  void set_agent_unix_mask(uint32_t mask) { agent_unix_mask_ = mask; }
+  bool agent_auth_chap() const { return agent_auth_chap_; }
+  void set_agent_auth_chap(bool auth_chap) { agent_auth_chap_ = auth_chap; }
+  const std::string &agent_pack_type() const { return agent_pack_type_; }
+  void set_agent_pack_type(const std::string &pack_type) {
+    agent_pack_type_ = pack_type;
+  }
 };
 
 struct MobileState {
-  bool backuping_;
-  bool upgrading_;
+  bool upgrade_;
 
-  uint8_t simState_;
-  uint8_t regState_;
-  uint8_t serviceState_;
-  uint8_t serviceDomain_;
+  // SIMStatus sim_status_;
+  uint8_t sim_status_;
+  uint8_t reg_status_;
+  uint8_t serv_status_;
+  uint8_t serv_domain_;
 
   uint8_t signal_;
-  uint8_t searchMode_;
-  enum NetMode netMode_;
+  uint8_t search_mode_;
+  NetMode netMode_;
 
-  std::string ipAddr_;
-  std::string netMask_;
-  std::string gateWay_;
-  std::list<std::string> dnsList_;
+  std::string ip_addr_;
+  std::string netmask_;
+  std::string gateway_;
+  std::vector<std::string> dns_list_;
 };
 
 class ATChannel;
@@ -337,41 +477,24 @@ class Mobile : public Noncopyable {
   Mobile();
   ~Mobile();
 
-  void debugInfo();
-  void parseOption(int argc, char **argv);
-  bool loadConfig();
-  void init(int argc, char **argv);
-  void start();
+  void DebugInfo();
+  void ParseOption(int argc, char **argv);
+  bool LoadConfig();
+  void Init(int argc, char **argv);
+  void Start();
 
   /* Unix server addr */
-  void setAgent(const std::string &addr) {
+  void SetAgent(const std::string &addr) {
     // agent_->setAgentServer(addr);
   }
   /* Tcp/Udp ip addr and port */
-  void setAgent(const std::string &addr, const uint16_t port) {
+  void SetAgent(const std::string &addr, const uint16_t port) {
     // agent_->setAgentServer(addr, port);
   }
 
  private:
-  std::string version_;
-  std::string confFile_;
-  bool daemon_ = true;
-  int logLevel_;
-  std::string logDir_;
-  std::string pidFile_;
-  std::vector<std::string> pluginsList_;
-
-  enum AgentNet agentNet_;
-  std::string agentIp_;
-  uint16_t agentPort_;
-  std::string agentUnixServer_;
-  std::string agentUnixClient_;
-  std::string agentUnixClientMask_;
-
-  int maxQueue_;
-  int maxThread_;
-  bool authChap_;
-  std::string packType_;
+  std::string conf_file_;
+  MobileConf config_;
 
   OsInfo os_;
   EventStack *stack_;
@@ -380,9 +503,8 @@ class Mobile : public Noncopyable {
   MemPool *pool_;
   AgentClient *agent_;
   bool quit_;
-  pid_t pppId_;
 
-  void onRequestCb(char **data, uint32_t *len, const Agent::Command cmd);
+  void AgentReqCb(char **data, uint32_t *len, const Agent::Command cmd);
 };
 }  // namespace mobile
 #endif

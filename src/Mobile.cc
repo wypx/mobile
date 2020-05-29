@@ -10,10 +10,12 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "Mobile.h"
+
+#include <base/Daemon.h>
 #include <base/IniFile.h>
 #include <base/Logger.h>
 #include <base/Version.h>
-// #include <base/File.h>
 #include <getopt.h>
 
 #include <cassert>
@@ -23,7 +25,6 @@
 #include <vector>
 
 #include "ATChannel.h"
-#include "Mobile.h"
 
 using namespace MSF::BASE;
 using namespace MSF::EVENT;
@@ -36,14 +37,15 @@ Mobile::Mobile() : os_(OsInfo()) { os_.enableCoreDump(); }
 
 Mobile::~Mobile() {}
 
-void Mobile::init(int argc, char **argv) {
-  parseOption(argc, argv);
-  assert(loadConfig());
+void Mobile::Init(int argc, char **argv) {
+  ParseOption(argc, argv);
+  assert(LoadConfig());
 
-  if (logDir_.empty()) {
-    logDir_ = "/var/log/luotang.me/";
+  if (config_.daemon()) {
+    daemonize();
   }
-  std::string logFile = logDir_ + "Mobile.log";
+
+  std::string logFile = config_.log_dir() + "Mobile.log";
   assert(Logger::getLogger().init(logFile.c_str()));
 
   stack_ = new EventStack();
@@ -59,9 +61,9 @@ void Mobile::init(int argc, char **argv) {
   assert(stack_->startThreads(threadArgs));
 
   agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
-                           agentIp_, agentPort_);
+                           config_.agent_ip(), config_.agent_port());
   assert(agent_);
-  agent_->setRequestCb(std::bind(&Mobile::onRequestCb, this,
+  agent_->setRequestCb(std::bind(&Mobile::AgentReqCb, this,
                                  std::placeholders::_1, std::placeholders::_2,
                                  std::placeholders::_3));
   pool_ = new MemPool();
@@ -75,7 +77,7 @@ void Mobile::init(int argc, char **argv) {
   channel_->RegisterATCommandCb(acm_);
 }
 
-void Mobile::debugInfo() {
+void Mobile::DebugInfo() {
   std::cout << std::endl;
   std::cout << "Mobile Options:" << std::endl;
   std::cout << " -c, --conf=FILE        The configure file." << std::endl;
@@ -104,7 +106,7 @@ void Mobile::debugInfo() {
   std::cout << std::endl;
 }
 
-void Mobile::parseOption(int argc, char **argv) {
+void Mobile::ParseOption(int argc, char **argv) {
   /* 浅谈linux的命令行解析参数之getopt_long函数
    * https://blog.csdn.net/qq_33850438/article/details/80172275
    **/
@@ -126,87 +128,87 @@ void Mobile::parseOption(int argc, char **argv) {
     }
     switch (c) {
       case 'c':
-        confFile_ = std::string(optarg);
+        conf_file_ = std::string(optarg);
         break;
       case 'g':
         break;
       case 'd':
-        daemon_ = static_cast<bool>(atoi(optarg));
+        config_.daemon_ = static_cast<bool>(atoi(optarg));
         break;
       case 'v':
         MSF::BuildInfo();
-        exit(0);
+        std::exit(0);
       case 'h':
-        debugInfo();
-        exit(0);
+        DebugInfo();
+        std::exit(0);
       case '?':
       default:
-        debugInfo();
-        exit(1);
+        DebugInfo();
+        std::exit(1);
     }
   }
   return;
 }
 
-bool Mobile::loadConfig() {
-  if (confFile_.empty()) {
-    confFile_ = "/home/luotang.me/conf/Mobile.conf";
-    MSF_INFO << "Use default config: " << confFile_;
+bool Mobile::LoadConfig() {
+  if (conf_file_.empty()) {
+    conf_file_ = "/home/luotang.me/conf/Mobile.conf";
+    MSF_INFO << "Use default config: " << conf_file_;
   }
 
   IniFile ini;
-  if (ini.Load(confFile_) != 0) {
+  if (ini.Load(conf_file_) != 0) {
     MSF_ERROR << "Confiure load failed";
     return false;
   }
 
   if (!ini.HasSection("Logger") || !ini.HasSection("System") ||
-      !ini.HasSection("Network") || !ini.HasSection("Protocol") ||
-      !ini.HasSection("Plugins")) {
+      !ini.HasSection("Network")  || !ini.HasSection("Plugins")) {
     MSF_ERROR << "Confiure invalid, check sections";
     return false;
   }
 
-  assert(ini.GetStringValue("", "Version", &version_) == 0);
-  assert(ini.GetIntValue("Logger", "LogLevel", &logLevel_) == 0);
-  assert(ini.GetStringValue("Logger", "LogDir", &logDir_) == 0);
+  assert(ini.GetStringValue("", "Version", &config_.version_) == 0);
+  // assert(ini.GetIntValue("Logger", "LogLevel", &static_cast<int>(config_.log_level_)) == 0);
+  assert(ini.GetStringValue("Logger", "LogDir", &config_.log_dir_) == 0);
+  if (config_.log_dir_.empty()) {
+    // logDir_ = "/var/log/luotang.me/";
+  }
 
-  assert(ini.GetStringValue("System", "PidFile", &pidFile_) == 0);
-  assert(ini.GetBoolValue("System", "Daemon", &daemon_) == 0);
-  assert(ini.GetIntValue("System", "MaxThread", &maxThread_) == 0);
-  assert(ini.GetIntValue("System", "MaxQueue", &maxQueue_) == 0);
-
-  assert(ini.GetValues("Plugins", "Plugin", &pluginsList_) == 0);
+  assert(ini.GetStringValue("System", "PidFile", &config_.pid_path_) == 0);
+  assert(ini.GetBoolValue("System", "Daemon", &config_.daemon_) == 0);
+  // assert(ini.GetValues("Plugins", "Plugin", &config_.plugins_) == 0);
 
   std::string agentNet;
   assert(ini.GetStringValue("Network", "AgentNet", &agentNet) == 0);
-  assert(ini.GetStringValue("Network", "AgentIP", &agentIp_) == 0);
+  // config_.agent_net_type_ ;
+  assert(ini.GetStringValue("Network", "AgentIP", &config_.agent_ip_) == 0);
 
   int agentPort = 0;
   assert(ini.GetIntValue("Network", "AgentPort", &agentPort) == 0);
-  agentPort_ = static_cast<uint16_t>(agentPort);
+  config_.agent_port_ = static_cast<uint16_t>(agentPort);
 
-  assert(ini.GetStringValue("Network", "AgentUnixServer", &agentUnixServer_) ==
+  assert(ini.GetStringValue("Network", "AgentUnixServer", &config_.agent_unix_server_) ==
          0);
-  assert(ini.GetStringValue("Network", "AgentUnixClient", &agentUnixClient_) ==
+  assert(ini.GetStringValue("Network", "AgentUnixClient", &config_.agent_unix_client_) ==
          0);
-  assert(ini.GetStringValue("Network", "AgentUnixClientMask",
-                            &agentUnixClientMask_) == 0);
+  // assert(ini.GetStringValue("Network", "AgentUnixClientMask",
+  //                           &static_cast<int>(config_.agent_unix_mask_)) == 0);
 
-  assert(ini.GetBoolValue("Protocol", "AuthChap", &authChap_) == 0);
-  assert(ini.GetStringValue("Protocol", "PackType", &packType_) == 0);
+  assert(ini.GetBoolValue("Network", "AgentAuthChap", &config_.agent_auth_chap_) == 0);
+  assert(ini.GetStringValue("Network", "AgentPackType", &config_.agent_pack_type_) == 0);
 
   return true;
 }
 
-void Mobile::onRequestCb(char **data, uint32_t *len, const Agent::Command cmd) {
+void Mobile::AgentReqCb(char **data, uint32_t *len, const Agent::Command cmd) {
   MSF_INFO << "Cmd: " << cmd << " len: " << *len;
   if (cmd == Agent::Command::CMD_REQ_MOBILE_READ) {
     MSF_INFO << "Read mobile param ====> ";
 
     struct ApnItem item = {0};
-    item.cid = 1;
-    item.active = 2;
+    item.cid_ = 1;
+    item.active_ = 2;
 
     MSF_INFO << "ApnItem size: " << sizeof(struct ApnItem) << " len: " << len;
 
@@ -217,14 +219,14 @@ void Mobile::onRequestCb(char **data, uint32_t *len, const Agent::Command cmd) {
   }
 }
 
-void Mobile::start() { stack_->start(); }
+void Mobile::Start() { stack_->start(); }
 }  // namespace mobile
 
 int main(int argc, char **argv) {
   Mobile mob = Mobile();
-  mob.init(argc, argv);
+  mob.Init(argc, argv);
   // mob.setAgent("/var/tmp/mobile.sock");
-  mob.setAgent("luotang.me", 8888);
-  mob.start();
+  mob.SetAgent("luotang.me", 8888);
+  mob.Start();
   return 0;
 }
