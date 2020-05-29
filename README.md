@@ -6,21 +6,21 @@
 [![GitHub release](https://img.shields.io/github/release/alibaba/fastjson.svg)](https://github.com/alibaba/fastjson/releases)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-### __主要特性包括:__
+## __1. 主要特性__
  * 提供`USB，DIAL，NET，SMS`等多个基础组件化模块，可以快速动态适配新模块
  * 支持多种模块: 龙尚, 华为, 中兴，诺控, 芯讯通, 方正, 移远等厂商模块
  * 提供3G，4G等`VPDN`的企业客户的拨号入网，典型场景：公安天网，电网的企业客户
  * 提供`定时重启，定时拨号，进程监控，欠费检测, 弱网流控`等增值特性
  * 提供`短信控制上下线，短信获取设备信息`等设置和获取参数特性
- * 提供`3G，4G接入云物联网平台`功能，可远程配置，远程拍照，远程视频等 （待开发）
+ * 提供`3G，4G接入云物联网平台`功能，可远程配置，远程拍照，远程视频等 （待开发)
  * 提供`3G，4G的移动热点SOFTAP`功能，在热点范围内共享流量，可类似局域网接入（待开发）
 
-![libmsf](https://github.com/wypx/mobile/blob/master/doc/5G.jpeg "libmsf")
+![5G](doc/5G.jpeg "5G")
 
-## __快速开始__
+## __2. 快速开始__
 
-### 环境准备
-### 安装环境
+### 2.1 环境准备
+
 ```sh
 
 Linux发行版本 : 支持Debian, Ubuntu，Centos等发行版本
@@ -33,17 +33,18 @@ Linux架构版本 : 目前仅测试支持armv7, aarch64架构的嵌入式设备
 测试GCC版本   : gcc version 7.4.0 (Ubuntu/Linaro 7.4.0-1ubuntu1~18.04.1) 
 
 ```
-### 下载开源库
+### 2.2 下载依赖库
 
 - [微服务框架库][1]
-``` groovy
-git clone https://github.com/wypx/libmsf/
+``` sh
+  git clone https://github.com/wypx/libmsf/
 ```
 
-- [拨号Mobile库][2]
+- [拨号Mobile程序][2]
+
 ``` groovy
-下载到app目录的mobile子目录
-git clone https://github.com/wypx/mobile/
+  下载到mobile目录的app子目录
+  git clone https://github.com/wypx/mobile/
 ```
 
 [1]: https://github.com/wypx/libmsf/
@@ -53,7 +54,7 @@ Please see this [Wiki Download Page][Wiki] for more repository infos.
 
 [Wiki]: https://github.com/wypx/mobile
 
-### 编译开源库
+### 2.3 编译开源库
 
 ```sh
 root@a3efcdb0894d:/home/share/tomato/mod/libmsf# python build.py    
@@ -104,8 +105,9 @@ drwxr-xr-x 5 root root     160 Jan 29 03:29 CMakeFiles
 root@a3efcdb0894d:/home/share/tomato/mod/libmsf/build/app#
 ```
 
-### 运行开源库
-```xml
+### 2.4 运行应用
+
+```sh
 1. 执行样例程序
    $ ./Mobile
 2. 查看运行日志
@@ -116,16 +118,16 @@ root@a3efcdb0894d:/home/share/tomato/mod/libmsf/build/app#
 <img src="http://luotang.me/wp-content/uploads/2018/02/mobile_app_2.png)" width="600" height="450" />
 <img src="http://luotang.me/wp-content/uploads/2018/02/mobile_app_3.png)" width="600" height="450" />
 
-### 硬件平台适配
+### 2.5 硬件平台适配
 ``` groovy
 根据开发者目标平台以的不同，需要进行相应的适配
 ```
 
-### ___参考文章___
+### ___3. 参考文章___
 - [树莓派内核编译支持4G](http://luotang.me/raspberry_mobile.html)
 - [Mobile源码解析](http://luotang.me/raspberry_mobile.html)
 
-### *License*
+### *4. 版权License*
 
 Libmsf is released under the [Gnu 2.0 license](license.txt).
 ```
