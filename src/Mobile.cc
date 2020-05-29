@@ -36,7 +36,6 @@ namespace mobile {
 Mobile::Mobile() : os_(OsInfo()) { os_.enableCoreDump(); }
 
 Mobile::~Mobile() {}
-
 void Mobile::Init(int argc, char **argv) {
   ParseOption(argc, argv);
   assert(LoadConfig());
@@ -133,7 +132,7 @@ void Mobile::ParseOption(int argc, char **argv) {
       case 'g':
         break;
       case 'd':
-        config_.daemon_ = static_cast<bool>(atoi(optarg));
+        config_.set_daemon(true);
         break;
       case 'v':
         MSF::BuildInfo();
