@@ -765,7 +765,7 @@ bool ATCmdManager::getSMSCenter() {
   return true;
 }
 bool ATCmdManager::setSMSStorageArea() {
-  int area =  0;
+  int area = 0;
   if (ME_AREA == area)
     send_command_("AT+CPMS=\"ME\",\"ME\",\"ME\"", nullptr);
   else if (SM_AREA == area)

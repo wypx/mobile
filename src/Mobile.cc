@@ -66,7 +66,7 @@ void Mobile::Init(int argc, char **argv) {
                                  std::placeholders::_1, std::placeholders::_2,
                                  std::placeholders::_3));
   pool_ = new MemPool();
-  assert(pool_->init());
+  assert(pool_->Init());
 
   channel_ = new ATChannel(nullptr, nullptr, nullptr);
   assert(channel_);
@@ -162,13 +162,14 @@ bool Mobile::LoadConfig() {
   }
 
   if (!ini.HasSection("Logger") || !ini.HasSection("System") ||
-      !ini.HasSection("Network")  || !ini.HasSection("Plugins")) {
+      !ini.HasSection("Network") || !ini.HasSection("Plugins")) {
     MSF_ERROR << "Confiure invalid, check sections";
     return false;
   }
 
   assert(ini.GetStringValue("", "Version", &config_.version_) == 0);
-  // assert(ini.GetIntValue("Logger", "LogLevel", &static_cast<int>(config_.log_level_)) == 0);
+  // assert(ini.GetIntValue("Logger", "LogLevel",
+  // &static_cast<int>(config_.log_level_)) == 0);
   assert(ini.GetStringValue("Logger", "LogDir", &config_.log_dir_) == 0);
   if (config_.log_dir_.empty()) {
     // logDir_ = "/var/log/luotang.me/";
@@ -187,15 +188,18 @@ bool Mobile::LoadConfig() {
   assert(ini.GetIntValue("Network", "AgentPort", &agentPort) == 0);
   config_.agent_port_ = static_cast<uint16_t>(agentPort);
 
-  assert(ini.GetStringValue("Network", "AgentUnixServer", &config_.agent_unix_server_) ==
-         0);
-  assert(ini.GetStringValue("Network", "AgentUnixClient", &config_.agent_unix_client_) ==
-         0);
+  assert(ini.GetStringValue("Network", "AgentUnixServer",
+                            &config_.agent_unix_server_) == 0);
+  assert(ini.GetStringValue("Network", "AgentUnixClient",
+                            &config_.agent_unix_client_) == 0);
   // assert(ini.GetStringValue("Network", "AgentUnixClientMask",
-  //                           &static_cast<int>(config_.agent_unix_mask_)) == 0);
+  //                           &static_cast<int>(config_.agent_unix_mask_)) ==
+  //                           0);
 
-  assert(ini.GetBoolValue("Network", "AgentAuthChap", &config_.agent_auth_chap_) == 0);
-  assert(ini.GetStringValue("Network", "AgentPackType", &config_.agent_pack_type_) == 0);
+  assert(ini.GetBoolValue("Network", "AgentAuthChap",
+                          &config_.agent_auth_chap_) == 0);
+  assert(ini.GetStringValue("Network", "AgentPackType",
+                            &config_.agent_pack_type_) == 0);
 
   return true;
 }

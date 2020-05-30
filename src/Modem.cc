@@ -557,7 +557,7 @@ bool Modem::Init() {
   /* Give initializeCallback a chance to dispatched, since
    * we don't presently have a cancellation mechanism */
   usleep(500);
-  return  true;
+  return true;
 }
 
 int usb_start(void *data, uint32_t datalen) {
