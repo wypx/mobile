@@ -113,6 +113,7 @@ Dial::Dial()
       dial_type_(DIAL_AUTO_PERSIST),
       dial_stat_(DIAL_INIT),
       test_domain_("luotang.me") {}
+
 void Dial::AddPlan(time_t start, time_t stop) {
   //检查是否重复区间
   plans_.push_back(std::make_pair(start, stop));

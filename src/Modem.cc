@@ -16,7 +16,9 @@
 #include <base/Utils.h>
 
 #include "ATChannel.h"
+#include "ATCmd.h"
 #include "ATTok.h"
+#include "Dial.h"
 #include "Errno.h"
 #include "Idx.h"
 
@@ -557,6 +559,19 @@ bool Modem::Init() {
   /* Give initializeCallback a chance to dispatched, since
    * we don't presently have a cancellation mechanism */
   usleep(500);
+
+  acm_ = new ATCmdManager();
+  assert(acm_);
+  ch_->RegisterATCommandCb(acm_);
+
+  acm_->initModem();
+  acm_->setRadioState(RADIO_LPM_MODE);
+  acm_->getSIMStatus();
+  acm_->setAutoRegister();
+  acm_->getNetSearchType();
+  acm_->getNetMode();
+
+  dial_ = new Dial();
   return true;
 }
 

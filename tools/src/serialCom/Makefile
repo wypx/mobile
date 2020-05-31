@@ -1,5 +1,5 @@
-CC = arm-linux-gnueabihf-gcc
-STRIP 	= arm-linux-gnueabihf-strip  
+CC      = gcc
+STRIP 	= strip  
 all:	serialCom
 
 serialCom:	serialCom.o

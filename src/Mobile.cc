@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include "ATChannel.h"
+#include "Modem.h"
 
 using namespace MSF::BASE;
 using namespace MSF::EVENT;
@@ -52,7 +52,8 @@ void Mobile::Init(int argc, char **argv) {
     MSF_FATAL << "Fail to alloc event stack for mobile.";
     return;
   }
-  std::vector<struct ThreadArg> threadArgs;
+  std::vector<ThreadArg> threadArgs;
+
   threadArgs.push_back(std::move(ThreadArg("ReadLoop")));
   threadArgs.push_back(std::move(ThreadArg("SendLoop")));
   threadArgs.push_back(std::move(ThreadArg("DialLoop")));
@@ -68,12 +69,8 @@ void Mobile::Init(int argc, char **argv) {
   pool_ = new MemPool();
   assert(pool_->Init());
 
-  channel_ = new ATChannel(nullptr, nullptr, nullptr);
-  assert(channel_);
-
-  acm_ = new ATCmdManager();
-  assert(acm_);
-  channel_->RegisterATCommandCb(acm_);
+  modem_ = new Modem();
+  assert(modem_);
 }
 
 void Mobile::DebugInfo() {
@@ -179,6 +176,8 @@ bool Mobile::LoadConfig() {
   assert(ini.GetBoolValue("System", "Daemon", &config_.daemon_) == 0);
   // assert(ini.GetValues("Plugins", "Plugin", &config_.plugins_) == 0);
 
+  assert(ini.GetBoolValue("Network", "AgentEnable", &config_.agent_enable_) ==
+         0);
   std::string agentNet;
   assert(ini.GetStringValue("Network", "AgentNet", &agentNet) == 0);
   // config_.agent_net_type_ ;

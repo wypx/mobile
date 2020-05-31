@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
  * All rights reserved.
  *
  * Distributed under the terms of the GNU General Public License v2.
@@ -332,6 +332,7 @@ struct MobileConf {
 
   std::set<std::string> plugins_;
 
+  bool agent_enable_ = false;
   AgentNetType agent_net_type_;
   std::string agent_ip_;
   uint16_t agent_port_;
@@ -470,8 +471,7 @@ struct MobileState {
   std::vector<std::string> dns_list_;
 };
 
-class ATChannel;
-class ATCmdManager;
+class Modem;
 class Mobile : public Noncopyable {
  public:
   Mobile();
@@ -498,9 +498,8 @@ class Mobile : public Noncopyable {
 
   OsInfo os_;
   EventStack *stack_;
-  ATChannel *channel_;
-  ATCmdManager *acm_;
   MemPool *pool_;
+  Modem *modem_;
   AgentClient *agent_;
   bool quit_;
 

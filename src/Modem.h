@@ -103,7 +103,8 @@ struct ModemInfo {
 };
 
 class ATChannel;
-
+class ATCmdManager;
+class Dial;
 class Modem {
  public:
   Modem() {}
@@ -114,10 +115,10 @@ class Modem {
   const ModemInfo *modem_info() const { return modem_; }
 
   bool ProbeDevice();
-  virtual bool CheckSimcard();
-  virtual bool CheckCellfun();
-  virtual bool StartDial();
-  virtual bool StopDial();
+  virtual bool CheckSimcard() { return true; }
+  virtual bool CheckCellfun() { return true; }
+  virtual bool StartDial() { return true; }
+  virtual bool StopDial() { return true; }
 
   void UnsolHandler(const char *line, const char *smsPdu);
   void ReaderCloseHandler();
@@ -143,7 +144,9 @@ class Modem {
   uint32_t net_search_mode_;
   uint8_t net_mode_str_[32];
 
+  ATCmdManager *acm_;
   ATChannel *ch_;
+  Dial *dial_;
 };
 
 }  // namespace mobile
