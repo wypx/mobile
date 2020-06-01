@@ -227,8 +227,6 @@ void Mobile::Start() { stack_->start(); }
 int main(int argc, char **argv) {
   Mobile mob = Mobile();
   mob.Init(argc, argv);
-  // mob.setAgent("/var/tmp/mobile.sock");
-  mob.SetAgent("luotang.me", 8888);
   mob.Start();
   return 0;
 }
