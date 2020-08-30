@@ -214,9 +214,9 @@ bool Modem::CheckSerialMod() {
       drivers++;
       /* Otherwise Drivers have not been installed completely or
           No drivers have been installed */
-      if (3 == drivers) {
+      if (3 == drivers || 2 == drivers) {
         fclose(fp);
-        return 0;
+        return true;
       }
     } else {
       continue;
