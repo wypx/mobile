@@ -12,8 +12,8 @@
  **************************************************************************/
 #include "Dial.h"
 
-#include <Base/Utils.h>
-#include <Base/GccAttr.h>
+#include <base/Utils.h>
+#include <base/GccAttr.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <butil/logging.h>

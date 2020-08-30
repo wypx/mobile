@@ -126,6 +126,12 @@ root@a3efcdb0894d:/home/share/tomato/mod/libmsf/build/app#
 ### ___3. 参考文章___
 - [树莓派内核编译支持4G](http://luotang.me/raspberry_mobile.html)
 - [Mobile源码解析](http://luotang.me/raspberry_mobile.html)
+- [GPS nmealib学习笔记](https://blog.csdn.net/xukai871105/article/details/12834421)
+- [ModemManager] (https://www.freedesktop.org/wiki/Software/ModemManager/)
+- [ModemManager] (https://www.linuxprobe.com/modemmanager-1-10-fwupd.html)
+- [ModemManager] (https://blog.csdn.net/yygydjkthh/article/details/41440917?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1.channel_param)
+
+
 
 ### *4. 版权License*
 
