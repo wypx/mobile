@@ -16,7 +16,9 @@
 #include <base/File.h>
 
 #include "ATChannel.h"
+#include "ATCmd.h"
 #include "ATTok.h"
+#include "Dial.h"
 #include "Errno.h"
 #include "Idx.h"
 #include "Sms.h"
@@ -563,7 +565,7 @@ bool Modem::Init() {
   /* Give initializeCallback a chance to dispatched, since
    * we don't presently have a cancellation mechanism */
   usleep(500);
-
+  
   at_mgr_ = new ATCmdManager();
   assert(at_mgr_);
   channel_->RegisterATCommandCb(at_mgr_);
@@ -572,7 +574,7 @@ bool Modem::Init() {
   assert(sms_mgr_);
   sms_mgr_->RegisterWriter(std::bind(&ATChannel::WriteLine, channel_, 
     std::placeholders::_1, std::placeholders::_2));
-  
+
   return true;
 }
 

@@ -103,6 +103,7 @@ struct ModemInfo {
 };
 
 class ATChannel;
+
 class Modem {
  public:
   Modem(EventLoop *loop) : loop_(loop) {}

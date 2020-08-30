@@ -520,6 +520,7 @@ struct MobileConf {
 
   std::vector<std::string> plugins_;
 
+  bool agent_enable_ = false;
   AgentNetType agent_net_type_;
   std::string agent_ip_;
   uint16_t agent_port_;

@@ -142,6 +142,8 @@ bool Mobile::LoadConfig() {
 
   }
 
+  assert(ini.GetBoolValue("Network", "AgentEnable", &config_.agent_enable_) ==
+         0);
   std::string agentNet;
   assert(ini.GetStringValue("Network", "AgentNet", &agentNet) == 0);
   // config_.agent_net_type_ ;
