@@ -1,0 +1,6 @@
+[submodule "tools/src/serial"]
+	path = tools/src/serial
+	url = https://github.com/wjwwood/serial.git
+[submodule "tools/src/ppp"]
+	path = tools/src/ppp
+	url = https://github.com/paulusmack/ppp.git
