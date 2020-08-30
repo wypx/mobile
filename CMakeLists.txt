@@ -25,19 +25,35 @@ include (${PROJECT_SOURCE_DIR}/../cmake/utils.cmake)
 #include (${PROJECT_SOURCE_DIR}/cmake/FindNUMA.cmake)
 add_cplusplus_standard_support()
 
-set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -fPIC -O0 -Wall -g -ggdb")
+set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -fPIC -O0 -Wall -g -ggdb -DGFLAGS_NS=${GFLAGS_NS}")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${DEFINE_CLOCK_GETTIME} -DGFLAGS_NS=${GFLAGS_NS}")
+
+#protobuf_generate_cpp(PROTO_SRC PROTO_HEADER Mobile.proto)
 
 # 设置依赖库
-set(COMMLIBS msf_agent msf_proto msf_event msf_sock msf_base protobuf.a protoc.a numa.a pthread dl)
+set(COMMLIBS AgentClient AgentProto MSF
+    numa.a
+    brpc.a
+    protobuf.a 
+    protoc.a 
+    gflags.a
+    leveldb.a
+    ssl.a
+    crypto.a
+    snappy.a
+    z.a
+    pthread
+    dl)
 
 # 设置源代码路径
 aux_source_directory (src DIR_SRCS)
 add_executable(${EXECUTABLE_NAME} ${DIR_SRCS})
 add_definitions(-Wno-builtin-macro-redefined)
 msf_redefine_file(${EXECUTABLE_NAME})
-set_target_properties(${EXECUTABLE_NAME} PROPERTIES VERSION ${MOBILE_SERVER_VERSION})
+#set_target_properties(${EXECUTABLE_NAME} PROPERTIES VERSION ${MOBILE_SERVER_VERSION})
 target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 
+set(CMAKE_INSTALL_PREFIX /home/luotang.me)                     # 安装路径前缀 /home/xxx/usr
 install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)    # 二进制安装到 /home/luotang.me/bin
 
 set(MOBILE_CONF ${PROJECT_SOURCE_DIR}/mobile/conf/Mobile.conf)
