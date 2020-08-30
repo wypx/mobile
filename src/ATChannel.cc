@@ -10,22 +10,19 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "ATChannel.h"
-
-#include <base/GccAttr.h>
-#include <base/Logger.h>
-#include <base/Serial.h>
-#include <base/Thread.h>
-#include <base/Time.h>
-#include <base/Utils.h>
 #include <fcntl.h>
-
 #include <mutex>
 
+#include <base/Utils.h>
+#include <base/GccAttr.h>
+#include <base/Serial.h>
+#include <base/Thread.h>
+#include <base/MTime.h>
+
+#include "ATChannel.h"
 #include "ATTok.h"
 
-using namespace MSF::BASE;
-using namespace MSF::TIME;
+using namespace MSF;
 using namespace mobile;
 namespace mobile {
 
@@ -316,11 +313,13 @@ int ATChannel::HandShake(void) {
   return 0;
 }
 
-ATChannel::ATChannel(ATUnsolHandler h1, ATReaderClosedHandler h2,
-                     ATReaderTimeOutHandler h3)
+ATChannel::ATChannel(ATUnsolHandler h1,
+                     ATReaderClosedHandler h2,
+                     ATReaderTimeOutHandler h3, ATInstallEventHandler h4)
     : unsol_handler_(std::move(h1)),
       close_handler_(std::move(h2)),
       timeout_handler_(std::move(h3)),
+      install_at_handler_(std::move(h4)),
       read_closed_(false),
       mutex_(),
       mutex_cond_(),
@@ -330,7 +329,18 @@ ATChannel::ATChannel(ATUnsolHandler h1, ATReaderClosedHandler h2,
   kATBufferCur = kATBuffer;
 }
 
+// EventLoop *atcmd_loop_;
+
 ATChannel::~ATChannel() { ReaderClose(); }
+
+void ATChannel::Initialize() {
+  if (ReaderOpen()) {
+    install_at_handler_(read_fd_);
+    // loop_->runInLoop(std::bind(&ATChannel::ReaderLoop, this));
+  } else {
+    // loop_->runInLoop(std::bind(&ATChannel::Initialize, this));
+  }
+}
 
 /**
  * Returns error code from response
@@ -400,11 +410,11 @@ int ATChannel::WriteLine(const char *s, const char *ctrl) {
   ssize_t written;
 
   if (unlikely(read_fd_ < 0 || read_closed_)) {
-    MSF_ERROR << "AT channel has beed closed.";
+    LOG(ERROR)  << "AT channel has beed closed.";
     return AT_ERROR_CHANNEL_CLOSED;
   }
 
-  MSF_DEBUG << ">> " << s;
+  LOG(DEBUG) << ">> " << s;
 
   /* the main string */
   while (cur < len) {
@@ -441,8 +451,19 @@ const std::string &ATChannel::ParseATErrno(const ATErrno code) const {
 }
 
 bool ATChannel::ReaderOpen() {
-  read_fd_ = open("/dev/ttyUSB2", O_RDWR);
+  read_fd_ = open("/dev/ttyUSB2", O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (read_fd_ < 0) {
+    switch (errno) {
+      case EINTR:
+        // Recurse because this is a recoverable error.
+        ReaderOpen();
+        break;
+      case ENFILE:
+      case EMFILE:
+        LOG(ERROR) << "Too many file handles open.";
+      default:
+        break;
+    }
     return false;
   }
 
@@ -512,7 +533,7 @@ void ATChannel::ProcessUnsolLine(const char *line) {
   line2 = ReadLine();
 
   if (unlikely(line2 == nullptr)) {
-    MSF_FATAL << "Read channel got some fatal error: " << errno;
+    LOG(FATAL) << "Read channel got some fatal error: " << errno;
     free(line1);
     ReaderClose();
     return;
@@ -571,7 +592,7 @@ void ATChannel::ProcessLine(const char *line) {
         break;
 
       default: /* this should never be reached */
-        MSF_ERROR << "Unsupported AT command type: " << type_;
+        LOG(ERROR)  << "Unsupported AT command type: " << type_;
         HandleUnsolicited(line);
         break;
     }
@@ -623,7 +644,7 @@ char *ATChannel::ReadLine() const {
 
   while (p_eol == nullptr) {
     if (0 == MAX_AT_RESPONSE - (p_read - kATBuffer)) {
-      MSF_ERROR << "Input line exceeded buffer";
+      LOG(ERROR)  << "Input line exceeded buffer";
       /* ditch buffer and start over again */
       kATBufferCur = kATBuffer;
       *kATBufferCur = '\0';
@@ -646,9 +667,9 @@ char *ATChannel::ReadLine() const {
     } else if (count <= 0) {
       /* read error encountered or EOF reached */
       if (count == 0) {
-        MSF_ERROR << "ATChannel: EOF reached";
+        LOG(ERROR)  << "ATChannel: EOF reached";
       } else {
-        MSF_ERROR << "ATChannel: read error :" << strerror(errno);
+        LOG(ERROR)  << "ATChannel: read error :" << strerror(errno);
       }
       return nullptr;
     }
@@ -667,7 +688,7 @@ char *ATChannel::ReadLine() const {
 void ATChannel::ReaderLoop() {
   const char *line = ReadLine();
   if (unlikely(line == nullptr)) {
-    MSF_FATAL << "Read channel got some fatal error: " << errno;
+    LOG(FATAL) << "Read channel got some fatal error: " << errno;
     ReaderClose();
   }
 

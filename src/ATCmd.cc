@@ -12,17 +12,15 @@
  **************************************************************************/
 #include "ATCmd.h"
 
-#include <base/Time.h>
 #include <event/EventLoop.h>
+#include <base/MTime.h>
 
 #include "ATChannel.h"
 #include "ATTok.h"
 #include "Modem.h"
 #include "Sms.h"
 
-using namespace MSF::BASE;
-using namespace MSF::TIME;
-using namespace MSF::EVENT;
+using namespace MSF;
 using namespace mobile;
 
 namespace mobile {

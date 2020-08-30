@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
  * All rights reserved.
  *
  * Distributed under the terms of the GNU General Public License v2.
@@ -13,13 +13,17 @@
 #ifndef MOBILE_SRC_MOBILE_H_
 #define MOBILE_SRC_MOBILE_H_
 
-#include <base/GccAttr.h>
 #include <base/Noncopyable.h>
-#include <base/Os.h>
-#include <base/mem/MemPool.h>
-#include <client/AgentClient.h>
+#include <Client/AgentClient.h>
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
+#include <base/GccAttr.h>
+#include <base/MemPool.h>
+#include <base/Os.h>
+
+#include <brpc/server.h>
+#include <butil/logging.h>
+#include <gflags/gflags.h>
 
 #include <list>
 #include <set>
@@ -28,10 +32,9 @@
 #include <vector>
 
 #include "Errno.h"
+#include "Mobile.pb.h"
 
-using namespace MSF::BASE;
-using namespace MSF::EVENT;
-using namespace MSF::AGENT;
+using namespace MSF;
 
 namespace mobile {
 
@@ -59,7 +62,7 @@ enum PdpStatus {
   PDP_ACTIVE,
 };
 
-enum TTyType {
+enum TTYType {
   TTY_USB,
   TTY_ACM,
 };
@@ -77,7 +80,168 @@ enum AuthType {
   AUTH_PAP_CHAP,
 };
 
+/**
+ * odede:
+ * @MODMODE_NONE: None.
+ * @MODMODE_CS: CSD, GSM, and other circuit-switched technologies.
+ * @MODMODE_2G: GPRS, EDGE.
+ * @MODMODE_3G: UMTS, HSxPA.
+ * @MODMODE_4G: LTE.
+ * @MODMODE_ANY: Any mode can be used (only this value allowed for POTS modems).
+ *
+ * Bitfield to indicate which access modes are supported, allowed or
+ * preferred in a given device.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=modmode >*/
+               MODMODE_NONE = 0,
+               MODMODE_CS = 1 << 0,
+               MODMODE_2G = 1 << 1,
+               MODMODE_3G = 1 << 2,
+               MODMODE_4G = 1 << 3,
+               MODMODE_5G = 1 << 4,
+               MODMODE_ANY = 0xFFFFFFFF
+} Modede;
+
 enum NetWorkType { NETWORK_2G, NETWORK_3G, NETWORK_4G, NETWORK_5G };
+
+/**
+ * odemPortType:
+ * @MODPORT_TYPE_UNKNOWN: Unknown.
+ * @MODPORT_TYPE_NET: Net port.
+ * @MODPORT_TYPE_AT: AT port.
+ * @MODPORT_TYPE_QCDM: QCDM port.
+ * @MODPORT_TYPE_GPS: GPS port.
+ * @MODPORT_TYPE_QMI: QMI port.
+ * @MODPORT_TYPE_MBIM: MBIM port.
+ * @MODPORT_TYPE_AUDIO: Audio port. Since 1.12.
+ *
+ * Type of modem port.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=modport_type >*/
+               MODPORT_TYPE_UNKNOWN = 1,
+               MODPORT_TYPE_NET = 2,
+               MODPORT_TYPE_AT = 3,
+               MODPORT_TYPE_QCDM = 4,
+               MODPORT_TYPE_GPS = 5,
+               MODPORT_TYPE_QMI = 6,
+               MODPORT_TYPE_MBIM = 7,
+               MODPORT_TYPE_AUDIO = 8,
+} ModemPortType;
+
+/**
+ * earerIpMethod:
+ * @BEARER_IP_METHOD_UNKNOWN: Unknown method.
+ * @BEARER_IP_METHOD_PPP: Use PPP to get IP addresses and DNS information.
+ * For IPv6, use PPP to retrieve the 64-bit Interface Identifier, use the IID to
+ * construct an IPv6 link-local address by following RFC 5072, and then run
+ * DHCP over the PPP link to retrieve DNS settings.
+ * @BEARER_IP_METHOD_STATIC: Use the provided static IP configuration given
+ * by the modem to configure the IP data interface.  Note that DNS servers may
+ * not be provided by the network or modem firmware.
+ * @BEARER_IP_METHOD_DHCP: Begin DHCP or IPv6 SLAAC on the data interface to
+ * obtain any necessary IP configuration details that are not already provided
+ * by the IP configuration.  For IPv4 bearers DHCP should be used.  For IPv6
+ * bearers SLAAC should be used, and the IP configuration may already contain
+ * a link-local address that should be assigned to the interface before SLAAC
+ * is started to obtain the rest of the configuration.
+ *
+ * Type of IP method configuration to be used in a given Bearer.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=bearer_ip_method >*/
+               BEARER_IP_METHOD_UNKNOWN = 0,
+               BEARER_IP_METHOD_PPP = 1,
+               BEARER_IP_METHOD_STATIC = 2,
+               BEARER_IP_METHOD_DHCP = 3,
+} BearerIpMethod;
+
+/**
+ * earerIpFamily:
+ * @BEARER_IP_FAMILY_NONE: None or unknown.
+ * @BEARER_IP_FAMILY_IPV4: IPv4.
+ * @BEARER_IP_FAMILY_IPV6: IPv6.
+ * @BEARER_IP_FAMILY_IPV4V6: IPv4 and IPv6.
+ * @BEARER_IP_FAMILY_ANY: Mask specifying all IP families.
+ *
+ * Type of IP family to be used in a given Bearer.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=bearer_ip_family >*/
+               BEARER_IP_FAMILY_NONE = 0,
+               BEARER_IP_FAMILY_IPV4 = 1 << 0,
+               BEARER_IP_FAMILY_IPV6 = 1 << 1,
+               BEARER_IP_FAMILY_IPV4V6 = 1 << 2,
+               BEARER_IP_FAMILY_ANY = 0xFFFFFFFF
+} BearerIpFamily;
+
+/**
+ * earerAllowedAuth:
+ * @BEARER_ALLOWED_AUTH_UNKNOWN: Unknown.
+ * @BEARER_ALLOWED_AUTH_NONE: None.
+ * @BEARER_ALLOWED_AUTH_PAP: PAP.
+ * @BEARER_ALLOWED_AUTH_CHAP: CHAP.
+ * @BEARER_ALLOWED_AUTH_MSCHAP: MS-CHAP.
+ * @BEARER_ALLOWED_AUTH_MSCHAPV2: MS-CHAP v2.
+ * @BEARER_ALLOWED_AUTH_EAP: EAP.
+ *
+ * Allowed authentication methods when authenticating with the network.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=bearer_allowed_auth >*/
+               BEARER_ALLOWED_AUTH_UNKNOWN = 0,
+               /* bits 0..4 order match Ericsson device bitmap */
+               BEARER_ALLOWED_AUTH_NONE = 1 << 0,
+               BEARER_ALLOWED_AUTH_PAP = 1 << 1,
+               BEARER_ALLOWED_AUTH_CHAP = 1 << 2,
+               BEARER_ALLOWED_AUTH_MSCHAP = 1 << 3,
+               BEARER_ALLOWED_AUTH_MSCHAPV2 = 1 << 4,
+               BEARER_ALLOWED_AUTH_EAP = 1 << 5,
+} BearerAllowedAuth;
+
+/**
+ * odemCdmaRegistrationState:
+ * @MODCDMA_REGISTRATION_STATE_UNKNOWN: Registration status is unknown or the
+ * device is not registered.
+ * @MODCDMA_REGISTRATION_STATE_REGISTERED: Registered, but roaming status is
+ * unknown or cannot be provided by the device. The device may or may not be
+ * roaming.
+ * @MODCDMA_REGISTRATION_STATE_HOME: Currently registered on the home network.
+ * @MODCDMA_REGISTRATION_STATE_ROAMING: Currently registered on a roaming
+ * network.
+ *
+ * Registration state of a CDMA modem.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=modcdma_registration_state >*/
+               MODCDMA_REGISTRATION_STATE_UNKNOWN = 0,
+               MODCDMA_REGISTRATION_STATE_REGISTERED = 1,
+               MODCDMA_REGISTRATION_STATE_HOME = 2,
+               MODCDMA_REGISTRATION_STATE_ROAMING = 3,
+} ModemCdmaRegistrationState;
+
+/**
+ * irmwareImageType:
+ * @FIRMWARE_IMAGE_TYPE_UNKNOWN: Unknown firmware type.
+ * @FIRMWARE_IMAGE_TYPE_GENERIC: Generic firmware image.
+ * @FIRMWARE_IMAGE_TYPE_GOBI: Firmware image of Gobi devices.
+ *
+ * Type of firmware image.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=firmware_image_type >*/
+               FIRMWARE_IMAGE_TYPE_UNKNOWN = 0,
+               FIRMWARE_IMAGE_TYPE_GENERIC = 1,
+               FIRMWARE_IMAGE_TYPE_GOBI = 2,
+} irmwareImageType;
 
 enum DialStat {
   DIAL_INIT,
@@ -94,8 +258,8 @@ enum RadioMode {
   RADIO_LPM_MODE = 0,    /* Radio explictly powered off (eg CFUN=0) */
   RADIO_ONLINE_MODE = 1, /* full functionality (Default) */
   RADIO_OFFLINE_MODE =
-      4,              /* disable phone both transmit and receive RF circuits */
-  RADIO_FTM_MODE = 5, /* Factory Test Mode */
+      4,           /* disable phone both transmit and receive RF circuits */
+  RADIO_FMODE = 5, /* Factory Test Mode */
   RADIO_RESTART_MODE = 6, /* Reset mode */
                           /* note:AT+CFUN=6 must be used after setting AT+CFUN=7
                            * If module in offline mode, must execute AT+CFUN=6 or restart module to
@@ -154,12 +318,12 @@ enum NETWORK_SERACH_TYPE {
   /* LongSung Modem */
   LS_UTMS_ONLY = 1,         /* Not Support Now */
   LS_AUTO = 2,              /* LTE > CDMA >HDR >TDS >WCDMA >GSM */
-  LS_GSM_ONLY = 3,          /* GSM + CDMA ONLY */
-  LS_GSM_PREFERED = 4,      /* TDS Pre (TDS > GSM > LTE >WCDMA >HDR >CDMA) */
+  LS_GONLY = 3,             /* GSM + CDMA ONLY */
+  LS_GPREFERED = 4,         /* TDS Pre (TDS > GSM > LTE >WCDMA >HDR >CDMA) */
   LS_LTE_ONLY = 5,          /* LTE ONLY */
   LS_TDSCDMA_ONLY = 6,      /* TDSCDMA ONLY */
   LS_TDSCDMA_WCDMA = 7,     /* TDCMDA_WCDMA */
-  LS_TDSCDMA_GSM_WCDMA = 8, /* TDCMDA_GSM_WCDMA */
+  LS_TDSCDMA_GWCDMA = 8,    /* TDCMDA_GWCDMA */
   LS_TDSCDMA_WCDMA_LTE = 9, /* TDCMDA_WCDMA_LTE */
   LS_HDR_ONLY = 10,         /* HDR ONLY */
   LS_LTE_PREFERED = 11,     /* LTE Pre (LTE > HDR >CDMA >TDS >WCDMA >GSM) */
@@ -183,6 +347,31 @@ enum NETWORK_SERACH_TYPE {
   HW_FDDLTE = 18,
 };
 
+/**
+ * odemAccessTechnology:
+ * @MODACCESS_TECHNOLOGY_UNKNOWN: The access technology used is unknown.
+ * @MODACCESS_TECHNOLOGY_POTS: Analog wireline telephone.
+ * @MODACCESS_TECHNOLOGY_GSM: GSM.
+ * @MODACCESS_TECHNOLOGY_GCOMPACT: Compact GSM.
+ * @MODACCESS_TECHNOLOGY_GPRS: GPRS.
+ * @MODACCESS_TECHNOLOGY_EDGE: EDGE (ETSI 27.007: "GSM w/EGPRS").
+ * @MODACCESS_TECHNOLOGY_UMTS: UMTS (ETSI 27.007: "UTRAN").
+ * @MODACCESS_TECHNOLOGY_HSDPA: HSDPA (ETSI 27.007: "UTRAN w/HSDPA").
+ * @MODACCESS_TECHNOLOGY_HSUPA: HSUPA (ETSI 27.007: "UTRAN w/HSUPA").
+ * @MODACCESS_TECHNOLOGY_HSPA: HSPA (ETSI 27.007: "UTRAN w/HSDPA and HSUPA").
+ * @MODACCESS_TECHNOLOGY_HSPA_PLUS: HSPA+ (ETSI 27.007: "UTRAN w/HSPA+").
+ * @MODACCESS_TECHNOLOGY_1XRTT: CDMA2000 1xRTT.
+ * @MODACCESS_TECHNOLOGY_EVDO0: CDMA2000 EVDO revision 0.
+ * @MODACCESS_TECHNOLOGY_EVDOA: CDMA2000 EVDO revision A.
+ * @MODACCESS_TECHNOLOGY_EVDOB: CDMA2000 EVDO revision B.
+ * @MODACCESS_TECHNOLOGY_LTE: LTE (ETSI 27.007: "E-UTRAN")
+ * @MODACCESS_TECHNOLOGY_ANY: Mask specifying all access technologies.
+ *
+ * Describes various access technologies that a device uses when registered with
+ * or connected to a network.
+ *
+ * Since: 1.0
+ */
 typedef enum {
   RADIO_TECH_UNKNOWN = 0,
   RADIO_TECH_GPRS = 1,
@@ -190,7 +379,7 @@ typedef enum {
   RADIO_TECH_UMTS = 3,
   RADIO_TECH_IS95A = 4,
   RADIO_TECH_IS95B = 5,
-  RADIO_TECH_1xRTT = 6,
+  RADIO_TECH_1XRTT = 6,
   RADIO_TECH_EVDO_0 = 7,
   RADIO_TECH_EVDO_A = 8,
   RADIO_TECH_HSDPA = 9,
@@ -220,17 +409,17 @@ typedef enum {
   BAND_MODE_JPN = 3,  //"JPN band" (WCDMA-800 / WCDMA-IMT-2000)
   BAND_MODE_AUS =
       4,  //"AUS band" (GSM-900 / DCS-1800 / WCDMA-850 / WCDMA-IMT-2000)
-  BAND_MODE_AUS_2 = 5,       //"AUS band 2" (GSM-900 / DCS-1800 / WCDMA-850)
-  BAND_MODE_CELL_800 = 6,    //"Cellular" (800-MHz Band)
-  BAND_MODE_PCS = 7,         //"PCS" (1900-MHz Band)
-  BAND_MODE_JTACS = 8,       //"Band Class 3" (JTACS Band)
-  BAND_MODE_KOREA_PCS = 9,   //"Band Class 4" (Korean PCS Band)
-  BAND_MODE_5_450M = 10,     //"Band Class 5" (450-MHz Band)
-  BAND_MODE_IMT2000 = 11,    //"Band Class 6" (2-GMHz IMT2000 Band)
-  BAND_MODE_7_700M_2 = 12,   //"Band Class 7" (Upper 700-MHz Band)
-  BAND_MODE_8_1800M = 13,    //"Band Class 8" (1800-MHz Band)
-  BAND_MODE_9_900M = 14,     //"Band Class 9" (900-MHz Band)
-  BAND_MODE_10_800M_2 = 15,  //"Band Class 10" (Secondary 800-MHz Band)
+  BAND_MODE_AUS_2 = 5,      //"AUS band 2" (GSM-900 / DCS-1800 / WCDMA-850)
+  BAND_MODE_CELL_800 = 6,   //"Cellular" (800-MHz Band)
+  BAND_MODE_PCS = 7,        //"PCS" (1900-MHz Band)
+  BAND_MODE_JTACS = 8,      //"Band Class 3" (JTACS Band)
+  BAND_MODE_KOREA_PCS = 9,  //"Band Class 4" (Korean PCS Band)
+  BAND_MODE_5_450M = 10,    //"Band Class 5" (450-MHz Band)
+  BAND_MODE_IMT2000 = 11,   //"Band Class 6" (2-GMHz IMT2000 Band)
+  BAND_MODE_7_702 = 12,     //"Band Class 7" (Upper 700-MHz Band)
+  BAND_MODE_8_1800M = 13,   //"Band Class 8" (1800-MHz Band)
+  BAND_MODE_9_900M = 14,    //"Band Class 9" (900-MHz Band)
+  BAND_MODE_10_802 = 15,    //"Band Class 10" (Secondary 800-MHz Band)
   BAND_MODE_EURO_PAMR_400M = 16,  //"Band Class 11" (400-MHz European PAMR Band)
   BAND_MODE_AWS = 17,             //"Band Class 15" (AWS Band)
   BAND_MODE_USA_2500M = 18        //"Band Class 16" (US 2.5-GHz Band)
@@ -250,33 +439,32 @@ enum NetMode {
 };
 
 typedef enum {
-  PREF_NET_TYPE_GSM_WCDMA = 0, /* GSM/WCDMA (WCDMA preferred) */
-  PREF_NET_TYPE_GSM_ONLY = 1,  /* GSM only */
-  PREF_NET_TYPE_WCDMA = 2,     /* WCDMA  */
-  PREF_NET_TYPE_GSM_WCDMA_AUTO =
-      3, /* GSM/WCDMA (auto mode, according to PRL) */
+  PREF_NET_TYPE_GWCDMA = 0,      /* GSM/WCDMA (WCDMA preferred) */
+  PREF_NET_TYPE_GONLY = 1,       /* GSM only */
+  PREF_NET_TYPE_WCDMA = 2,       /* WCDMA  */
+  PREF_NET_TYPE_GWCDMA_AUTO = 3, /* GSM/WCDMA (auto mode, according to PRL) */
   PREF_NET_TYPE_CDMA_EVDO_AUTO =
       4,                       /* CDMA and EvDo (auto mode, according to PRL) */
   PREF_NET_TYPE_CDMA_ONLY = 5, /* CDMA only */
   PREF_NET_TYPE_EVDO_ONLY = 6, /* EvDo only */
-  PREF_NET_TYPE_GSM_WCDMA_CDMA_EVDO_AUTO =
+  PREF_NET_TYPE_GWCDMA_CDMA_EVDO_AUTO =
       7,                           /* GSM/WCDMA, CDMA, and EvDo (auto mode) */
   PREF_NET_TYPE_LTE_CDMA_EVDO = 8, /* LTE, CDMA and EvDo */
-  PREF_NET_TYPE_LTE_GSM_WCDMA = 9, /* LTE, GSM/WCDMA */
-  PREF_NET_TYPE_LTE_CMDA_EVDO_GSM_WCDMA = 10, /* LTE, CDMA, EvDo, GSM/WCDMA */
-  PREF_NET_TYPE_LTE_ONLY = 11,                /* LTE only */
-  PREF_NET_TYPE_LTE_WCDMA = 12,               /* LTE/WCDMA */
-  PREF_NET_TYPE_TD_SCDMA_ONLY = 13,           /* TD-SCDMA only */
-  PREF_NET_TYPE_TD_SCDMA_WCDMA = 14,          /* TD-SCDMA and WCDMA */
-  PREF_NET_TYPE_TD_SCDMA_LTE = 15,            /* TD-SCDMA and LTE */
-  PREF_NET_TYPE_TD_SCDMA_GSM = 16,            /* TD-SCDMA and GSM */
-  PREF_NET_TYPE_TD_SCDMA_GSM_LTE = 17,        /* TD-SCDMA,GSM and LTE */
-  PREF_NET_TYPE_TD_SCDMA_GSM_WCDMA = 18,      /* TD-SCDMA, GSM/WCDMA */
-  PREF_NET_TYPE_TD_SCDMA_WCDMA_LTE = 19,      /* TD-SCDMA, WCDMA and LTE */
-  PREF_NET_TYPE_TD_SCDMA_GSM_WCDMA_LTE = 20,  /* TD-SCDMA, GSM/WCDMA and LTE */
-  PREF_NET_TYPE_TD_SCDMA_GSM_WCDMA_CDMA_EVDO_AUTO =
+  PREF_NET_TYPE_LTE_GWCDMA = 9,    /* LTE, GSM/WCDMA */
+  PREF_NET_TYPE_LTE_CMDA_EVDO_GWCDMA = 10, /* LTE, CDMA, EvDo, GSM/WCDMA */
+  PREF_NET_TYPE_LTE_ONLY = 11,             /* LTE only */
+  PREF_NET_TYPE_LTE_WCDMA = 12,            /* LTE/WCDMA */
+  PREF_NET_TYPE_TD_SCDMA_ONLY = 13,        /* TD-SCDMA only */
+  PREF_NET_TYPE_TD_SCDMA_WCDMA = 14,       /* TD-SCDMA and WCDMA */
+  PREF_NET_TYPE_TD_SCDMA_LTE = 15,         /* TD-SCDMA and LTE */
+  PREF_NET_TYPE_TD_SCDMA_GSM = 16,         /* TD-SCDMA and GSM */
+  PREF_NET_TYPE_TD_SCDMA_GLTE = 17,        /* TD-SCDMA,GSM and LTE */
+  PREF_NET_TYPE_TD_SCDMA_GWCDMA = 18,      /* TD-SCDMA, GSM/WCDMA */
+  PREF_NET_TYPE_TD_SCDMA_WCDMA_LTE = 19,   /* TD-SCDMA, WCDMA and LTE */
+  PREF_NET_TYPE_TD_SCDMA_GWCDMA_LTE = 20,  /* TD-SCDMA, GSM/WCDMA and LTE */
+  PREF_NET_TYPE_TD_SCDMA_GWCDMA_CDMA_EVDO_AUTO =
       21, /* TD-SCDMA, GSM/WCDMA, CDMA and EvDo */
-  PREF_NET_TYPE_TD_SCDMA_LTE_CDMA_EVDO_GSM_WCDMA =
+  PREF_NET_TYPE_TD_SCDMA_LTE_CDMA_EVDO_GWCDMA =
       22 /* TD-SCDMA, LTE, CDMA, EvDo GSM/WCDMA */
 } PreferredNetworkType;
 
@@ -303,19 +491,19 @@ struct ApnItem {
 struct MobileConf {
   std::string version_;
 
-  LogLevel log_level_;
+  std::string log_level_;
   std::string log_dir_;
   std::string pid_path_;
 
   bool daemon_ = false;
   bool coredump_ = true;
-
   bool enable_dial_ = true;
-  DialType dial_type_;
-  NetWorkType net_type_;
-  AuthType auth_type_;
-  TTyType tty_type_;
-  std::map<uint32_t, ApnItem> active_apns_; /* eg. "public.vpdn.hz" - cid */
+  DialType dial_type_ = DIAL_AUTO_PERSIST;
+  NetWorkType net_type_ = NETWORK_4G;
+  AuthType auth_type_ = AUTH_PAP_CHAP;
+  TTYType tty_type_ = TTY_USB;
+  std::unordered_map<uint32_t, ApnItem>
+      active_apns_; /* eg. "public.vpdn.hz" - cid */
 
   // plans
   std::string dial_num_;
@@ -327,10 +515,10 @@ struct MobileConf {
   bool enable_sms_control_ = false;
   /* 支持接收告警和控制命令的SIM卡号列表 */
   std::set<std::string> sms_white_list_;
-  std::set<uint32_t> sms_alarm_type_;   /* 支持的告警类型 */
+  std::set<uint32_t> sms_alatype_;      /* 支持的告警类型 */
   std::set<uint32_t> sms_control_type_; /* 支持的控制类型 */
 
-  std::set<std::string> plugins_;
+  std::vector<std::string> plugins_;
 
   AgentNetType agent_net_type_;
   std::string agent_ip_;
@@ -344,7 +532,7 @@ struct MobileConf {
   std::string version() const { return version_; }
   void set_version(const std::string &version) { version_ = version; }
 
-  void set_log_level(LogLevel level) { log_level_ = level; }
+  // void set_log_level(Logger::LogLevel level) { log_level_ = level; }
   std::string log_dir() const { return log_dir_; }
   void set_log_dir(const std::string &dir) { log_dir_ = dir; }
   void set_pid_path(const std::string &pid_path) { pid_path_ = pid_path; }
@@ -363,8 +551,8 @@ struct MobileConf {
   void set_dial_type(NetWorkType type) { net_type_ = type; }
   AuthType auth_type() const { return auth_type_; }
   void set_auth_type(AuthType type) { auth_type_ = type; }
-  TTyType tty_type() const { return tty_type_; }
-  void set_tty_typee(TTyType type) { tty_type_ = type; }
+  TTYType tty_type() const { return tty_type_; }
+  void set_tty_type(TTYType type) { tty_type_ = type; }
 
   void AddApn(const ApnItem &apn) { active_apns_[apn.cid_] = std::move(apn); }
 
@@ -411,9 +599,9 @@ struct MobileConf {
   uint32_t SMSWhiteListSize() const { return sms_white_list_.size(); }
   void DebugSMSWhiteList() {}
 
-  void AddSMSAlarmType(uint32_t type) { sms_alarm_type_.emplace(type); }
-  void DelSMSAlarmType(uint32_t type) { sms_alarm_type_.erase(type); }
-  uint32_t SMSAlarmTypeSize() const { return sms_alarm_type_.size(); }
+  void AddSMSAlarmType(uint32_t type) { sms_alatype_.emplace(type); }
+  void DelSMSAlarmType(uint32_t type) { sms_alatype_.erase(type); }
+  uint32_t SMSAlarmTypeSize() const { return sms_alatype_.size(); }
   void DebugSMSAlarmType() {}
 
   void AddSMSControlType(uint32_t type) { sms_control_type_.emplace(type); }
@@ -421,8 +609,8 @@ struct MobileConf {
   uint32_t SMSControlTypeSize() const { return sms_control_type_.size(); }
   void DebugSMSControlType() {}
 
-  void AddPluin(const std::string &name) { plugins_.insert(name); }
-  void DelPluin(const std::string &name) { plugins_.erase(name); }
+  // void AddPluin(const std::string &name) { plugins_.push_back(name); }
+  // void DelPluin(const std::string &name) { plugins_.erase(name); }
   uint32_t PluginSize() const { return plugins_.size(); }
   void DebugPlugins() {}
 
@@ -472,39 +660,40 @@ struct MobileState {
 
 class ATChannel;
 class ATCmdManager;
-class Mobile : public Noncopyable {
+class SMSManager;
+class Modem;
+class Mobile : public GetMobileAPNService {
+ public:
+  enum ThreadIndex {
+    THREAD_ATCMDLOOP = 0,
+    THREAD_DILALOOP = 1,
+    THREAD_STATLOOP = 2
+  };
+
  public:
   Mobile();
   ~Mobile();
 
-  void DebugInfo();
-  void ParseOption(int argc, char **argv);
   bool LoadConfig();
   void Init(int argc, char **argv);
-  void Start();
-
-  /* Unix server addr */
-  void SetAgent(const std::string &addr) {
-    // agent_->setAgentServer(addr);
-  }
-  /* Tcp/Udp ip addr and port */
-  void SetAgent(const std::string &addr, const uint16_t port) {
-    // agent_->setAgentServer(addr, port);
-  }
+  int32_t Start();
 
  private:
-  std::string conf_file_;
   MobileConf config_;
 
   OsInfo os_;
-  EventStack *stack_;
-  ATChannel *channel_;
-  ATCmdManager *acm_;
   MemPool *pool_;
+  EventStack *stack_;
+  Modem *modem_;
   AgentClient *agent_;
   bool quit_;
 
-  void AgentReqCb(char **data, uint32_t *len, const Agent::Command cmd);
+  static brpc::Server server_;
+  virtual void GetMobileAPN(google::protobuf::RpcController *cntl_base,
+                            const GetMobileAPNRequest *request,
+                            GetMobileAPNResponse *response,
+                            google::protobuf::Closure *done);
+  bool RegisterService();
 };
 }  // namespace mobile
 #endif

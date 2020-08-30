@@ -12,11 +12,11 @@
  **************************************************************************/
 #include "Dial.h"
 
-#include <base/GccAttr.h>
-#include <base/Logger.h>
-#include <base/Utils.h>
+#include <Base/Utils.h>
+#include <Base/GccAttr.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <butil/logging.h>
 
 #include "Modem.h"
 
@@ -113,6 +113,7 @@ Dial::Dial()
       dial_type_(DIAL_AUTO_PERSIST),
       dial_stat_(DIAL_INIT),
       test_domain_("luotang.me") {}
+
 void Dial::AddPlan(time_t start, time_t stop) {
   //检查是否重复区间
   plans_.push_back(std::make_pair(start, stop));
@@ -135,25 +136,25 @@ int Dial::SigPPPExist(void *args) {
 
   *pid = waitpid(*pid, &status, 0);
   if (*pid != -1) {
-    MSF_INFO << "Process: " << *pid << " exist";
+    LOG(INFO) << "Process: " << *pid << " exist";
   }
 
   if (WIFEXITED(status)) {
     exitNo = WEXITSTATUS(status);
-    MSF_INFO << "Normal termination, exit status:" << exitNo;
+    LOG(INFO) << "Normal termination, exit status:" << exitNo;
   }
   return 0;
 }
 
 void Dial::SigHandler(int sig) {
-  MSF_INFO << "Catch signal: " << sig;
+  LOG(INFO) << "Catch signal: " << sig;
   switch (sig) {
     case SIGINT:
     case SIGKILL:
     case SIGSEGV:
     case SIGBUS:
       SigPPPExist(&pppid_);
-      MSF_DEBUG << "pppd exit.";
+      LOG(DEBUG) << "pppd exit.";
       exit(0);
     default:
       break;
@@ -257,7 +258,7 @@ bool Dial::DialPPP(DialCb cb) {
   pppArgv[i++] = kPPPdEnd;
 
   if ((pppid_ = vfork()) < 0) {
-    MSF_ERROR << "Can not fork, exit now.";
+    LOG(ERROR) << "Can not fork, exit now.";
     return false;
   }
 
@@ -266,10 +267,20 @@ bool Dial::DialPPP(DialCb cb) {
      * https://blog.csdn.net/wtguo1022/article/details/80882891 */
     int ret = execvp(kPPPd, const_cast<char **>(pppArgv));
     /* The execvp function returns only if an error occurs. */
-    MSF_ERROR << "Execvp failed with error code: " << ret;
+    LOG(ERROR) << "Execvp failed with error code: " << ret;
     abort();
   } else {
     return pppid_;
+    // 子pid
+    // "/var/run/%s.pid"
   }
 }
+
+void net_ip_forward(int val) {
+  // int v = val ? 1 : 0;
+
+  // sysprintf("echo %d > /proc/sys/net/ipv4/ip_forward", v);
+  // iptable -t nat -A POSTROUTING -o ppp0 -s IP -j SNAT --to PPP_IP
+}
+
 }  // namespace mobile

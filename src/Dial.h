@@ -46,8 +46,8 @@ class Dial {
   const uint16_t mtu() const { return mtu_; }
   void set_mtu(const uint16_t mtu = kDefaultMTU) { mtu_ = mtu; }
 
-  const TTyType ep_name() const { return ep_name_; }
-  void set_ep_name(const TTyType ep) { ep_name_ = ep; }
+  const TTYType ep_name() const { return ep_name_; }
+  void set_ep_name(const TTYType ep) { ep_name_ = ep; }
 
   void AddPlan(time_t start, time_t stop);
   void DelPlan(time_t start, time_t stop);
@@ -105,7 +105,7 @@ class Dial {
   /** maximum transmission unit (MTU) size in bytes */
   uint16_t mtu_;
 
-  TTyType ep_name_;
+  TTYType ep_name_;
   DialType dial_type_;
 
   /* Dial plans in one day */

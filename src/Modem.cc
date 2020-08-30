@@ -12,15 +12,16 @@
  **************************************************************************/
 #include "Modem.h"
 
-#include <base/File.h>
 #include <base/Utils.h>
+#include <base/File.h>
 
 #include "ATChannel.h"
 #include "ATTok.h"
 #include "Errno.h"
 #include "Idx.h"
+#include "Sms.h"
 
-using namespace MSF::BASE;
+using namespace MSF;
 using namespace mobile;
 namespace mobile {
 
@@ -69,7 +70,7 @@ Operator Modem::MatchOperator(const char *cimiStr) {
 
   for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kOperMatch); ++i) {
     /* (same) USB ID canot recognise model, AT+CGMM needed for LongSung */
-    if (strstr(cimiStr, kOperMatch[i].cimi_)) {
+    if (::strstr(cimiStr, kOperMatch[i].cimi_)) {
       return kOperMatch[i].oper_;
       break;
     }
@@ -148,7 +149,7 @@ bool Modem::CheckUsbDriver() {
   FILE *fp = nullptr;
   char *p = nullptr;
 
-  fp = popen("lsusb", "r");
+  fp = ::popen("lsusb", "r");
   if (!fp) {
     errno_ = MOBILE_E_DRIVER_ID_NOT_SUPPORT;
     return false;
@@ -157,25 +158,25 @@ bool Modem::CheckUsbDriver() {
   uint32_t productId = 0;
   uint32_t vendorId = 0;
 
-  while (!feof(fp)) {
-    memset(line, 0, sizeof(line));
-    if (!fgets(line, sizeof(line), fp)) {
+  while (!::feof(fp)) {
+    ::memset(line, 0, sizeof(line));
+    if (!::fgets(line, sizeof(line), fp)) {
       break;
     }
 
-    if ((p = strstr(line, "ID"))) {
-      sscanf(p, "ID %x:%x", &vendorId, &productId);
+    if ((p = ::strstr(line, "ID"))) {
+      ::sscanf(p, "ID %x:%x", &vendorId, &productId);
       if (!CheckIdSupport(vendorId, vendorId)) {
         continue;
       } else {
-        pclose(fp);
+        ::pclose(fp);
         return true;
       }
     }
   }
 
   errno_ = MOBILE_E_DRIVER_ID_NOT_SUPPORT;
-  pclose(fp);
+  ::pclose(fp);
   return false;
 }
 
@@ -201,13 +202,13 @@ bool Modem::CheckSerialMod() {
   }
 
   while (!feof(fp)) {
-    memset(line, 0, sizeof(line));
-    if (!fgets(line, sizeof(line), fp)) {
+    ::memset(line, 0, sizeof(line));
+    if (!::fgets(line, sizeof(line), fp)) {
       break;
     }
 
-    if (strstr(line, "option") || strstr(line, "usb_wwan") ||
-        strstr(line, "usbserial")) {
+    if (::strstr(line, "option") || strstr(line, "usb_wwan") ||
+        ::strstr(line, "usbserial")) {
       drivers++;
       /* Otherwise Drivers have not been installed completely or
           No drivers have been installed */
@@ -221,7 +222,7 @@ bool Modem::CheckSerialMod() {
   }
 
   errno_ = MOBILE_E_DRIVER_NOT_INSTALLED;
-  fclose(fp);
+  ::fclose(fp);
   return false;
 }
 
@@ -262,7 +263,7 @@ void Modem::MatchNetMode(const char *netStr) {
       char currMode[32] = {0};
       char *p = strstr(pNetStr, ":");
       if (unlikely(!p)) {
-        MSF_ERROR << "Parse network mode failed";
+        LOG(ERROR) << "Parse network mode failed";
         return;
       }
 
@@ -535,28 +536,43 @@ void Modem::ReadTimeoutHandler() {}
 
 bool Modem::Init() {
   if (!CheckSerialMod()) {
-    MSF_ERROR << "Usb modem driver not installed.";
+    LOG(ERROR) << "Usb modem driver not installed.";
     return false;
   }
 
   if (!CheckUsbDriver()) {
-    MSF_ERROR << "Usb modem id app not matched.";
+    LOG(ERROR) << "Usb modem id app not matched.";
     return false;
   }
 
   if (!CheckSerialPort()) {
-    MSF_ERROR << "Usb modem ttyusb not found.";
+    LOG(ERROR) << "Usb modem ttyusb not found.";
     return false;
   }
 
-  ch_ = new ATChannel(std::bind(&Modem::UnsolHandler, this,
+  channel_ = new ATChannel(std::bind(&Modem::UnsolHandler, this,
                                 std::placeholders::_1, std::placeholders::_2),
                       std::bind(&Modem::ReaderCloseHandler, this),
-                      std::bind(&Modem::ReadTimeoutHandler, this));
+                      std::bind(&Modem::ReadTimeoutHandler, this),
+                      [this](int32_t fd) {
+                          Event *ev = new Event(loop_, fd);
+                          loop_->updateEvent(ev);
+                      });
+  loop_->runInLoop(std::bind(&ATChannel::Initialize, channel_));
 
   /* Give initializeCallback a chance to dispatched, since
    * we don't presently have a cancellation mechanism */
   usleep(500);
+
+  at_mgr_ = new ATCmdManager();
+  assert(at_mgr_);
+  channel_->RegisterATCommandCb(at_mgr_);
+
+  sms_mgr_ = new SMSManager(1000);
+  assert(sms_mgr_);
+  sms_mgr_->RegisterWriter(std::bind(&ATChannel::WriteLine, channel_, 
+    std::placeholders::_1, std::placeholders::_2));
+  
   return true;
 }
 

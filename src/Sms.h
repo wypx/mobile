@@ -13,6 +13,7 @@
 #ifndef MOBILE_SRC_SMS_H_
 #define MOBILE_SRC_SMS_H_
 
+#include <functional>
 #include <iostream>
 #include <list>
 #include <mutex>
@@ -35,6 +36,52 @@ enum SMS_CLEAN_MODE {
   SMS_CLEAN_READ_UNREAD_SEND_UNSEND /* 清除已读,未读,已发送和未发送短信 */
 };
 
+/**
+ * MMSmsState:
+ * @SMS_STATE_UNKNOWN: State unknown or not reportable.
+ * @SMS_STATE_STORED: The message has been neither received nor yet sent.
+ * @SMS_STATE_RECEIVING: The message is being received but is not yet complete.
+ * @SMS_STATE_RECEIVED: The message has been completely received.
+ * @SMS_STATE_SENDING: The message is queued for delivery.
+ * @SMS_STATE_SENT: The message was successfully sent.
+ *
+ * State of a given SMS.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=sms_state >*/
+               SMS_STATE_UNKNOWN = 0,
+               SMS_STATE_STORED = 1,
+               SMS_STATE_RECEIVING = 2,
+               SMS_STATE_RECEIVED = 3,
+               SMS_STATE_SENDING = 4,
+               SMS_STATE_SENT = 5,
+} SmsState;
+
+/**
+ * MMSmsStorage:
+ * @SMS_STORAGE_UNKNOWN: Storage unknown.
+ * @SMS_STORAGE_SM: SIM card storage area.
+ * @SMS_STORAGE_ME: Mobile equipment storage area.
+ * @SMS_STORAGE_MT: Sum of SIM and Mobile equipment storages
+ * @SMS_STORAGE_SR: Status report message storage area.
+ * @SMS_STORAGE_BM: Broadcast message storage area.
+ * @SMS_STORAGE_TA: Terminal adaptor message storage area.
+ *
+ * Storage for SMS messages.
+ *
+ * Since: 1.0
+ */
+typedef enum { /*< underscore_name=sms_storage >*/
+               SMS_STORAGE_UNKNOWN = 0,
+               SMS_STORAGE_SM = 1,
+               SMS_STORAGE_ME = 2,
+               SMS_STORAGE_MT = 3,
+               SMS_STORAGE_SR = 4,
+               SMS_STORAGE_BM = 5,
+               SMS_STORAGE_TA = 6,
+} SmsStorage;
+
 struct SMS {
   uint32_t idx_ = 0;
   std::string msg_; /* the encoded SMS message (max 255 bytes) */
@@ -42,12 +89,17 @@ struct SMS {
   SMS(const std::string &msg) : msg_(std::move(msg)) {}
 };
 
-struct ATChannel;
+typedef std::function<int(const char *s, const char *ctrl)> WriteLineCallback;
+
 class SMSManager {
  public:
   SMSManager(uint32_t max_msg_num) : max_msg_num_(max_msg_num) {}
   bool AddMsg(const std::string &msg);
   SMS &DelMsg();
+
+  void RegisterWriter(const WriteLineCallback &cb) {
+    write_line_ = std::move(cb);
+  }
 
  private:
   std::mutex mutex_;
@@ -65,7 +117,7 @@ class SMSManager {
   char index_;       /* Sms message index */
 
   SMSMode format_;
-  ATChannel *ch_;
+  WriteLineCallback write_line_;
 
   uint32_t Byte2String(char *src, char *dst, uint32_t srcLen);
   uint32_t Encode7Bit(char *src, char *dst, uint32_t srcLen);

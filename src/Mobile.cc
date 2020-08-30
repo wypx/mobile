@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright (c) 2017-2020, luotang.me <wypx520@gmail.com>, China.
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
  * All rights reserved.
  *
  * Distributed under the terms of the GNU General Public License v2.
@@ -12,10 +12,9 @@
  **************************************************************************/
 #include "Mobile.h"
 
-#include <base/Daemon.h>
-#include <base/IniFile.h>
-#include <base/Logger.h>
 #include <base/Version.h>
+#include <base/ConfigParser.h>
+#include <base/Daemon.h>
 #include <getopt.h>
 
 #include <cassert>
@@ -25,159 +24,123 @@
 #include <vector>
 
 #include "ATChannel.h"
+#include "Sms.h"
+#include "Modem.h"
 
-using namespace MSF::BASE;
-using namespace MSF::EVENT;
+using namespace MSF;
 using namespace mobile;
-using namespace MSF::AGENT;
-
 namespace mobile {
 
-Mobile::Mobile() : os_(OsInfo()) { os_.enableCoreDump(); }
+static const std::string kMobileVersion = "beta v1.0";
+static const std::string kMobileProject = "https://github.com/wypx/mobile";
 
-Mobile::~Mobile() {}
-void Mobile::Init(int argc, char **argv) {
-  ParseOption(argc, argv);
-  assert(LoadConfig());
+DEFINE_string(conf, "/home/luotang.me/conf/Mobile.conf", "Configure file.");
+DEFINE_bool(daemon, false, "Run as daemon mode");
+DEFINE_bool(echo_attachment, true, "Attachment as well");
+DEFINE_bool(send_attachment, true, "Carry attachment along with response");
+DEFINE_int32(port, 8001, "TCP Port of this server");
+DEFINE_int32(idle_timeout_s, -1,
+             "Connection will be closed if there is no "
+             "read/write operations during the last `idle_timeout_s'");
+DEFINE_int32(logoff_ms, 2000,
+             "Maximum duration of server's LOGOFF state "
+             "(waiting for client to close connection before server stops)");
 
-  if (config_.daemon()) {
-    daemonize();
+Mobile::Mobile() { }
+
+Mobile::~Mobile() { google::ShutDownCommandLineFlags(); }
+
+brpc::Server Mobile::server_;
+
+void Mobile::Init(int argc, char** argv) {
+  OsInfo::EnableCoredump();
+  google::SetVersionString(kMobileVersion);
+  google::SetUsageMessage(
+      "Command line mode\n"
+      "usage: Moible <command> <args>\n\n"
+      "commands:\n"
+      "  conf            config file path\n"
+      "  daemon          run as daemon mode\n"
+      "  port            service tcp port\n"
+      "  time            benchmark model execution time");
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
+  logging::LoggingSettings log_setting;
+  log_setting.logging_dest = logging::LOG_TO_ALL;
+  log_setting.log_file = "/home/luotang.me/log/Mobile.log";
+  log_setting.delete_old = logging::APPEND_TO_OLD_LOG_FILE;
+  if (!logging::InitLogging(log_setting)) {
+    return;
   }
 
-  std::string logFile = config_.log_dir() + "Mobile.log";
-  assert(Logger::getLogger().init(logFile.c_str()));
+  if (!LoadConfig()) {
+    LOG(FATAL) << "Fail to load config file.";
+    return;
+  }
+
+  BuildProject(kMobileVersion, kMobileProject);
+  BuildLogo();
+
+  if (FLAGS_daemon) {
+    Daemonize();
+  }
 
   stack_ = new EventStack();
   if (stack_ == nullptr) {
-    MSF_FATAL << "Fail to alloc event stack for mobile.";
+    LOG(FATAL) << "Fail to alloc event stack for mobile.";
     return;
   }
-  std::vector<struct ThreadArg> threadArgs;
-  threadArgs.push_back(std::move(ThreadArg("ReadLoop")));
-  threadArgs.push_back(std::move(ThreadArg("SendLoop")));
+  std::vector<ThreadArg> threadArgs;
+  threadArgs.push_back(std::move(ThreadArg("ATCmdLoop")));
   threadArgs.push_back(std::move(ThreadArg("DialLoop")));
   threadArgs.push_back(std::move(ThreadArg("StatLoop")));
   assert(stack_->startThreads(threadArgs));
 
-  agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
-                           config_.agent_ip(), config_.agent_port());
-  assert(agent_);
-  agent_->setRequestCb(std::bind(&Mobile::AgentReqCb, this,
-                                 std::placeholders::_1, std::placeholders::_2,
-                                 std::placeholders::_3));
   pool_ = new MemPool();
   assert(pool_->Init());
 
-  channel_ = new ATChannel(nullptr, nullptr, nullptr);
-  assert(channel_);
-
-  acm_ = new ATCmdManager();
-  assert(acm_);
-  channel_->RegisterATCommandCb(acm_);
-}
-
-void Mobile::DebugInfo() {
-  std::cout << std::endl;
-  std::cout << "Mobile Options:" << std::endl;
-  std::cout << " -c, --conf=FILE        The configure file." << std::endl;
-  std::cout << " -s, --host=HOST        The host that server will listen on"
-            << std::endl;
-  std::cout << " -p, --port=PORT        The port that server will listen on"
-            << std::endl;
-  std::cout << " -d, --daemon           Run as daemon." << std::endl;
-  std::cout << " -g, --signal           restart|kill|reload" << std::endl;
-  std::cout << "                        restart: restart process graceful"
-            << std::endl;
-  std::cout << "                        kill: fast shutdown graceful"
-            << std::endl;
-  std::cout << "                        reload: parse config file and reinit"
-            << std::endl;
-  std::cout << " -v, --version          Print the version." << std::endl;
-  std::cout << " -h, --help             Print help info." << std::endl;
-  std::cout << std::endl;
-
-  std::cout << "Examples:" << std::endl;
-  std::cout << " ./Mobile -c Mobile.conf -d -g kill" << std::endl;
-
-  std::cout << std::endl;
-  std::cout << "Reports bugs to <luotang.me>" << std::endl;
-  std::cout << "Commit issues to <https://github.com/wypx/mobile>" << std::endl;
-  std::cout << std::endl;
-}
-
-void Mobile::ParseOption(int argc, char **argv) {
-  /* 浅谈linux的命令行解析参数之getopt_long函数
-   * https://blog.csdn.net/qq_33850438/article/details/80172275
-   **/
-  int c;
-  while (true) {
-    int optIndex = 0;
-    static struct option longOpts[] = {
-        {"conf", required_argument, nullptr, 'c'},
-        {"host", required_argument, nullptr, 's'},
-        {"port", required_argument, nullptr, 'p'},
-        {"signal", required_argument, nullptr, 'g'},
-        {"daemon", no_argument, nullptr, 'd'},
-        {"version", no_argument, nullptr, 'v'},
-        {"help", no_argument, nullptr, 'h'},
-        {0, 0, 0, 0}};
-    c = getopt_long(argc, argv, "c:s:p:g:dvh?", longOpts, &optIndex);
-    if (c == -1) {
-      break;
-    }
-    switch (c) {
-      case 'c':
-        conf_file_ = std::string(optarg);
-        break;
-      case 'g':
-        break;
-      case 'd':
-        config_.set_daemon(true);
-        break;
-      case 'v':
-        MSF::BuildInfo();
-        std::exit(0);
-      case 'h':
-        DebugInfo();
-        std::exit(0);
-      case '?':
-      default:
-        DebugInfo();
-        std::exit(1);
-    }
-  }
-  return;
+  modem_ = new Modem(stack_->GetFixedLoop(THREAD_ATCMDLOOP));
+  modem_->Init();
+  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
+  //                          config_.agent_ip(), config_.agent_port());
+  // assert(agent_);
+  // agent_->setRequestCb(std::bind(&Mobile::AgentReqCb, this,
+  //                                std::placeholders::_1, std::placeholders::_2,
+  //                                std::placeholders::_3));
+  // stack_->start();
 }
 
 bool Mobile::LoadConfig() {
-  if (conf_file_.empty()) {
-    conf_file_ = "/home/luotang.me/conf/Mobile.conf";
-    MSF_INFO << "Use default config: " << conf_file_;
-  }
-
-  IniFile ini;
-  if (ini.Load(conf_file_) != 0) {
-    MSF_ERROR << "Confiure load failed";
+  ConfigParser ini;
+  if (ini.Load(FLAGS_conf) != 0) {
     return false;
   }
 
   if (!ini.HasSection("Logger") || !ini.HasSection("System") ||
       !ini.HasSection("Network") || !ini.HasSection("Plugins")) {
-    MSF_ERROR << "Confiure invalid, check sections";
+    LOG(ERROR) << "Confiure invalid, check sections";
     return false;
   }
 
-  assert(ini.GetStringValue("", "Version", &config_.version_) == 0);
-  // assert(ini.GetIntValue("Logger", "LogLevel",
-  // &static_cast<int>(config_.log_level_)) == 0);
-  assert(ini.GetStringValue("Logger", "LogDir", &config_.log_dir_) == 0);
-  if (config_.log_dir_.empty()) {
-    // logDir_ = "/var/log/luotang.me/";
+  if (ini.GetStringValue("", "Version", &config_.version_) != 0) {
+    config_.version_ = kMobileVersion;
+  }
+  if (ini.GetStringValue("Logger", "LogLevel", &config_.log_level_) != 0) {
+    config_.version_ = "INFO";
+  }
+  if (ini.GetStringValue("Logger", "LogDir", &config_.log_dir_) != 0) {
+    config_.log_dir_ = "/home/luotang.me/log/";
   }
 
-  assert(ini.GetStringValue("System", "PidFile", &config_.pid_path_) == 0);
-  assert(ini.GetBoolValue("System", "Daemon", &config_.daemon_) == 0);
-  // assert(ini.GetValues("Plugins", "Plugin", &config_.plugins_) == 0);
+  if (ini.GetStringValue("System", "PidFile", &config_.pid_path_) != 0) {
+
+  }
+  if (ini.GetBoolValue("System", "Daemon", &config_.daemon_) != 0) {
+
+  }
+  if (ini.GetValues("Plugins", "Plugin", &config_.plugins_) != 0) {
+
+  }
 
   std::string agentNet;
   assert(ini.GetStringValue("Network", "AgentNet", &agentNet) == 0);
@@ -204,32 +167,71 @@ bool Mobile::LoadConfig() {
   return true;
 }
 
-void Mobile::AgentReqCb(char **data, uint32_t *len, const Agent::Command cmd) {
-  MSF_INFO << "Cmd: " << cmd << " len: " << *len;
-  if (cmd == Agent::Command::CMD_REQ_MOBILE_READ) {
-    MSF_INFO << "Read mobile param ====> ";
+void Mobile::GetMobileAPN(google::protobuf::RpcController* cntl_base,
+                          const GetMobileAPNRequest* request,
+                          GetMobileAPNResponse* response,
+                          google::protobuf::Closure* done) {
+  // This object helps you to call done->Run() in RAII style. If you need
+  // to process the request asynchronously, pass done_guard.release().
+  brpc::ClosureGuard done_guard(done);
 
-    struct ApnItem item = {0};
-    item.cid_ = 1;
-    item.active_ = 2;
+  brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
 
-    MSF_INFO << "ApnItem size: " << sizeof(struct ApnItem) << " len: " << len;
+  // The purpose of following logs is to help you to understand
+  // how clients interact with servers more intuitively. You should
+  // remove these logs in performance-sensitive servers.
+  LOG(INFO) << "Received request[log_id=" << cntl->log_id() << "] from "
+            << cntl->remote_side() << " to " << cntl->local_side() << ": "
+            << request->cid() << " (attached=" << cntl->request_attachment()
+            << ")";
 
-    *len = (uint32_t)sizeof(struct ApnItem);
-    *data = agent_->allocBuffer(*len);
-    assert(*data);
-    memcpy(*data, &item, sizeof(struct ApnItem));
+  // Fill response.
+  response->set_apn("public.vpdn.cn");
+  response->set_cid(request->cid());
+  response->set_type(1);
+
+  // You can compress the response by setting Controller, but be aware
+  // that compression may be costly, evaluate before turning on.
+  // cntl->set_response_compress_type(brpc::COMPRESS_TYPE_GZIP);
+  if (FLAGS_echo_attachment) {
+    // Set attachment which is wired to network directly instead of
+    // being serialized into protobuf messages.
+    cntl->response_attachment().append(cntl->request_attachment());
   }
 }
 
-void Mobile::Start() { stack_->start(); }
+// Instance of your service.
+// Add the service into server. Notice the second parameter, because the
+// service is put on stack, we don't want server to delete it, otherwise
+// use brpc::SERVER_OWNS_SERVICE.
+bool Mobile::RegisterService() {
+  if (server_.AddService(this, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+    LOG(ERROR) << "Fail to add service: get apn";
+    return false;
+  }
+  return true;
+}
+
+int32_t Mobile::Start() {
+  if (!RegisterService()) {
+    return -1;
+  }
+  // Generally you only need one Server.
+  brpc::ServerOptions options;
+  options.idle_timeout_sec = FLAGS_idle_timeout_s;
+  if (server_.Start(FLAGS_port, &options) != 0) {
+    LOG(ERROR) << "Fail to start moible protocol server.";
+    return -1;
+  }
+
+  // Wait until Ctrl-C is pressed, then Stop() and Join() the server.
+  server_.RunUntilAskedToQuit();
+  return 0;
+}
 }  // namespace mobile
 
-int main(int argc, char **argv) {
-  Mobile mob = Mobile();
-  mob.Init(argc, argv);
-  // mob.setAgent("/var/tmp/mobile.sock");
-  mob.SetAgent("luotang.me", 8888);
-  mob.Start();
-  return 0;
+int main(int argc, char** argv) {
+  Mobile* app = new Mobile();
+  app->Init(argc, argv);
+  return app->Start();
 }

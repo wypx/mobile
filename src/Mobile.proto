@@ -1,0 +1,18 @@
+syntax="proto3";
+package mobile;
+
+option cc_generic_services = true;
+
+message GetMobileAPNRequest {
+      uint32 cid = 2;
+};
+
+message GetMobileAPNResponse {
+      string apn = 1;
+      uint32 cid = 2;
+      uint32 type = 3;
+};
+
+service GetMobileAPNService {
+      rpc GetMobileAPN(GetMobileAPNRequest) returns (GetMobileAPNResponse);
+};

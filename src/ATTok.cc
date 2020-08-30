@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "ATTok.h"
 
-#include <base/GccAttr.h>
+#include <Base/GccAttr.h>
 #include <string.h>
 #include <unistd.h>
 

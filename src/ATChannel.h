@@ -17,6 +17,8 @@
 #include <functional>
 #include <iostream>
 
+#include <Event/EventLoop.h>
+
 #include "ATCmd.h"
 
 namespace mobile {
@@ -94,27 +96,18 @@ typedef std::function<void()> ATReaderClosedHandler;
    You should reset or handshake here to avoid getting out of sync */
 typedef std::function<void()> ATReaderTimeOutHandler;
 
+typedef std::function<void(int32_t)> ATInstallEventHandler;
+
 class ATChannel {
  public:
   ATChannel(ATUnsolHandler h1, ATReaderClosedHandler h2,
-            ATReaderTimeOutHandler h3);
+            ATReaderTimeOutHandler h3, ATInstallEventHandler h4);
   ~ATChannel();
 
-  int HandShake(void);
-
-  int SendCommandSms(const char *cmd, const char *pdu, const char *rspPrefix,
-                     ATResponse **outRsp);
-
-  const std::string &ParseATErrno(const ATErrno code) const;
-  void ReaderLoop();
-  void SenderLoop();
-
-  int WriteLine(const char *s, const char *ctrl);
-
   /* Use friend class also ok */
-  void RegisterATCommandCb(ATCmdManager *acm) {
-    if (acm != nullptr) {
-      acm->SetSendCommandCb(
+  void RegisterATCommandCb(ATCmdManager *atcm) {
+    if (atcm != nullptr) {
+      atcm->SetSendCommandCb(
           std::bind(&ATChannel::SendCommand, this, std::placeholders::_1,
                     std::placeholders::_2),
           std::bind(&ATChannel::SendCommandNumeric, this, std::placeholders::_1,
@@ -131,10 +124,15 @@ class ATChannel {
     }
   }
 
+  int WriteLine(const char *s, const char *ctrl);
+
+  void Initialize();
+
  private:
   ATUnsolHandler unsol_handler_;
   ATReaderClosedHandler close_handler_;
   ATReaderTimeOutHandler timeout_handler_;
+  ATInstallEventHandler install_at_handler_;
 
   int read_fd_;
   bool read_closed_;
@@ -145,6 +143,15 @@ class ATChannel {
   const char *rsp_prefix_;
   const char *sms_pdu_;
   ATCmdType type_;
+
+  int HandShake(void);
+
+  int SendCommandSms(const char *cmd, const char *pdu, const char *rspPrefix,
+                     ATResponse **outRsp);
+
+  const std::string &ParseATErrno(const ATErrno code) const;
+  void ReaderLoop();
+  void SenderLoop();
 
   void ClearPendingCommand();
 

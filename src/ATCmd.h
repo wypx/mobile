@@ -60,7 +60,7 @@ typedef std::function<ATResponse *()> AllocResponceCb;
 typedef std::function<void(ATResponse *)> FreeResponceCb;
 typedef std::function<ATCmeError(const ATResponse *)> GetCmeError;
 
-class ATCmdManager {
+class ATCmdManager : Noncopyable {
  public:
   ATCmdManager() = default;
   ~ATCmdManager() {}

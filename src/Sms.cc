@@ -12,13 +12,11 @@
  **************************************************************************/
 #include "Sms.h"
 
-#include <base/Logger.h>
-
 #include "ATChannel.h"
 #include "Mobile.h"
 #include "Unicode.h"
 
-using namespace MSF::BASE;
+using namespace MSF;
 using namespace mobile;
 
 namespace mobile {
@@ -31,7 +29,7 @@ namespace mobile {
 bool SMSManager::AddMsg(const std::string &msg) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (sms_queue_.size() > max_msg_num_) {
-    MSF_ERROR << "SMS exceed max msg num: " << max_msg_num_;
+    LOG(ERROR) << "SMS exceed max msg num: " << max_msg_num_;
     return false;
   }
   sms_queue_.emplace(msg);
@@ -350,16 +348,16 @@ int SMSManager::SendSMSMsg(const char *phone, const char *msg) {
   int mobile_mode = 0;
 
   if (SMS_TEXT == format_) {
-    ch_->WriteLine("AT^HSMSSS=0,0,6,0", kCtrlEnter.c_str()); /* set SMS param */
+    write_line_("AT^HSMSSS=0,0,6,0", kCtrlEnter.c_str()); /* set SMS param */
     nSmscLength = StrGB2Unicode(msg, pdu, strlen(msg));
     sprintf(printfBuf, "%d, %ld", nSmscLength, strlen(msg));
-    MSF_DEBUG << printfBuf;
+    LOG(DEBUG) << printfBuf;
     sprintf(atCommand, "AT^HCMGS=\"%s\"", phone);
-    ch_->WriteLine(atCommand, kCtrlEnter.c_str());
+    write_line_(atCommand, kCtrlEnter.c_str());
     // ret = waitATResponse(">", nullptr, 0, true, 2000);
     if (ret == 0) {
-      ch_->WriteLine(pdu, kCtrlZ.c_str());
-      // ret = ch_->WriteLine(pdu, nSmscLength);
+      write_line_(pdu, kCtrlZ.c_str());
+      // ret = write_line_(pdu, nSmscLength);
     }
 
   } else {
@@ -379,14 +377,14 @@ int SMSManager::SendSMSMsg(const char *phone, const char *msg) {
               nPduLength / 2 - nSmscLength); /* SMS send */
     }
 
-    ch_->WriteLine(atCommand, kCtrlEnter.c_str());
+    write_line_(atCommand, kCtrlEnter.c_str());
 
     /* wait \r\n> */
     // ret = waitATResponse(">", nullptr, 0, true, 2000);
     if (ret == 0) {
-      //    ret = ch_->WriteLine(pdu, nPduLength);
+      //    ret = write_line_(pdu, nPduLength);
     } else {
-      //    ret = ch_->WriteLine(pdu, nSmscLength);
+      //    ret = write_line_(pdu, nSmscLength);
     }
   }
   return 0;
