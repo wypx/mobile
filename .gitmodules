@@ -4,3 +4,6 @@
 [submodule "tools/src/ppp"]
 	path = tools/src/ppp
 	url = https://github.com/paulusmack/ppp.git
+[submodule "tools/src/TW_5G_open_linux"]
+	path = tools/src/TW_5G_open_linux
+	url = https://github.com/TWxa001/TW_5G_open_linux.git
