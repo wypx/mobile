@@ -7,3 +7,6 @@
 [submodule "tools/src/TW_5G_open_linux"]
 	path = tools/src/TW_5G_open_linux
 	url = https://github.com/TWxa001/TW_5G_open_linux.git
+[submodule "tools/src/pdureader"]
+	path = tools/src/pdureader
+	url = https://github.com/mobrembski/pdureader.git
