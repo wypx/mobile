@@ -10,3 +10,9 @@
 [submodule "tools/src/pdureader"]
 	path = tools/src/pdureader
 	url = https://github.com/mobrembski/pdureader.git
+[submodule "tools/src/ModemManager"]
+	path = tools/src/ModemManager
+	url = https://github.com/linux-mobile-broadband/ModemManager.git
+[submodule "tools/src/minicom"]
+	path = tools/src/minicom
+	url = https://github.com/dereknex/minicom.git
