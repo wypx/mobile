@@ -31,7 +31,7 @@ set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${DEFINE_CLOCK_GETTIME} -DGFLAGS_NS=${GFLAGS
 #protobuf_generate_cpp(PROTO_SRC PROTO_HEADER Mobile.proto)
 
 # 设置依赖库
-set(COMMLIBS AgentClient AgentProto MSF
+set(COMMLIBS MSF
     numa.a
     brpc.a
     protobuf.a 
@@ -56,5 +56,5 @@ target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 set(CMAKE_INSTALL_PREFIX /home/luotang.me)                     # 安装路径前缀 /home/xxx/usr
 install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)    # 二进制安装到 /home/luotang.me/bin
 
-set(MOBILE_CONF ${PROJECT_SOURCE_DIR}/mobile/conf/Mobile.conf)
+set(MOBILE_CONF ${PROJECT_SOURCE_DIR}/Mobile/conf/Mobile.conf)
 install(FILES ${MOBILE_CONF} DESTINATION conf)

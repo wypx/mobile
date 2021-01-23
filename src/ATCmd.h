@@ -20,9 +20,9 @@
 
 #include "Mobile.h"
 
-using namespace mobile;
+using namespace Mobile;
 
-namespace mobile {
+namespace Mobile {
 
 static const uint32_t kMaxATCmdLen = 256;
 
@@ -138,5 +138,5 @@ class ATCmdManager : Noncopyable {
   FreeResponceCb free_resp_;
   GetCmeError get_cme_error_;
 };
-}  // namespace mobile
+}  // namespace Mobile
 #endif

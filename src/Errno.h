@@ -14,7 +14,8 @@
 #define MOBILE_SRC_ERRNO_H_
 
 #include <iostream>
-namespace mobile {
+
+namespace Mobile {
 
 enum MobileErrno {
   MOBILE_E_SUCCESS = 0,
@@ -30,8 +31,8 @@ enum MobileErrno {
   MOBILE_E_SIM_PUK2 = 10, /* Operation requires SIM PIN2 to be entered */
   MOBILE_E_SIM_BUSY = 11, /* SIM is busy */
   MOBILE_E_SIM_FULL = 12, /* The target EF is full */
-  /* fail to set the location where CDMA subscription
-   * shall be retrieved because of SIM or RUIM card absent */
+                          /* fail to set the location where CDMA subscription
+* shall be retrieved because of SIM or RUIM card absent */
   MOBILE_E_SIM_ABSENT = 13,
   MOBILE_E_SIM_ERR = 14,        /* SIM card maybe is bad for running too long */
   MOBILE_E_SIM_NOT_INSERT = 15, /* SIM card maybe not inserted */
@@ -39,8 +40,8 @@ enum MobileErrno {
   MOBILE_E_SIM_READY = 17,      /* SIM card is ready */
   MOBILE_E_OPERATOR_NOT_SUPPORT = 18, /* Operator not support by Modem, Band */
   MOBILE_E_OPERATOR_RECOGNOSED = 19,  /* Operator has been recognosed */
-  /* data ops are not allowed during voice
-   * call on a Class C GPRS device */
+                                      /* data ops are not allowed during voice
+* call on a Class C GPRS device */
   MOBILE_E_OP_NOT_ALLOWED_DURING_VOICE_CALL = 20,
   /* data ops are not allowed before device
    * registers in network */
@@ -48,9 +49,9 @@ enum MobileErrno {
   MOBILE_E_SMS_SEND_FAIL_RETRY = 22, /* fail to send sms and need retry */
   MOBILE_E_MODE_NOT_SUPPORTED = 23,  /* HW not support preferred network type */
   MOBILE_E_SYSTEM_ERR = 24,          /* Hit platform or system error */
-  MOBILE_E_MODEM_ERR = 25,   /* Vendor RIL got unexpected or incorrect response
-                                from modem for this request */
-  MOBILE_E_NETWORK_ERR = 26, /* Received error from network */
+  MOBILE_E_MODEM_ERR = 25, /* Vendor RIL got unexpected or incorrect response
+                              from modem for this request */
+  MOBILE_E_NETWORK_ERR = 26,          /* Received error from network */
   MOBILE_E_NETWORK_NOT_FOUND = 27,    /* Network cannot be found */
   MOBILE_E_NETWORK_NOT_READY = 28,    /* Network not ready */
   MOBILE_E_NETWORK_REJECT = 29,       /* Request is rejected by network */
@@ -75,5 +76,5 @@ enum MobileErrno {
 // see https://android.googlesource.com/platform/hardware/ril/
 const std::string &StrMobileErrno(MobileErrno e);
 
-}  // namespace mobile
+}  // namespace Mobile
 #endif

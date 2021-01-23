@@ -1,5 +1,5 @@
 syntax="proto3";
-package mobile;
+package Mobile;
 
 option cc_generic_services = true;
 

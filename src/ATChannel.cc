@@ -13,18 +13,18 @@
 #include <fcntl.h>
 #include <mutex>
 
-#include <base/Utils.h>
-#include <base/GccAttr.h>
-#include <base/Serial.h>
-#include <base/Thread.h>
-#include <base/MTime.h>
+#include <base/utils.h>
+#include <base/gcc_attr.h>
+#include <base/serial.h>
+#include <base/thread.h>
+#include <base/time_utils.h>
 
 #include "ATChannel.h"
 #include "ATTok.h"
 
 using namespace MSF;
-using namespace mobile;
-namespace mobile {
+using namespace Mobile;
+namespace Mobile {
 
 #define HANDSHAKE_RETRY_COUNT 8
 #define HANDSHAKE_TIMEOUT_MSEC 250
@@ -55,8 +55,7 @@ void ATChannel::AddIntermediate(const char *line) {
  */
 static const char *kFinalResponsesError[] = {
     "ERROR",     "+CMS ERROR:", "+CME ERROR:", "NO CARRIER", /* sometimes! */
-    "NO ANSWER", "NO DIALTONE",
-};
+    "NO ANSWER", "NO DIALTONE", };
 bool ATChannel::IsFinalResponseError(const char *line) {
   for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kFinalResponsesError); ++i) {
     if (AtStrStartWith(line, kFinalResponsesError[i])) {
@@ -313,8 +312,7 @@ int ATChannel::HandShake(void) {
   return 0;
 }
 
-ATChannel::ATChannel(ATUnsolHandler h1,
-                     ATReaderClosedHandler h2,
+ATChannel::ATChannel(ATUnsolHandler h1, ATReaderClosedHandler h2,
                      ATReaderTimeOutHandler h3, ATInstallEventHandler h4)
     : unsol_handler_(std::move(h1)),
       close_handler_(std::move(h2)),
@@ -410,7 +408,7 @@ int ATChannel::WriteLine(const char *s, const char *ctrl) {
   ssize_t written;
 
   if (unlikely(read_fd_ < 0 || read_closed_)) {
-    LOG(ERROR)  << "AT channel has beed closed.";
+    LOG(ERROR) << "AT channel has beed closed.";
     return AT_ERROR_CHANNEL_CLOSED;
   }
 
@@ -440,13 +438,11 @@ int ATChannel::WriteLine(const char *s, const char *ctrl) {
 }
 
 const std::string &ATChannel::ParseATErrno(const ATErrno code) const {
-  static std::string kATErrStr[] = {"AT_SUCCESS",
-                                    "AT_ERROR_GENERIC",
-                                    "AT_ERROR_COMMAND_PENDING",
-                                    "AT_ERROR_CHANNEL_CLOSED",
-                                    "AT_ERROR_TIMEOUT",
-                                    "AT_ERROR_INVALID_THREAD",
-                                    "AT_ERROR_INVALID_RESPONSE"};
+  static std::string kATErrStr[] = {
+      "AT_SUCCESS",               "AT_ERROR_GENERIC",
+      "AT_ERROR_COMMAND_PENDING", "AT_ERROR_CHANNEL_CLOSED",
+      "AT_ERROR_TIMEOUT",         "AT_ERROR_INVALID_THREAD",
+      "AT_ERROR_INVALID_RESPONSE"};
   return kATErrStr[code];
 }
 
@@ -592,7 +588,7 @@ void ATChannel::ProcessLine(const char *line) {
         break;
 
       default: /* this should never be reached */
-        LOG(ERROR)  << "Unsupported AT command type: " << type_;
+        LOG(ERROR) << "Unsupported AT command type: " << type_;
         HandleUnsolicited(line);
         break;
     }
@@ -621,7 +617,7 @@ char *ATChannel::ReadLine() const {
     kATBufferCur = kATBuffer;
     *kATBufferCur = '\0';
     p_read = kATBuffer;
-  } else { /* *skATBufferCur != '\0' */
+  } else {/* *skATBufferCur != '\0' */
     /* there's data in the buffer from the last read */
 
     // skip over leading newlines
@@ -644,7 +640,7 @@ char *ATChannel::ReadLine() const {
 
   while (p_eol == nullptr) {
     if (0 == MAX_AT_RESPONSE - (p_read - kATBuffer)) {
-      LOG(ERROR)  << "Input line exceeded buffer";
+      LOG(ERROR) << "Input line exceeded buffer";
       /* ditch buffer and start over again */
       kATBufferCur = kATBuffer;
       *kATBufferCur = '\0';
@@ -667,9 +663,9 @@ char *ATChannel::ReadLine() const {
     } else if (count <= 0) {
       /* read error encountered or EOF reached */
       if (count == 0) {
-        LOG(ERROR)  << "ATChannel: EOF reached";
+        LOG(ERROR) << "ATChannel: EOF reached";
       } else {
-        LOG(ERROR)  << "ATChannel: read error :" << strerror(errno);
+        LOG(ERROR) << "ATChannel: read error :" << strerror(errno);
       }
       return nullptr;
     }
@@ -699,4 +695,4 @@ void ATChannel::ReaderLoop() {
   }
 }
 
-}  // namespace mobile
+}  // namespace Mobile

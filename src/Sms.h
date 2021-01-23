@@ -19,15 +19,21 @@
 #include <mutex>
 #include <queue>
 
-namespace mobile {
+namespace Mobile {
 
 /**
  * 其他源码参考:
  * https://github.com/nicolas-s/ofono/tree/master/drivers/atmodem
  **/
-enum SMSMode { SMS_PDU, SMS_TEXT };
+enum SMSMode {
+  SMS_PDU,
+  SMS_TEXT
+};
 
-enum SMS_STORAGE_AREA { ME_AREA = 0, SM_AREA };
+enum SMS_STORAGE_AREA {
+  ME_AREA = 0,
+  SM_AREA
+};
 
 enum SMS_CLEAN_MODE {
   SMS_CLEAN_READ = 1,         /* 清除已读短信 */
@@ -49,14 +55,13 @@ enum SMS_CLEAN_MODE {
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=sms_state >*/
-               SMS_STATE_UNKNOWN = 0,
-               SMS_STATE_STORED = 1,
-               SMS_STATE_RECEIVING = 2,
-               SMS_STATE_RECEIVED = 3,
-               SMS_STATE_SENDING = 4,
-               SMS_STATE_SENT = 5,
-} SmsState;
+typedef enum {/*< underscore_name=sms_state >*/
+              SMS_STATE_UNKNOWN = 0,
+              SMS_STATE_STORED = 1,
+              SMS_STATE_RECEIVING = 2,
+              SMS_STATE_RECEIVED = 3,
+              SMS_STATE_SENDING = 4,
+              SMS_STATE_SENT = 5, } SmsState;
 
 /**
  * MMSmsStorage:
@@ -72,15 +77,14 @@ typedef enum { /*< underscore_name=sms_state >*/
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=sms_storage >*/
-               SMS_STORAGE_UNKNOWN = 0,
-               SMS_STORAGE_SM = 1,
-               SMS_STORAGE_ME = 2,
-               SMS_STORAGE_MT = 3,
-               SMS_STORAGE_SR = 4,
-               SMS_STORAGE_BM = 5,
-               SMS_STORAGE_TA = 6,
-} SmsStorage;
+typedef enum {/*< underscore_name=sms_storage >*/
+              SMS_STORAGE_UNKNOWN = 0,
+              SMS_STORAGE_SM = 1,
+              SMS_STORAGE_ME = 2,
+              SMS_STORAGE_MT = 3,
+              SMS_STORAGE_SR = 4,
+              SMS_STORAGE_BM = 5,
+              SMS_STORAGE_TA = 6, } SmsStorage;
 
 struct SMS {
   uint32_t idx_ = 0;
@@ -138,5 +142,5 @@ class SMSManager {
   int ATReadSMSThread(char *line1, char *line2, int index, int line2Len,
                       int *smsStatus, int bNewSms);
 };
-}  // namespace mobile
+}  // namespace Mobile
 #endif

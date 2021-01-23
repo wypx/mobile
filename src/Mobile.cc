@@ -12,9 +12,9 @@
  **************************************************************************/
 #include "Mobile.h"
 
-#include <base/Version.h>
-#include <base/ConfigParser.h>
-#include <base/Daemon.h>
+#include <base/version.h>
+#include <base/config_parser.h>
+#include <base/daemon.h>
 #include <getopt.h>
 
 #include <cassert>
@@ -28,8 +28,9 @@
 #include "Modem.h"
 
 using namespace MSF;
-using namespace mobile;
-namespace mobile {
+using namespace Mobile;
+
+namespace Mobile {
 
 static const std::string kMobileVersion = "beta v1.0";
 static const std::string kMobileProject = "https://github.com/wypx/mobile";
@@ -46,13 +47,13 @@ DEFINE_int32(logoff_ms, 2000,
              "Maximum duration of server's LOGOFF state "
              "(waiting for client to close connection before server stops)");
 
-Mobile::Mobile() { }
+MobileApp::MobileApp() {}
 
-Mobile::~Mobile() { google::ShutDownCommandLineFlags(); }
+MobileApp::~MobileApp() { google::ShutDownCommandLineFlags(); }
 
-brpc::Server Mobile::server_;
+brpc::Server MobileApp::server_;
 
-void Mobile::Init(int argc, char** argv) {
+void MobileApp::Init(int argc, char** argv) {
   OsInfo::EnableCoredump();
   google::SetVersionString(kMobileVersion);
   google::SetUsageMessage(
@@ -101,16 +102,10 @@ void Mobile::Init(int argc, char** argv) {
 
   modem_ = new Modem(stack_->GetFixedLoop(THREAD_ATCMDLOOP));
   modem_->Init();
-  // agent_ = new AgentClient(stack_->getOneLoop(), "Mobile", Agent::APP_MOBILE,
-  //                          config_.agent_ip(), config_.agent_port());
-  // assert(agent_);
-  // agent_->setRequestCb(std::bind(&Mobile::AgentReqCb, this,
-  //                                std::placeholders::_1, std::placeholders::_2,
-  //                                std::placeholders::_3));
   // stack_->start();
 }
 
-bool Mobile::LoadConfig() {
+bool MobileApp::LoadConfig() {
   ConfigParser ini;
   if (ini.Load(FLAGS_conf) != 0) {
     return false;
@@ -133,13 +128,10 @@ bool Mobile::LoadConfig() {
   }
 
   if (ini.GetStringValue("System", "PidFile", &config_.pid_path_) != 0) {
-
   }
   if (ini.GetBoolValue("System", "Daemon", &config_.daemon_) != 0) {
-
   }
   if (ini.GetValues("Plugins", "Plugin", &config_.plugins_) != 0) {
-
   }
 
   assert(ini.GetBoolValue("Network", "AgentEnable", &config_.agent_enable_) ==
@@ -169,10 +161,10 @@ bool Mobile::LoadConfig() {
   return true;
 }
 
-void Mobile::GetMobileAPN(google::protobuf::RpcController* cntl_base,
-                          const GetMobileAPNRequest* request,
-                          GetMobileAPNResponse* response,
-                          google::protobuf::Closure* done) {
+void MobileApp::GetMobileAPN(google::protobuf::RpcController* cntl_base,
+                             const GetMobileAPNRequest* request,
+                             GetMobileAPNResponse* response,
+                             google::protobuf::Closure* done) {
   // This object helps you to call done->Run() in RAII style. If you need
   // to process the request asynchronously, pass done_guard.release().
   brpc::ClosureGuard done_guard(done);
@@ -206,7 +198,7 @@ void Mobile::GetMobileAPN(google::protobuf::RpcController* cntl_base,
 // Add the service into server. Notice the second parameter, because the
 // service is put on stack, we don't want server to delete it, otherwise
 // use brpc::SERVER_OWNS_SERVICE.
-bool Mobile::RegisterService() {
+bool MobileApp::RegisterService() {
   if (server_.AddService(this, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
     LOG(ERROR) << "Fail to add service: get apn";
     return false;
@@ -214,7 +206,7 @@ bool Mobile::RegisterService() {
   return true;
 }
 
-int32_t Mobile::Start() {
+int32_t MobileApp::Start() {
   if (!RegisterService()) {
     return -1;
   }
@@ -230,10 +222,10 @@ int32_t Mobile::Start() {
   server_.RunUntilAskedToQuit();
   return 0;
 }
-}  // namespace mobile
+}  // namespace Mobile
 
 int main(int argc, char** argv) {
-  Mobile* app = new Mobile();
+  MobileApp* app = new MobileApp();
   app->Init(argc, argv);
   return app->Start();
 }

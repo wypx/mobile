@@ -13,13 +13,13 @@
 #ifndef MOBILE_SRC_MOBILE_H_
 #define MOBILE_SRC_MOBILE_H_
 
-#include <base/Noncopyable.h>
+#include <base/noncopyable.h>
 #include <Client/AgentClient.h>
-#include <event/EventLoop.h>
-#include <event/EventStack.h>
-#include <base/GccAttr.h>
-#include <base/MemPool.h>
-#include <base/Os.h>
+#include <event/event_loop.h>
+#include <event/event_stack.h>
+#include <base/gcc_attr.h>
+#include <base/mem_pool.h>
+#include <base/os.h>
 
 #include <brpc/server.h>
 #include <butil/logging.h>
@@ -36,7 +36,7 @@
 
 using namespace MSF;
 
-namespace mobile {
+namespace Mobile {
 
 #define MODEM_TTY_USB_PREFIX "/dev/ttyUSB%d"
 
@@ -94,17 +94,21 @@ enum AuthType {
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=modmode >*/
-               MODMODE_NONE = 0,
-               MODMODE_CS = 1 << 0,
-               MODMODE_2G = 1 << 1,
-               MODMODE_3G = 1 << 2,
-               MODMODE_4G = 1 << 3,
-               MODMODE_5G = 1 << 4,
-               MODMODE_ANY = 0xFFFFFFFF
-} Modede;
+typedef enum {/*< underscore_name=modmode >*/
+              MODMODE_NONE = 0,
+              MODMODE_CS = 1 << 0,
+              MODMODE_2G = 1 << 1,
+              MODMODE_3G = 1 << 2,
+              MODMODE_4G = 1 << 3,
+              MODMODE_5G = 1 << 4,
+              MODMODE_ANY = 0xFFFFFFFF} Modede;
 
-enum NetWorkType { NETWORK_2G, NETWORK_3G, NETWORK_4G, NETWORK_5G };
+enum NetWorkType {
+  NETWORK_2G,
+  NETWORK_3G,
+  NETWORK_4G,
+  NETWORK_5G
+};
 
 /**
  * odemPortType:
@@ -121,16 +125,15 @@ enum NetWorkType { NETWORK_2G, NETWORK_3G, NETWORK_4G, NETWORK_5G };
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=modport_type >*/
-               MODPORT_TYPE_UNKNOWN = 1,
-               MODPORT_TYPE_NET = 2,
-               MODPORT_TYPE_AT = 3,
-               MODPORT_TYPE_QCDM = 4,
-               MODPORT_TYPE_GPS = 5,
-               MODPORT_TYPE_QMI = 6,
-               MODPORT_TYPE_MBIM = 7,
-               MODPORT_TYPE_AUDIO = 8,
-} ModemPortType;
+typedef enum {/*< underscore_name=modport_type >*/
+              MODPORT_TYPE_UNKNOWN = 1,
+              MODPORT_TYPE_NET = 2,
+              MODPORT_TYPE_AT = 3,
+              MODPORT_TYPE_QCDM = 4,
+              MODPORT_TYPE_GPS = 5,
+              MODPORT_TYPE_QMI = 6,
+              MODPORT_TYPE_MBIM = 7,
+              MODPORT_TYPE_AUDIO = 8, } ModemPortType;
 
 /**
  * earerIpMethod:
@@ -153,12 +156,11 @@ typedef enum { /*< underscore_name=modport_type >*/
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=bearer_ip_method >*/
-               BEARER_IP_METHOD_UNKNOWN = 0,
-               BEARER_IP_METHOD_PPP = 1,
-               BEARER_IP_METHOD_STATIC = 2,
-               BEARER_IP_METHOD_DHCP = 3,
-} BearerIpMethod;
+typedef enum {/*< underscore_name=bearer_ip_method >*/
+              BEARER_IP_METHOD_UNKNOWN = 0,
+              BEARER_IP_METHOD_PPP = 1,
+              BEARER_IP_METHOD_STATIC = 2,
+              BEARER_IP_METHOD_DHCP = 3, } BearerIpMethod;
 
 /**
  * earerIpFamily:
@@ -172,13 +174,12 @@ typedef enum { /*< underscore_name=bearer_ip_method >*/
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=bearer_ip_family >*/
-               BEARER_IP_FAMILY_NONE = 0,
-               BEARER_IP_FAMILY_IPV4 = 1 << 0,
-               BEARER_IP_FAMILY_IPV6 = 1 << 1,
-               BEARER_IP_FAMILY_IPV4V6 = 1 << 2,
-               BEARER_IP_FAMILY_ANY = 0xFFFFFFFF
-} BearerIpFamily;
+typedef enum {/*< underscore_name=bearer_ip_family >*/
+              BEARER_IP_FAMILY_NONE = 0,
+              BEARER_IP_FAMILY_IPV4 = 1 << 0,
+              BEARER_IP_FAMILY_IPV6 = 1 << 1,
+              BEARER_IP_FAMILY_IPV4V6 = 1 << 2,
+              BEARER_IP_FAMILY_ANY = 0xFFFFFFFF} BearerIpFamily;
 
 /**
  * earerAllowedAuth:
@@ -194,16 +195,15 @@ typedef enum { /*< underscore_name=bearer_ip_family >*/
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=bearer_allowed_auth >*/
-               BEARER_ALLOWED_AUTH_UNKNOWN = 0,
-               /* bits 0..4 order match Ericsson device bitmap */
-               BEARER_ALLOWED_AUTH_NONE = 1 << 0,
-               BEARER_ALLOWED_AUTH_PAP = 1 << 1,
-               BEARER_ALLOWED_AUTH_CHAP = 1 << 2,
-               BEARER_ALLOWED_AUTH_MSCHAP = 1 << 3,
-               BEARER_ALLOWED_AUTH_MSCHAPV2 = 1 << 4,
-               BEARER_ALLOWED_AUTH_EAP = 1 << 5,
-} BearerAllowedAuth;
+typedef enum {/*< underscore_name=bearer_allowed_auth >*/
+              BEARER_ALLOWED_AUTH_UNKNOWN = 0,
+              /* bits 0..4 order match Ericsson device bitmap */
+              BEARER_ALLOWED_AUTH_NONE = 1 << 0,
+              BEARER_ALLOWED_AUTH_PAP = 1 << 1,
+              BEARER_ALLOWED_AUTH_CHAP = 1 << 2,
+              BEARER_ALLOWED_AUTH_MSCHAP = 1 << 3,
+              BEARER_ALLOWED_AUTH_MSCHAPV2 = 1 << 4,
+              BEARER_ALLOWED_AUTH_EAP = 1 << 5, } BearerAllowedAuth;
 
 /**
  * odemCdmaRegistrationState:
@@ -220,11 +220,11 @@ typedef enum { /*< underscore_name=bearer_allowed_auth >*/
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=modcdma_registration_state >*/
-               MODCDMA_REGISTRATION_STATE_UNKNOWN = 0,
-               MODCDMA_REGISTRATION_STATE_REGISTERED = 1,
-               MODCDMA_REGISTRATION_STATE_HOME = 2,
-               MODCDMA_REGISTRATION_STATE_ROAMING = 3,
+typedef enum {/*< underscore_name=modcdma_registration_state >*/
+              MODCDMA_REGISTRATION_STATE_UNKNOWN = 0,
+              MODCDMA_REGISTRATION_STATE_REGISTERED = 1,
+              MODCDMA_REGISTRATION_STATE_HOME = 2,
+              MODCDMA_REGISTRATION_STATE_ROAMING = 3,
 } ModemCdmaRegistrationState;
 
 /**
@@ -237,11 +237,10 @@ typedef enum { /*< underscore_name=modcdma_registration_state >*/
  *
  * Since: 1.0
  */
-typedef enum { /*< underscore_name=firmware_image_type >*/
-               FIRMWARE_IMAGE_TYPE_UNKNOWN = 0,
-               FIRMWARE_IMAGE_TYPE_GENERIC = 1,
-               FIRMWARE_IMAGE_TYPE_GOBI = 2,
-} irmwareImageType;
+typedef enum {/*< underscore_name=firmware_image_type >*/
+              FIRMWARE_IMAGE_TYPE_UNKNOWN = 0,
+              FIRMWARE_IMAGE_TYPE_GENERIC = 1,
+              FIRMWARE_IMAGE_TYPE_GOBI = 2, } irmwareImageType;
 
 enum DialStat {
   DIAL_INIT,
@@ -250,7 +249,10 @@ enum DialStat {
   DIAL_SUCCESS,
 };
 
-enum CallIdStatus { CALLER_ID_CLOSE = 0, CALLER_ID_OPEN = 1 };
+enum CallIdStatus {
+  CALLER_ID_CLOSE = 0,
+  CALLER_ID_OPEN = 1
+};
 
 enum RadioMode {
   /* minimum functionality, dsiable RF but reserve SIM card power supply,
@@ -262,12 +264,12 @@ enum RadioMode {
   RADIO_FMODE = 5, /* Factory Test Mode */
   RADIO_RESTART_MODE = 6, /* Reset mode */
                           /* note:AT+CFUN=6 must be used after setting AT+CFUN=7
-                           * If module in offline mode, must execute AT+CFUN=6 or restart module to
-                           * online mode.*/
+* If module in offline mode, must execute AT+CFUN=6 or restart module to
+* online mode.*/
   RADIO_OFF_MODE =
       7, /* Offline Mode, Radio unavailable (eg, resetting or not booted) */
          /* note:If AT+CFUN=0/4 is used after setting AT+CFUN=7,
-          * module will restart to online mode */
+* module will restart to online mode */
 };
 
 typedef enum {
@@ -279,11 +281,11 @@ typedef enum {
 } CardState;
 
 struct LceStatusInfo {
-  uint8_t lce_status;          /* LCE service status:
-                                * -1 = not supported;
-                                * 0 = stopped;
-                                * 1 = active.
-                                */
+  uint8_t lce_status; /* LCE service status:
+                       * -1 = not supported;
+                       * 0 = stopped;
+                       * 1 = active.
+                       */
   uint32_t actual_interval_ms; /* actual LCE reporting interval,
                                 * meaningful only if LCEStatus = 1.*/
 };
@@ -478,11 +480,11 @@ typedef enum {
 } CallState;
 
 struct ApnItem {
-  int cid_;       /* Context ID, uniquely identifies this call */
-  int active_;    /* 0=inactive, 1=active/physical link down, 2=active/physical
-                    link    up */
-  char *type_;    /* One of the PDP_type values in TS 27.007 section 10.1.1.
-                    For example, "IP", "IPV6", "IPV4V6", or "PPP". */
+  int cid_;    /* Context ID, uniquely identifies this call */
+  int active_; /* 0=inactive, 1=active/physical link down, 2=active/physical
+                 link    up */
+  char *type_; /* One of the PDP_type values in TS 27.007 section 10.1.1.
+                 For example, "IP", "IPV6", "IPV4V6", or "PPP". */
   char *ifname_;  /* The network interface name */
   char *apn_;     /* ignored */
   char *address_; /* An address, e.g., "192.0.1.3" or "2001:db8::1". */
@@ -663,7 +665,8 @@ class ATChannel;
 class ATCmdManager;
 class SMSManager;
 class Modem;
-class Mobile : public GetMobileAPNService {
+
+class MobileApp : public GetMobileAPNService {
  public:
   enum ThreadIndex {
     THREAD_ATCMDLOOP = 0,
@@ -672,8 +675,8 @@ class Mobile : public GetMobileAPNService {
   };
 
  public:
-  Mobile();
-  ~Mobile();
+  MobileApp();
+  ~MobileApp();
 
   bool LoadConfig();
   void Init(int argc, char **argv);
@@ -686,7 +689,6 @@ class Mobile : public GetMobileAPNService {
   MemPool *pool_;
   EventStack *stack_;
   Modem *modem_;
-  AgentClient *agent_;
   bool quit_;
 
   static brpc::Server server_;
@@ -696,5 +698,5 @@ class Mobile : public GetMobileAPNService {
                             google::protobuf::Closure *done);
   bool RegisterService();
 };
-}  // namespace mobile
+}  // namespace Mobile
 #endif

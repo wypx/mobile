@@ -12,14 +12,14 @@
  **************************************************************************/
 #include "ATTok.h"
 
-#include <base/GccAttr.h>
+#include <base/gcc_attr.h>
 #include <string.h>
 #include <unistd.h>
 
 #include <cctype>
 #include <cstdlib>
 
-namespace mobile {
+namespace Mobile {
 
 /**
  * Starts tokenizing an AT response string
@@ -182,4 +182,4 @@ char *AtFindNextEOL(char *cur) {
   return *cur == '\0' ? nullptr : cur;
 }
 
-}  // namespace mobile
+}  // namespace Mobile

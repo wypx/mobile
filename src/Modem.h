@@ -17,7 +17,7 @@
 
 #include "Mobile.h"
 
-namespace mobile {
+namespace Mobile {
 
 enum ModemType {
   MODEM_UNKOWN,
@@ -114,10 +114,10 @@ class Modem {
   const ModemInfo *modem_info() const { return modem_; }
 
   bool ProbeDevice();
-  virtual bool CheckSimcard() { return true;}
-  virtual bool CheckCellfun(){ return true;}
-  virtual bool StartDial(){ return true;}
-  virtual bool StopDial(){ return true;}
+  virtual bool CheckSimcard() { return true; }
+  virtual bool CheckCellfun() { return true; }
+  virtual bool StartDial() { return true; }
+  virtual bool StopDial() { return true; }
 
   void UnsolHandler(const char *line, const char *smsPdu);
   void ReaderCloseHandler();
@@ -150,5 +150,5 @@ class Modem {
   SMSManager *sms_mgr_;
 };
 
-}  // namespace mobile
+}  // namespace Mobile
 #endif

@@ -10,7 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-namespace mobile {
+
+namespace Mobile {
 
 /*
  * 2G 3G 4G and 5G Modem Identify
@@ -117,4 +118,4 @@ namespace mobile {
 #define USB_MODEM_IDPRODUCT_E7B01_04_C 0x3d53
 #define USB_MODEM_IDPRODUCT_E5530 0x3d53
 
-}  // namespace mobile
+}  // namespace Mobile

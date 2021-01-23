@@ -12,15 +12,15 @@
  **************************************************************************/
 #include "Dial.h"
 
-#include <base/Utils.h>
-#include <base/GccAttr.h>
+#include <base/utils.h>
+#include <base/gcc_attr.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <butil/logging.h>
 
 #include "Modem.h"
 
-namespace mobile {
+namespace Mobile {
 
 static char const *kPPPd = "pppd";
 static char const *kModem = "modem";
@@ -39,7 +39,7 @@ static char const *kHidePassWord = "hide-password"; /* show-password */
 static char const *kNoDeflate = "nodeflate";
 static char const *kNopcomp = "nopcomp";
 static char const *kNovj = "novj";
-static MSF_UNUSED_CHECK char const *kNoccp = "noccp";
+static __attribute_unused__ char const *kNoccp = "noccp";
 static char const *kNovjCcomp = "novjccomp";
 
 static char const *kMtuKey = "mtu";
@@ -74,35 +74,35 @@ static struct LocalDialParam {
   char pass_[32];
   char apn_[32];
 } kDefaultDialParam[] = {
-    {OPERATOR_TELCOM, MODE_EVDO, "#777", "card", "card", ""}, /* EVDO mode */
-    {OPERATOR_UNICOM, MODE_WCDMA, "*99#", "user", "user",
-     "3gnet"}, /* WCDMA mode */
-    {OPERATOR_MOBILE, MODE_TDSCDMA, "*98*1#", "user", "user",
-     "cmnet"}, /* TDSCDMA mode */
-    {OPERATOR_MOBILE, MODE_TDLTE, "*98*1#", "card", "card",
-     "cmnet"}, /* TDLTE mode */
-    {OPERATOR_TELCOM, MODE_FDDLTE, "*99#", "user", "user",
-     "ctlte"}, /* FDDLTE mode */
-    {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#", "user", "user",
-     "cuinet"}, /* FDDLTE mode */
-    {OPERATOR_MOBILE, MODE_TDLTE, "*98*1#", "card", "card",
-     "cmwap"}, /* TDLTE mode */
-    {OPERATOR_MOBILE, MODE_TDLTE, "*98*1#", "card", "card",
-     "cmmtm"}, /* TDLTE mode */
-    {OPERATOR_TELCOM, MODE_EVDO, "#777", "ctnet@mycdma.cn", "vnet.mobi",
-     ""}, /*evdo mode */
-    {OPERATOR_TELCOM, MODE_FDDLTE, "*98*1#", "user", "user",
-     "ctm2m"}, /* FDDLTE mode */
-    {OPERATOR_TELCOM, MODE_FDDLTE, "*98*1#", "user", "user",
-     "ctnet"}, /* FDDLTE mode */
-    {OPERATOR_TELCOM, MODE_FDDLTE, "*98*1#", "user", "user",
-     "ctwap"}, /* FDDLTE mode */
-    {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#", "user", "user",
-     "uninet"}, /* FDDLTE mode */
-    {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#", "user", "user",
-     "uniwap"}, /* FDDLTE mode */
-    {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#", "user", "user",
-     "wonet"}, /* FDDLTE mode */
+      {OPERATOR_TELCOM, MODE_EVDO, "#777", "card", "card", ""}, /* EVDO mode */
+      {OPERATOR_UNICOM, MODE_WCDMA, "*99#",
+       "user",          "user",     "3gnet"}, /* WCDMA mode */
+      {OPERATOR_MOBILE, MODE_TDSCDMA, "*98*1#",
+       "user",          "user",       "cmnet"}, /* TDSCDMA mode */
+      {OPERATOR_MOBILE, MODE_TDLTE, "*98*1#",
+       "card",          "card",     "cmnet"}, /* TDLTE mode */
+      {OPERATOR_TELCOM, MODE_FDDLTE, "*99#",
+       "user",          "user",      "ctlte"}, /* FDDLTE mode */
+      {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#",
+       "user",          "user",      "cuinet"}, /* FDDLTE mode */
+      {OPERATOR_MOBILE, MODE_TDLTE, "*98*1#",
+       "card",          "card",     "cmwap"}, /* TDLTE mode */
+      {OPERATOR_MOBILE, MODE_TDLTE, "*98*1#",
+       "card",          "card",     "cmmtm"}, /* TDLTE mode */
+      {OPERATOR_TELCOM,   MODE_EVDO,   "#777",
+       "ctnet@mycdma.cn", "vnet.mobi", ""}, /*evdo mode */
+      {OPERATOR_TELCOM, MODE_FDDLTE, "*98*1#",
+       "user",          "user",      "ctm2m"}, /* FDDLTE mode */
+      {OPERATOR_TELCOM, MODE_FDDLTE, "*98*1#",
+       "user",          "user",      "ctnet"}, /* FDDLTE mode */
+      {OPERATOR_TELCOM, MODE_FDDLTE, "*98*1#",
+       "user",          "user",      "ctwap"}, /* FDDLTE mode */
+      {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#",
+       "user",          "user",      "uninet"}, /* FDDLTE mode */
+      {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#",
+       "user",          "user",      "uniwap"}, /* FDDLTE mode */
+      {OPERATOR_UNICOM, MODE_FDDLTE, "*98*1#",
+       "user",          "user",      "wonet"}, /* FDDLTE mode */
 };
 
 Dial::Dial()
@@ -283,4 +283,4 @@ void net_ip_forward(int val) {
   // iptable -t nat -A POSTROUTING -o ppp0 -s IP -j SNAT --to PPP_IP
 }
 
-}  // namespace mobile
+}  // namespace Mobile

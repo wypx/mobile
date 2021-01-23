@@ -15,10 +15,10 @@
 
 #include <cstdint>
 
-namespace mobile {
+namespace Mobile {
 
 uint32_t StrUnicode2GB(const char *src, char *dst, uint32_t n);
 uint32_t StrGB2Unicode(const char *str, char *dst, uint32_t n);
 
-}  // namespace mobile
+}  // namespace Mobile
 #endif

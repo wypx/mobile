@@ -12,8 +12,8 @@
  **************************************************************************/
 #include "ATCmd.h"
 
-#include <event/EventLoop.h>
-#include <base/MTime.h>
+#include <event/event_loop.h>
+#include <base/time_utils.h>
 
 #include "ATChannel.h"
 #include "ATTok.h"
@@ -21,9 +21,9 @@
 #include "Sms.h"
 
 using namespace MSF;
-using namespace mobile;
+using namespace Mobile;
 
-namespace mobile {
+namespace Mobile {
 
 bool ATCmdManager::initModem() {
   int ret;
@@ -926,4 +926,4 @@ bool ATCmdManager::setQosRequestBrief(void) {
   send_command_("AT+CGEQREQ=1,3,11520,11520,11520,11520,,,,,,,3", nullptr);
   return true;
 }
-}  // namespace mobile
+}  // namespace Mobile

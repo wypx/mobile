@@ -16,9 +16,9 @@
 #include <butil/logging.h>
 
 using namespace MSF;
-using namespace mobile;
+using namespace Mobile;
 
-namespace mobile {
+namespace Mobile {
 
 static const uint16_t kUnicodeGB2312Table[][2] = {
     {0x00A4, 0xA1E8}, /* '¤' ->   164 */
@@ -21720,11 +21720,11 @@ void UnicodeGbTest(void) {
   StrGB2Unicode(gb, unicode, strlen(gb));
 
   LOG(DEBUG) << "After translate: (" << (uint8_t)unicode[0] << ","
-            << (uint8_t)unicode[1] << "," << (uint8_t)unicode[2] << ","
-            << (uint8_t)unicode[3] << ").";
+             << (uint8_t)unicode[1] << "," << (uint8_t)unicode[2] << ","
+             << (uint8_t)unicode[3] << ").";
 
   unicode[4] = 0;
   StrUnicode2GB(unicode, gb, len);
   LOG(DEBUG) << "gb: " << gb << ", len:" << len;
 }
-}  // namespace mobile
+}  // namespace Mobile

@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "Errno.h"
 
-namespace mobile {
+namespace Mobile {
 
 static const std::string kMobileErrnoString[] = {
     "MOBILE_STATE_INIT",     /* Mobile init state*/
@@ -36,4 +36,4 @@ const std::string &StrMobileErrno(MobileErrno e) {
   return kMobileErrnoString[e];
 }
 
-}  // namespace mobile
+}  // namespace Mobile

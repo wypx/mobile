@@ -24,22 +24,22 @@
 #include "Sms.h"
 
 using namespace MSF;
-using namespace mobile;
-namespace mobile {
+using namespace Mobile;
+
+namespace Mobile {
 
 static const std::string kSysBusUsbDevice = "/sys/bus/usb/devices";
 
 const std::string &Modem::PasreModem() const {
-  static const std::string kModemPasrer[] = {
-      "MODEM_UNKOWN",   /* 未知 */
-      "MODEM_LONGSUNG", /* 龙尚 */
-      "MODEM_HUAWEI",   /* 华为 */
-      "MODEM_ZTE",      /* 中兴 */
-      "MODEM_INTEL",    /* Intel */
-      "MODEM_SIMCOM",   /* SIMCOM */
-      "MODEM_NODECOM",  /* 诺控 */
-      "MODEM_NEOWAY",   /* 有方 */
-      "MODEM_QUECTEL"   /* 移远 */
+  static const std::string kModemPasrer[] = {"MODEM_UNKOWN",   /* 未知 */
+                                             "MODEM_LONGSUNG", /* 龙尚 */
+                                             "MODEM_HUAWEI",   /* 华为 */
+                                             "MODEM_ZTE",      /* 中兴 */
+                                             "MODEM_INTEL",    /* Intel */
+                                             "MODEM_SIMCOM",   /* SIMCOM */
+                                             "MODEM_NODECOM",  /* 诺控 */
+                                             "MODEM_NEOWAY",   /* 有方 */
+                                             "MODEM_QUECTEL"   /* 移远 */
   };
   return kModemPasrer[modem_->modem_type_];
 }
@@ -48,27 +48,25 @@ Operator Modem::MatchOperator(const char *cimiStr) {
   static struct OperatorItem {
     char cimi_[16];
     Operator oper_;
-  } kOperMatch[] = {
-      {"OPERATOR MOBILE", OPERATOR_MOBILE},
-      {"CMCC", OPERATOR_MOBILE},
-      {"46000", OPERATOR_MOBILE},
-      {"46002", OPERATOR_MOBILE},
-      {"46004", OPERATOR_MOBILE}, /*NB-IOT*/
-      {"46007", OPERATOR_MOBILE},
-      {"46008", OPERATOR_MOBILE},
-      {"46020", OPERATOR_MOBILE},
-      {"46027", OPERATOR_MOBILE},
-      {"CHN-UNICOM", OPERATOR_UNICOM},
-      {"UNICOM", OPERATOR_UNICOM},
-      {"46001", OPERATOR_UNICOM},
-      {"46006", OPERATOR_UNICOM}, /*NB-IOT*/
-      {"46009", OPERATOR_UNICOM},
-      {"CHN-UNICOM", OPERATOR_TELCOM},
-      {"46003", OPERATOR_TELCOM},
-      {"46005", OPERATOR_TELCOM},
-      {"46011", OPERATOR_TELCOM},
-      {"2040", OPERATOR_TELCOM},
-  };
+  } kOperMatch[] = {{"OPERATOR MOBILE", OPERATOR_MOBILE},
+                    {"CMCC", OPERATOR_MOBILE},
+                    {"46000", OPERATOR_MOBILE},
+                    {"46002", OPERATOR_MOBILE},
+                    {"46004", OPERATOR_MOBILE}, /*NB-IOT*/
+                    {"46007", OPERATOR_MOBILE},
+                    {"46008", OPERATOR_MOBILE},
+                    {"46020", OPERATOR_MOBILE},
+                    {"46027", OPERATOR_MOBILE},
+                    {"CHN-UNICOM", OPERATOR_UNICOM},
+                    {"UNICOM", OPERATOR_UNICOM},
+                    {"46001", OPERATOR_UNICOM},
+                    {"46006", OPERATOR_UNICOM}, /*NB-IOT*/
+                    {"46009", OPERATOR_UNICOM},
+                    {"CHN-UNICOM", OPERATOR_TELCOM},
+                    {"46003", OPERATOR_TELCOM},
+                    {"46005", OPERATOR_TELCOM},
+                    {"46011", OPERATOR_TELCOM},
+                    {"2040", OPERATOR_TELCOM}, };
 
   for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kOperMatch); ++i) {
     /* (same) USB ID canot recognise model, AT+CGMM needed for LongSung */
@@ -82,11 +80,8 @@ Operator Modem::MatchOperator(const char *cimiStr) {
 
 const std::string &Modem::PasreOperator(Operator op) const {
   static const std::string kOperParser[] = {
-      "OPERATOR_MOBILE",
-      "OPERATOR_UNICOM",
-      "OPERATOR_TELCOM",
-      "OPERATOR_UNKOWN",
-  };
+      "OPERATOR_MOBILE", "OPERATOR_UNICOM",
+      "OPERATOR_TELCOM", "OPERATOR_UNKOWN", };
   return kOperParser[op];
 }
 
@@ -94,29 +89,27 @@ static struct NetModeItem {
   char name_[16];
   enum Operator oper_;
   enum NetMode mode_;
-} kModeMath[] = {
-    {"NONE", OPERATOR_MOBILE, MODE_NONE},
-    {"NONE", OPERATOR_UNICOM, MODE_NONE},
-    {"NONE", OPERATOR_TELCOM, MODE_NONE},
-    {"LTE FDD", OPERATOR_TELCOM, MODE_FDDLTE},
-    {"LTE FDD", OPERATOR_UNICOM, MODE_FDDLTE},
-    {"LTE TDD", OPERATOR_MOBILE, MODE_TDLTE},
-    {"UMTS", OPERATOR_MOBILE, MODE_TDSCDMA},
-    {"UMTS", OPERATOR_UNICOM, MODE_WCDMA},
-    {"HSUPA", OPERATOR_UNICOM, MODE_WCDMA},
-    {"HSDPA", OPERATOR_MOBILE, MODE_TDSCDMA},
-    {"EVDO", OPERATOR_TELCOM, MODE_EVDO},
-    {"TDSCDMA", OPERATOR_MOBILE, MODE_TDSCDMA},
-    {"GPRS", OPERATOR_MOBILE, MODE_GPRS},
-    {"GPRS", OPERATOR_UNICOM, MODE_GPRS},
-    {"GPRS", OPERATOR_TELCOM, MODE_GPRS},
-    {"EDGE", OPERATOR_MOBILE, MODE_GPRS},
-    {"EDGE", OPERATOR_UNICOM, MODE_GPRS},
-    {"EDGE", OPERATOR_TELCOM, MODE_GPRS},
-    {"WCDMA", OPERATOR_UNICOM, MODE_WCDMA},
-};
+} kModeMath[] = {{"NONE", OPERATOR_MOBILE, MODE_NONE},
+                 {"NONE", OPERATOR_UNICOM, MODE_NONE},
+                 {"NONE", OPERATOR_TELCOM, MODE_NONE},
+                 {"LTE FDD", OPERATOR_TELCOM, MODE_FDDLTE},
+                 {"LTE FDD", OPERATOR_UNICOM, MODE_FDDLTE},
+                 {"LTE TDD", OPERATOR_MOBILE, MODE_TDLTE},
+                 {"UMTS", OPERATOR_MOBILE, MODE_TDSCDMA},
+                 {"UMTS", OPERATOR_UNICOM, MODE_WCDMA},
+                 {"HSUPA", OPERATOR_UNICOM, MODE_WCDMA},
+                 {"HSDPA", OPERATOR_MOBILE, MODE_TDSCDMA},
+                 {"EVDO", OPERATOR_TELCOM, MODE_EVDO},
+                 {"TDSCDMA", OPERATOR_MOBILE, MODE_TDSCDMA},
+                 {"GPRS", OPERATOR_MOBILE, MODE_GPRS},
+                 {"GPRS", OPERATOR_UNICOM, MODE_GPRS},
+                 {"GPRS", OPERATOR_TELCOM, MODE_GPRS},
+                 {"EDGE", OPERATOR_MOBILE, MODE_GPRS},
+                 {"EDGE", OPERATOR_UNICOM, MODE_GPRS},
+                 {"EDGE", OPERATOR_TELCOM, MODE_GPRS},
+                 {"WCDMA", OPERATOR_UNICOM, MODE_WCDMA}, };
 
-static ModemInfo kUsbModems[] = {
+static ModemInfo kUSBModems[] = {
     ModemInfo(USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300, "U8300",
               MODEM_LONGSUNG, 1, 3, 2, 2),
     ModemInfo(USB_MODEM_IDVENDOR_LONGCHEER, USB_MODEM_IDPRODUCT_U8300W,
@@ -133,14 +126,14 @@ static ModemInfo kUsbModems[] = {
               "ME909s_121", MODEM_HUAWEI, 4, 2, 1, 0)};
 
 bool Modem::CheckIdSupport(const uint32_t vendorId, const uint32_t productId) {
-  for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kUsbModems); ++i) {
-    if (productId == kUsbModems[i].product_id_ &&
-        vendorId == kUsbModems[i].vendor_id_) {
-      modem_ = &kUsbModems[i];
+  for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kUSBModems); ++i) {
+    if (productId == kUSBModems[i].product_id_ &&
+        vendorId == kUSBModems[i].vendor_id_) {
+      modem_ = &kUSBModems[i];
       return true;
     }
     errno_ = MOBILE_E_DRIVER_ID_NOT_SUPPORT;
-    if (i == (MSF_ARRAY_SIZE(kUsbModems) - 1)) return false;
+    if (i == (MSF_ARRAY_SIZE(kUSBModems) - 1)) return false;
   }
   return true;
 }
@@ -243,13 +236,13 @@ bool Modem::CheckSerialPort() {
 }
 
 void Modem::MatchModem(const char *modemStr) {
-  for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kUsbModems); ++i) {
+  for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kUSBModems); ++i) {
     /*(same) USB ID canot recognise model, AT+CGMM needed for LongSung */
-    if (strstr(modemStr, kUsbModems[i].modem_name_.c_str()) &&
-        modem_->product_id_ == kUsbModems[i].product_id_ &&
-        modem_->vendor_id_ == kUsbModems[i].vendor_id_) {
+    if (::strstr(modemStr, kUSBModems[i].modem_name_.c_str()) &&
+        modem_->product_id_ == kUSBModems[i].product_id_ &&
+        modem_->vendor_id_ == kUSBModems[i].vendor_id_) {
       /* Update modem pointer to specific item */
-      modem_ = &kUsbModems[i];
+      modem_ = &kUSBModems[i];
       errno_ = MOBILE_E_TTY_USB_AVAILABLE;
       break;
     }
@@ -263,7 +256,7 @@ void Modem::MatchNetMode(const char *netStr) {
     case MODEM_HUAWEI: {
       int tmp[7];
       char currMode[32] = {0};
-      char *p = strstr(pNetStr, ":");
+      char *p = ::strstr(pNetStr, ":");
       if (unlikely(!p)) {
         LOG(ERROR) << "Parse network mode failed";
         return;
@@ -302,7 +295,7 @@ void Modem::MatchNetMode(const char *netStr) {
       if (ret < 0) return;
 
       for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kModeMath); ++i) {
-        if (strstr(response, kModeMath[i].name_) &&
+        if (::strstr(response, kModeMath[i].name_) &&
             (modem_->sim_operator_ == kModeMath[i].oper_)) {
           net_mode_ = kModeMath[i].mode_;
           break;
@@ -319,30 +312,28 @@ void Modem::MatchNetMode(const char *netStr) {
 static struct UnsolParser {
   std::string unsolATLine_;
   ATUnsolHandler handler_;
-} kUnsolATLine[] = {
-    {"%CTZV", nullptr}, /* TI specific -- NITZ time */
-    {"+CRING:", nullptr},
-    {"RING:", nullptr},
-    {"NO CARRIER:", nullptr},
-    {"+CCWA:", nullptr},
-    {"+CREG:", nullptr},
-    {"+CGREG:", nullptr},
-    {"+CMT:", nullptr},
-    {"+CDS:", nullptr},
-    {"+CME ERROR: 150:", nullptr},
-    {"+CGDCONT:", nullptr},
+} kUnsolATLine[] = {{"%CTZV", nullptr}, /* TI specific -- NITZ time */
+                    {"+CRING:", nullptr},
+                    {"RING:", nullptr},
+                    {"NO CARRIER:", nullptr},
+                    {"+CCWA:", nullptr},
+                    {"+CREG:", nullptr},
+                    {"+CGREG:", nullptr},
+                    {"+CMT:", nullptr},
+                    {"+CDS:", nullptr},
+                    {"+CME ERROR: 150:", nullptr},
+                    {"+CGDCONT:", nullptr},
 
-    /*接收到一条新的短信通知*/
-    // if(MODE_EVDO == net_mode_)
-    // {
-    // sprintf((char *)command, "AT^HCMGR=%d", );
-    // },
-    // else
-    // {
-    // sprintf((char *)command, "AT+CMGR=%d", );
-    // },
-    {"+CMTI:", nullptr},
-};
+                    /*接收到一条新的短信通知*/
+                    // if(MODE_EVDO == net_mode_)
+                    // {
+                    // sprintf((char *)command, "AT^HCMGR=%d", );
+                    // },
+                    // else
+                    // {
+                    // sprintf((char *)command, "AT+CMGR=%d", );
+                    // },
+                    {"+CMTI:", nullptr}, };
 
 /**
  * Called by atchannel when an unsolicited line appears
@@ -552,28 +543,29 @@ bool Modem::Init() {
     return false;
   }
 
-  channel_ = new ATChannel(std::bind(&Modem::UnsolHandler, this,
-                                std::placeholders::_1, std::placeholders::_2),
-                      std::bind(&Modem::ReaderCloseHandler, this),
-                      std::bind(&Modem::ReadTimeoutHandler, this),
-                      [this](int32_t fd) {
-                          Event *ev = new Event(loop_, fd);
-                          loop_->updateEvent(ev);
-                      });
+  channel_ = new ATChannel(
+      std::bind(&Modem::UnsolHandler, this, std::placeholders::_1,
+                std::placeholders::_2),
+      std::bind(&Modem::ReaderCloseHandler, this),
+      std::bind(&Modem::ReadTimeoutHandler, this), [this](int32_t fd) {
+        Event *ev = new Event(loop_, fd);
+        loop_->updateEvent(ev);
+      });
   loop_->runInLoop(std::bind(&ATChannel::Initialize, channel_));
 
   /* Give initializeCallback a chance to dispatched, since
    * we don't presently have a cancellation mechanism */
   usleep(500);
-  
+
   at_mgr_ = new ATCmdManager();
   assert(at_mgr_);
   channel_->RegisterATCommandCb(at_mgr_);
 
   sms_mgr_ = new SMSManager(1000);
   assert(sms_mgr_);
-  sms_mgr_->RegisterWriter(std::bind(&ATChannel::WriteLine, channel_, 
-    std::placeholders::_1, std::placeholders::_2));
+  sms_mgr_->RegisterWriter(std::bind(&ATChannel::WriteLine, channel_,
+                                     std::placeholders::_1,
+                                     std::placeholders::_2));
 
   return true;
 }
@@ -611,4 +603,4 @@ int usb_start(void *data, uint32_t datalen) {
 
   return 0;
 }
-}  // namespace mobile
+}  // namespace Mobile

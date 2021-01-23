@@ -24,8 +24,9 @@
 
 #include "Modem.h"
 
-using namespace mobile;
-namespace mobile {
+using namespace Mobile;
+
+namespace Mobile {
 
 static const uint32_t kDefaultMTU = 1460;
 static const std::string kPPPInterface = "ppp0";
@@ -132,5 +133,5 @@ class Dial {
   bool ReDialPPP();
   bool DialPPP(DialCb cb);
 };
-}  // namespace mobile
+}  // namespace Mobile
 #endif

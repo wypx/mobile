@@ -17,9 +17,9 @@
 #include "Unicode.h"
 
 using namespace MSF;
-using namespace mobile;
+using namespace Mobile;
 
-namespace mobile {
+namespace Mobile {
 
 // User SMS Code
 #define GSM_7BIT 0
@@ -300,10 +300,9 @@ uint32_t SMSManager::DecodePdu(char *src) {
 
   if (tp_dcs_ == GSM_7BIT) {
     // 7-bit解码
-    nDstLength = String2Byte(
-        src, buf,
-        tmp & 7 ? (int)tmp * 7 / 4 + 2 : (int)tmp * 7 / 4);  //格式转换
-    Decode7Bit(buf, tp_ud_, nDstLength);                     //转换到TP-DU
+    nDstLength = String2Byte(src, buf, tmp & 7 ? (int)tmp * 7 / 4 + 2
+                                               : (int)tmp * 7 / 4);  //格式转换
+    Decode7Bit(buf, tp_ud_, nDstLength);  //转换到TP-DU
     nDstLength = tmp;
   } else if (tp_dcs_ == GSM_UCS2) {
     // UCS2解码
@@ -463,4 +462,4 @@ int SMSManager::ATReadSMSThread(char *line1, char *line2, int index,
   }
   return 0;
 }
-}  // namespace mobile
+}  // namespace Mobile

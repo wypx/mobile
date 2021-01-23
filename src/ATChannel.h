@@ -17,11 +17,11 @@
 #include <functional>
 #include <iostream>
 
-#include <event/EventLoop.h>
+#include <event/event_loop.h>
 
 #include "ATCmd.h"
 
-namespace mobile {
+namespace Mobile {
 
 /**
  * Ref android source:
@@ -58,7 +58,7 @@ typedef enum {
   NUMERIC,    /* a single intermediate response starting with a 0-9 */
   SINGLELINE, /* a single intermediate response starting with a prefix */
   MULTILINE   /* multiple line intermediate response
-               starting with a prefix */
+           starting with a prefix */
 } ATCmdType;
 
 /** a singly-lined list of intermediate responses */
@@ -69,8 +69,8 @@ typedef struct ATLine {
 
 /** Free this with at_response_free() */
 typedef struct ATResponse {
-  int success_;           /* true if final response indicates
-                                 success (eg "OK") */
+  int success_; /* true if final response indicates
+                       success (eg "OK") */
   char *final_resp_;      /* eg OK, ERROR */
   ATLine *intermediates_; /* any intermediate responses */
 } ATResponse;
@@ -201,5 +201,5 @@ class ATChannel {
 #ifdef __cplusplus
 }
 #endif
-}  // namespace mobile
+}  // namespace Mobile
 #endif
