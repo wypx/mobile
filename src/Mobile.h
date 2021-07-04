@@ -20,10 +20,13 @@
 #include <base/gcc_attr.h>
 #include <base/mem_pool.h>
 #include <base/os.h>
+#include <base/logging.h>
 
-#include <brpc/server.h>
-#include <butil/logging.h>
 #include <gflags/gflags.h>
+
+#if 0
+#include <brpc/server.h>
+#endif
 
 #include <list>
 #include <set>
@@ -666,7 +669,7 @@ class ATCmdManager;
 class SMSManager;
 class Modem;
 
-class MobileApp : public GetMobileAPNService {
+class MobileApp {
  public:
   enum ThreadIndex {
     THREAD_ATCMDLOOP = 0,
@@ -691,12 +694,15 @@ class MobileApp : public GetMobileAPNService {
   Modem *modem_;
   bool quit_;
 
+#if 0
   static brpc::Server server_;
+
   virtual void GetMobileAPN(google::protobuf::RpcController *cntl_base,
                             const GetMobileAPNRequest *request,
                             GetMobileAPNResponse *response,
                             google::protobuf::Closure *done);
   bool RegisterService();
+#endif
 };
 }  // namespace Mobile
 #endif

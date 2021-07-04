@@ -412,7 +412,7 @@ int ATChannel::WriteLine(const char *s, const char *ctrl) {
     return AT_ERROR_CHANNEL_CLOSED;
   }
 
-  LOG(DEBUG) << ">> " << s;
+  LOG(L_DEBUG) << ">> " << s;
 
   /* the main string */
   while (cur < len) {
@@ -677,7 +677,7 @@ char *ATChannel::ReadLine() const {
   kATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
                             /* and there will be a \0 at *p_read */
 
-  // MSF_MOBILE_LOG(DBG_DEBUG,"AT< %s\n", ret);
+  // MSF_MOBILE_LOG(DBG_L_DEBUG,"AT< %s\n", ret);
   return ret;
 }
 

@@ -16,7 +16,7 @@
 #include <base/gcc_attr.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "Modem.h"
 
@@ -154,7 +154,7 @@ void Dial::SigHandler(int sig) {
     case SIGSEGV:
     case SIGBUS:
       SigPPPExist(&pppid_);
-      LOG(DEBUG) << "pppd exit.";
+      LOG(L_DEBUG) << "pppd exit.";
       exit(0);
     default:
       break;

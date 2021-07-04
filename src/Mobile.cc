@@ -35,6 +35,7 @@ namespace Mobile {
 static const std::string kMobileVersion = "beta v1.0";
 static const std::string kMobileProject = "https://github.com/wypx/mobile";
 
+#if 1
 DEFINE_string(conf, "/home/luotang.me/conf/Mobile.conf", "Configure file.");
 DEFINE_bool(daemon, false, "Run as daemon mode");
 DEFINE_bool(echo_attachment, true, "Attachment as well");
@@ -46,12 +47,15 @@ DEFINE_int32(idle_timeout_s, -1,
 DEFINE_int32(logoff_ms, 2000,
              "Maximum duration of server's LOGOFF state "
              "(waiting for client to close connection before server stops)");
+#endif
 
 MobileApp::MobileApp() {}
 
 MobileApp::~MobileApp() { google::ShutDownCommandLineFlags(); }
 
+#if 0
 brpc::Server MobileApp::server_;
+#endif
 
 void MobileApp::Init(int argc, char** argv) {
   OsInfo::EnableCoredump();
@@ -66,6 +70,7 @@ void MobileApp::Init(int argc, char** argv) {
       "  time            benchmark model execution time");
   google::ParseCommandLineFlags(&argc, &argv, true);
 
+#if 0
   logging::LoggingSettings log_setting;
   log_setting.logging_dest = logging::LOG_TO_ALL;
   log_setting.log_file = "/home/luotang.me/log/Mobile.log";
@@ -73,6 +78,7 @@ void MobileApp::Init(int argc, char** argv) {
   if (!logging::InitLogging(log_setting)) {
     return;
   }
+#endif
 
   if (!LoadConfig()) {
     LOG(FATAL) << "Fail to load config file.";
@@ -95,7 +101,7 @@ void MobileApp::Init(int argc, char** argv) {
   threadArgs.push_back(std::move(ThreadArg("ATCmdLoop")));
   threadArgs.push_back(std::move(ThreadArg("DialLoop")));
   threadArgs.push_back(std::move(ThreadArg("StatLoop")));
-  assert(stack_->startThreads(threadArgs));
+  assert(stack_->StartThreads(threadArgs));
 
   pool_ = new MemPool();
   assert(pool_->Init());
@@ -161,6 +167,7 @@ bool MobileApp::LoadConfig() {
   return true;
 }
 
+#if 0
 void MobileApp::GetMobileAPN(google::protobuf::RpcController* cntl_base,
                              const GetMobileAPNRequest* request,
                              GetMobileAPNResponse* response,
@@ -205,8 +212,10 @@ bool MobileApp::RegisterService() {
   }
   return true;
 }
+#endif
 
 int32_t MobileApp::Start() {
+#if 0
   if (!RegisterService()) {
     return -1;
   }
@@ -220,8 +229,10 @@ int32_t MobileApp::Start() {
 
   // Wait until Ctrl-C is pressed, then Stop() and Join() the server.
   server_.RunUntilAskedToQuit();
+#endif
   return 0;
 }
+
 }  // namespace Mobile
 
 int main(int argc, char** argv) {

@@ -549,9 +549,9 @@ bool Modem::Init() {
       std::bind(&Modem::ReaderCloseHandler, this),
       std::bind(&Modem::ReadTimeoutHandler, this), [this](int32_t fd) {
         Event *ev = new Event(loop_, fd);
-        loop_->updateEvent(ev);
+        loop_->UpdateEvent(ev);
       });
-  loop_->runInLoop(std::bind(&ATChannel::Initialize, channel_));
+  loop_->RunInLoop(std::bind(&ATChannel::Initialize, channel_));
 
   /* Give initializeCallback a chance to dispatched, since
    * we don't presently have a cancellation mechanism */

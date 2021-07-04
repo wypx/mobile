@@ -350,7 +350,7 @@ int SMSManager::SendSMSMsg(const char *phone, const char *msg) {
     write_line_("AT^HSMSSS=0,0,6,0", kCtrlEnter.c_str()); /* set SMS param */
     nSmscLength = StrGB2Unicode(msg, pdu, strlen(msg));
     sprintf(printfBuf, "%d, %ld", nSmscLength, strlen(msg));
-    LOG(DEBUG) << printfBuf;
+    LOG(L_DEBUG) << printfBuf;
     sprintf(atCommand, "AT^HCMGS=\"%s\"", phone);
     write_line_(atCommand, kCtrlEnter.c_str());
     // ret = waitATResponse(">", nullptr, 0, true, 2000);

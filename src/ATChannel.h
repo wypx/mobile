@@ -58,7 +58,7 @@ typedef enum {
   NUMERIC,    /* a single intermediate response starting with a 0-9 */
   SINGLELINE, /* a single intermediate response starting with a prefix */
   MULTILINE   /* multiple line intermediate response
-           starting with a prefix */
+         starting with a prefix */
 } ATCmdType;
 
 /** a singly-lined list of intermediate responses */

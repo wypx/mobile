@@ -13,7 +13,7 @@
 #include "Unicode.h"
 
 #include <base/Utils.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 using namespace MSF;
 using namespace Mobile;
@@ -21719,12 +21719,12 @@ void UnicodeGbTest(void) {
 
   StrGB2Unicode(gb, unicode, strlen(gb));
 
-  LOG(DEBUG) << "After translate: (" << (uint8_t)unicode[0] << ","
+  LOG(L_DEBUG) << "After translate: (" << (uint8_t)unicode[0] << ","
              << (uint8_t)unicode[1] << "," << (uint8_t)unicode[2] << ","
              << (uint8_t)unicode[3] << ").";
 
   unicode[4] = 0;
   StrUnicode2GB(unicode, gb, len);
-  LOG(DEBUG) << "gb: " << gb << ", len:" << len;
+  LOG(L_DEBUG) << "gb: " << gb << ", len:" << len;
 }
 }  // namespace Mobile

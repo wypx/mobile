@@ -30,18 +30,22 @@ set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${DEFINE_CLOCK_GETTIME} -DGFLAGS_NS=${GFLAGS
 
 #protobuf_generate_cpp(PROTO_SRC PROTO_HEADER Mobile.proto)
 
+# brpc.a
+# protobuf.a 
+# protoc.a 
+# gflags.a
+# leveldb.a
+# ssl.a
+# crypto.a
+# snappy.a
+# z.a
 # 设置依赖库
 set(COMMLIBS MSF
-    numa.a
-    brpc.a
-    protobuf.a 
-    protoc.a 
     gflags.a
-    leveldb.a
-    ssl.a
-    crypto.a
-    snappy.a
-    z.a
+    protobuf.a
+    protoc.a
+    numa.a
+    uuid
     pthread
     dl)
 
