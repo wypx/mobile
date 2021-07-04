@@ -16,3 +16,12 @@
 [submodule "tools/src/minicom"]
 	path = tools/src/minicom
 	url = https://github.com/dereknex/minicom.git
+[submodule "tools/src/libphonenumber"]
+	path = tools/src/libphonenumber
+	url = https://github.com/google/libphonenumber
+[submodule "tools/src/ofono"]
+	path = tools/src/ofono
+	url = https://git.kernel.org/pub/scm/network/ofono/ofono.git
+[submodule "tools/src/phonesim"]
+	path = tools/src/phonesim
+	url = https://git.kernel.org/pub/scm/network/ofono/phonesim.git

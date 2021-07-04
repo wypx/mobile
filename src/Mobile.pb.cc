@@ -14,36 +14,44 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
-
-PROTOBUF_PRAGMA_INIT_SEG
 namespace Mobile {
-constexpr GetMobileAPNRequest::GetMobileAPNRequest(
-  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
-  : cid_(0u){}
-struct GetMobileAPNRequestDefaultTypeInternal {
-  constexpr GetMobileAPNRequestDefaultTypeInternal()
-    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
-  ~GetMobileAPNRequestDefaultTypeInternal() {}
-  union {
-    GetMobileAPNRequest _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT GetMobileAPNRequestDefaultTypeInternal _GetMobileAPNRequest_default_instance_;
-constexpr GetMobileAPNResponse::GetMobileAPNResponse(
-  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
-  : apn_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
-  , cid_(0u)
-  , type_(0u){}
-struct GetMobileAPNResponseDefaultTypeInternal {
-  constexpr GetMobileAPNResponseDefaultTypeInternal()
-    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
-  ~GetMobileAPNResponseDefaultTypeInternal() {}
-  union {
-    GetMobileAPNResponse _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT GetMobileAPNResponseDefaultTypeInternal _GetMobileAPNResponse_default_instance_;
+class GetMobileAPNRequestDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<GetMobileAPNRequest> _instance;
+} _GetMobileAPNRequest_default_instance_;
+class GetMobileAPNResponseDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<GetMobileAPNResponse> _instance;
+} _GetMobileAPNResponse_default_instance_;
 }  // namespace Mobile
+static void InitDefaultsscc_info_GetMobileAPNRequest_Mobile_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::Mobile::_GetMobileAPNRequest_default_instance_;
+    new (ptr) ::Mobile::GetMobileAPNRequest();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::Mobile::GetMobileAPNRequest::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_GetMobileAPNRequest_Mobile_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_GetMobileAPNRequest_Mobile_2eproto}, {}};
+
+static void InitDefaultsscc_info_GetMobileAPNResponse_Mobile_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::Mobile::_GetMobileAPNResponse_default_instance_;
+    new (ptr) ::Mobile::GetMobileAPNResponse();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::Mobile::GetMobileAPNResponse::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_GetMobileAPNResponse_Mobile_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_GetMobileAPNResponse_Mobile_2eproto}, {}};
+
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_Mobile_2eproto[2];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_Mobile_2eproto = nullptr;
 static const ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor* file_level_service_descriptors_Mobile_2eproto[1];
@@ -82,34 +90,36 @@ const char descriptor_table_protodef_Mobile_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "N\022\033.Mobile.GetMobileAPNRequest\032\034.Mobile."
   "GetMobileAPNResponseB\003\200\001\001b\006proto3"
   ;
+static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_Mobile_2eproto_deps[1] = {
+};
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Mobile_2eproto_sccs[2] = {
+  &scc_info_GetMobileAPNRequest_Mobile_2eproto.base,
+  &scc_info_GetMobileAPNResponse_Mobile_2eproto.base,
+};
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_Mobile_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Mobile_2eproto = {
-  false, false, 233, descriptor_table_protodef_Mobile_2eproto, "Mobile.proto", 
-  &descriptor_table_Mobile_2eproto_once, nullptr, 0, 2,
+  false, false, descriptor_table_protodef_Mobile_2eproto, "Mobile.proto", 233,
+  &descriptor_table_Mobile_2eproto_once, descriptor_table_Mobile_2eproto_sccs, descriptor_table_Mobile_2eproto_deps, 2, 0,
   schemas, file_default_instances, TableStruct_Mobile_2eproto::offsets,
-  file_level_metadata_Mobile_2eproto, file_level_enum_descriptors_Mobile_2eproto, file_level_service_descriptors_Mobile_2eproto,
+  file_level_metadata_Mobile_2eproto, 2, file_level_enum_descriptors_Mobile_2eproto, file_level_service_descriptors_Mobile_2eproto,
 };
-PROTOBUF_ATTRIBUTE_WEAK const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable* descriptor_table_Mobile_2eproto_getter() {
-  return &descriptor_table_Mobile_2eproto;
-}
 
 // Force running AddDescriptors() at dynamic initialization time.
-PROTOBUF_ATTRIBUTE_INIT_PRIORITY static ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptorsRunner dynamic_init_dummy_Mobile_2eproto(&descriptor_table_Mobile_2eproto);
+static bool dynamic_init_dummy_Mobile_2eproto = (static_cast<void>(::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_Mobile_2eproto)), true);
 namespace Mobile {
 
 // ===================================================================
 
+void GetMobileAPNRequest::InitAsDefaultInstance() {
+}
 class GetMobileAPNRequest::_Internal {
  public:
 };
 
-GetMobileAPNRequest::GetMobileAPNRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+GetMobileAPNRequest::GetMobileAPNRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
   SharedCtor();
-  if (!is_message_owned) {
-    RegisterArenaDtor(arena);
-  }
+  RegisterArenaDtor(arena);
   // @@protoc_insertion_point(arena_constructor:Mobile.GetMobileAPNRequest)
 }
 GetMobileAPNRequest::GetMobileAPNRequest(const GetMobileAPNRequest& from)
@@ -119,19 +129,18 @@ GetMobileAPNRequest::GetMobileAPNRequest(const GetMobileAPNRequest& from)
   // @@protoc_insertion_point(copy_constructor:Mobile.GetMobileAPNRequest)
 }
 
-inline void GetMobileAPNRequest::SharedCtor() {
-cid_ = 0u;
+void GetMobileAPNRequest::SharedCtor() {
+  cid_ = 0u;
 }
 
 GetMobileAPNRequest::~GetMobileAPNRequest() {
   // @@protoc_insertion_point(destructor:Mobile.GetMobileAPNRequest)
-  if (GetArenaForAllocation() != nullptr) return;
   SharedDtor();
   _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-inline void GetMobileAPNRequest::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+void GetMobileAPNRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
 }
 
 void GetMobileAPNRequest::ArenaDtor(void* object) {
@@ -143,6 +152,11 @@ void GetMobileAPNRequest::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
 void GetMobileAPNRequest::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
+const GetMobileAPNRequest& GetMobileAPNRequest::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_GetMobileAPNRequest_Mobile_2eproto.base);
+  return *internal_default_instance();
+}
+
 
 void GetMobileAPNRequest::Clear() {
 // @@protoc_insertion_point(message_clear_start:Mobile.GetMobileAPNRequest)
@@ -156,9 +170,11 @@ void GetMobileAPNRequest::Clear() {
 
 const char* GetMobileAPNRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
     switch (tag >> 3) {
       // uint32 cid = 2;
       case 2:
@@ -169,8 +185,7 @@ const char* GetMobileAPNRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAME
         continue;
       default: {
       handle_unusual:
-        if ((tag == 0) || ((tag & 7) == 4)) {
-          CHK_(ptr);
+        if ((tag & 7) == 4 || tag == 0) {
           ctx->SetLastTag(tag);
           goto success;
         }
@@ -234,29 +249,38 @@ size_t GetMobileAPNRequest::ByteSizeLong() const {
   return total_size;
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData GetMobileAPNRequest::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
-    GetMobileAPNRequest::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetMobileAPNRequest::GetClassData() const { return &_class_data_; }
-
-void GetMobileAPNRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to,
-                      const ::PROTOBUF_NAMESPACE_ID::Message&from) {
-  static_cast<GetMobileAPNRequest *>(to)->MergeFrom(
-      static_cast<const GetMobileAPNRequest &>(from));
+void GetMobileAPNRequest::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:Mobile.GetMobileAPNRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  const GetMobileAPNRequest* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<GetMobileAPNRequest>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:Mobile.GetMobileAPNRequest)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:Mobile.GetMobileAPNRequest)
+    MergeFrom(*source);
+  }
 }
-
 
 void GetMobileAPNRequest::MergeFrom(const GetMobileAPNRequest& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:Mobile.GetMobileAPNRequest)
   GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from.cid() != 0) {
     _internal_set_cid(from._internal_cid());
   }
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void GetMobileAPNRequest::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:Mobile.GetMobileAPNRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
 }
 
 void GetMobileAPNRequest::CopyFrom(const GetMobileAPNRequest& from) {
@@ -272,29 +296,27 @@ bool GetMobileAPNRequest::IsInitialized() const {
 
 void GetMobileAPNRequest::InternalSwap(GetMobileAPNRequest* other) {
   using std::swap;
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   swap(cid_, other->cid_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata GetMobileAPNRequest::GetMetadata() const {
-  return ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
-      &descriptor_table_Mobile_2eproto_getter, &descriptor_table_Mobile_2eproto_once,
-      file_level_metadata_Mobile_2eproto[0]);
+  return GetMetadataStatic();
 }
+
 
 // ===================================================================
 
+void GetMobileAPNResponse::InitAsDefaultInstance() {
+}
 class GetMobileAPNResponse::_Internal {
  public:
 };
 
-GetMobileAPNResponse::GetMobileAPNResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+GetMobileAPNResponse::GetMobileAPNResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
   SharedCtor();
-  if (!is_message_owned) {
-    RegisterArenaDtor(arena);
-  }
+  RegisterArenaDtor(arena);
   // @@protoc_insertion_point(arena_constructor:Mobile.GetMobileAPNResponse)
 }
 GetMobileAPNResponse::GetMobileAPNResponse(const GetMobileAPNResponse& from)
@@ -302,8 +324,8 @@ GetMobileAPNResponse::GetMobileAPNResponse(const GetMobileAPNResponse& from)
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   apn_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   if (!from._internal_apn().empty()) {
-    apn_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_apn(), 
-      GetArenaForAllocation());
+    apn_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from._internal_apn(),
+      GetArena());
   }
   ::memcpy(&cid_, &from.cid_,
     static_cast<size_t>(reinterpret_cast<char*>(&type_) -
@@ -311,23 +333,22 @@ GetMobileAPNResponse::GetMobileAPNResponse(const GetMobileAPNResponse& from)
   // @@protoc_insertion_point(copy_constructor:Mobile.GetMobileAPNResponse)
 }
 
-inline void GetMobileAPNResponse::SharedCtor() {
-apn_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
-    reinterpret_cast<char*>(&cid_) - reinterpret_cast<char*>(this)),
-    0, static_cast<size_t>(reinterpret_cast<char*>(&type_) -
-    reinterpret_cast<char*>(&cid_)) + sizeof(type_));
+void GetMobileAPNResponse::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_GetMobileAPNResponse_Mobile_2eproto.base);
+  apn_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(&cid_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&type_) -
+      reinterpret_cast<char*>(&cid_)) + sizeof(type_));
 }
 
 GetMobileAPNResponse::~GetMobileAPNResponse() {
   // @@protoc_insertion_point(destructor:Mobile.GetMobileAPNResponse)
-  if (GetArenaForAllocation() != nullptr) return;
   SharedDtor();
   _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-inline void GetMobileAPNResponse::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+void GetMobileAPNResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
   apn_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
@@ -340,6 +361,11 @@ void GetMobileAPNResponse::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
 void GetMobileAPNResponse::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
+const GetMobileAPNResponse& GetMobileAPNResponse::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_GetMobileAPNResponse_Mobile_2eproto.base);
+  return *internal_default_instance();
+}
+
 
 void GetMobileAPNResponse::Clear() {
 // @@protoc_insertion_point(message_clear_start:Mobile.GetMobileAPNResponse)
@@ -347,7 +373,7 @@ void GetMobileAPNResponse::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  apn_.ClearToEmpty();
+  apn_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   ::memset(&cid_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&type_) -
       reinterpret_cast<char*>(&cid_)) + sizeof(type_));
@@ -356,9 +382,11 @@ void GetMobileAPNResponse::Clear() {
 
 const char* GetMobileAPNResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
     switch (tag >> 3) {
       // string apn = 1;
       case 1:
@@ -385,8 +413,7 @@ const char* GetMobileAPNResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAM
         continue;
       default: {
       handle_unusual:
-        if ((tag == 0) || ((tag & 7) == 4)) {
-          CHK_(ptr);
+        if ((tag & 7) == 4 || tag == 0) {
           ctx->SetLastTag(tag);
           goto success;
         }
@@ -413,7 +440,7 @@ failure:
   (void) cached_has_bits;
 
   // string apn = 1;
-  if (!this->apn().empty()) {
+  if (this->apn().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_apn().data(), static_cast<int>(this->_internal_apn().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
@@ -451,7 +478,7 @@ size_t GetMobileAPNResponse::ByteSizeLong() const {
   (void) cached_has_bits;
 
   // string apn = 1;
-  if (!this->apn().empty()) {
+  if (this->apn().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_apn());
@@ -480,26 +507,29 @@ size_t GetMobileAPNResponse::ByteSizeLong() const {
   return total_size;
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData GetMobileAPNResponse::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
-    GetMobileAPNResponse::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetMobileAPNResponse::GetClassData() const { return &_class_data_; }
-
-void GetMobileAPNResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to,
-                      const ::PROTOBUF_NAMESPACE_ID::Message&from) {
-  static_cast<GetMobileAPNResponse *>(to)->MergeFrom(
-      static_cast<const GetMobileAPNResponse &>(from));
+void GetMobileAPNResponse::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:Mobile.GetMobileAPNResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  const GetMobileAPNResponse* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<GetMobileAPNResponse>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:Mobile.GetMobileAPNResponse)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:Mobile.GetMobileAPNResponse)
+    MergeFrom(*source);
+  }
 }
-
 
 void GetMobileAPNResponse::MergeFrom(const GetMobileAPNResponse& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:Mobile.GetMobileAPNResponse)
   GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (!from.apn().empty()) {
+  if (from.apn().size() > 0) {
     _internal_set_apn(from._internal_apn());
   }
   if (from.cid() != 0) {
@@ -508,7 +538,13 @@ void GetMobileAPNResponse::MergeFrom(const GetMobileAPNResponse& from) {
   if (from.type() != 0) {
     _internal_set_type(from._internal_type());
   }
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void GetMobileAPNResponse::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:Mobile.GetMobileAPNResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
 }
 
 void GetMobileAPNResponse::CopyFrom(const GetMobileAPNResponse& from) {
@@ -524,12 +560,8 @@ bool GetMobileAPNResponse::IsInitialized() const {
 
 void GetMobileAPNResponse::InternalSwap(GetMobileAPNResponse* other) {
   using std::swap;
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      &apn_, GetArenaForAllocation(),
-      &other->apn_, other->GetArenaForAllocation()
-  );
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  apn_.Swap(&other->apn_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(GetMobileAPNResponse, type_)
       + sizeof(GetMobileAPNResponse::type_)
@@ -539,10 +571,9 @@ void GetMobileAPNResponse::InternalSwap(GetMobileAPNResponse* other) {
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata GetMobileAPNResponse::GetMetadata() const {
-  return ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
-      &descriptor_table_Mobile_2eproto_getter, &descriptor_table_Mobile_2eproto_once,
-      file_level_metadata_Mobile_2eproto[1]);
+  return GetMetadataStatic();
 }
+
 
 // ===================================================================
 
