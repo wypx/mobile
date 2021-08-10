@@ -20,7 +20,6 @@
 #include <base/os.h>
 #include <event/event_loop.h>
 #include <event/event_stack.h>
-#include <gflags/gflags.h>
 
 #if 0
 #include <brpc/server.h>

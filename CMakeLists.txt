@@ -62,5 +62,5 @@ target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 set(CMAKE_INSTALL_PREFIX /home/luotang.me)                     # 安装路径前缀 /home/xxx/usr
 install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)    # 二进制安装到 /home/luotang.me/bin
 
-set(MOBILE_CONF ${PROJECT_SOURCE_DIR}/Mobile/conf/Mobile.conf)
+set(MOBILE_CONF ${PROJECT_SOURCE_DIR}/mobile/conf/mobile.conf)
 install(FILES ${MOBILE_CONF} DESTINATION conf)
